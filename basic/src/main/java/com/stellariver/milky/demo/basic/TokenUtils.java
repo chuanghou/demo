@@ -1,0 +1,46 @@
+package com.stellariver.milky.demo.basic;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import lombok.SneakyThrows;
+
+import java.util.Date;
+
+public class TokenUtils {
+
+    private static final long EXPIRE_TIME= 10*60*60*1000;
+    private static final String TOKEN_SECRET="ljdyaishijin**zxxzddaa3nkjnj??";
+
+    public static String sign(String agentId){
+ 
+        String token=null;
+            Date expireAt=new Date(System.currentTimeMillis() + EXPIRE_TIME);
+            token = JWT.create()
+                    .withIssuer("auth0")
+                    .withClaim("agentId", agentId)
+                    .withExpiresAt(expireAt)
+                    .sign(Algorithm.HMAC256(TOKEN_SECRET));
+        return token;
+    }
+
+    @SneakyThrows
+    public static Boolean verify(String token){
+ 
+        try {
+            JWTVerifier jwtVerifier=JWT.require(Algorithm.HMAC256(TOKEN_SECRET)).withIssuer("auth0").build();
+            jwtVerifier.verify(token);
+        } catch (IllegalArgumentException | JWTVerificationException e) {
+            return false;
+        }
+        return true;
+    }
+
+    @SneakyThrows
+    public static String getAgentId(String token){
+        JWTVerifier jwtVerifier=JWT.require(Algorithm.HMAC256(TOKEN_SECRET)).withIssuer("auth0").build();
+        return jwtVerifier.verify(token).getClaim("agentId").asString();
+    }
+ 
+}

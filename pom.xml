@@ -216,22 +216,13 @@
                 <version>${plexus.utils.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.auth0</groupId>
+                <artifactId>java-jwt</artifactId>
+                <version>3.9.0</version>
+            </dependency>
+
             <!--infrastructure-base start-->
-            <dependency>
-                <groupId>com.aliyun.openservices</groupId>
-                <artifactId>tablestore</artifactId>
-                <version>5.13.9</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-client</artifactId>
-                <version>4.9.4</version>
-            </dependency>
-            <dependency>
-                <groupId>com.aliyun.schedulerx</groupId>
-                <artifactId>schedulerx2-worker</artifactId>
-                <version>1.3.4</version>
-            </dependency>
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
@@ -262,18 +253,6 @@
                 <artifactId>redisson-spring-boot-starter</artifactId>
                 <version>3.19.1</version>
             </dependency>
-            <dependency>
-                <groupId>it.ozimov</groupId>
-                <artifactId>embedded-redis</artifactId>
-                <version>0.7.3</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-simple</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <!--infrastructure-base end-->
         </dependencies>
     </dependencyManagement>
 
