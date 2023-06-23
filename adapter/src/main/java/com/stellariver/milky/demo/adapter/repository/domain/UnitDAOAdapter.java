@@ -1,8 +1,8 @@
 package com.stellariver.milky.demo.adapter.repository.domain;
 
 import com.stellariver.milky.demo.basic.UnitIdentify;
-import com.stellariver.milky.demo.domain.TransactionUnit;
-import com.stellariver.milky.demo.infrastructure.database.entity.TransactionUnitDO;
+import com.stellariver.milky.demo.domain.Unit;
+import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
 import com.stellariver.milky.domain.support.dependency.DaoAdapter;
 import com.stellariver.milky.domain.support.dependency.DataObjectInfo;
 import lombok.AccessLevel;
@@ -17,21 +17,21 @@ import org.mapstruct.factory.Mappers;
  */
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class TransactionUnitDAOAdapter implements DaoAdapter<TransactionUnit> {
+public class UnitDAOAdapter implements DaoAdapter<Unit> {
 
     @Override
-    public TransactionUnit toAggregate(@NonNull Object dataObject) {
-        return Convertor.INST.to((TransactionUnitDO) dataObject);
+    public Unit toAggregate(@NonNull Object dataObject) {
+        return Convertor.INST.to((UnitDO) dataObject);
     }
 
     @Override
-    public Object toDataObject(TransactionUnit item, DataObjectInfo dataObjectInfo) {
+    public Object toDataObject(Unit item, DataObjectInfo dataObjectInfo) {
         return Convertor.INST.to(item);
     }
 
     @Override
     public DataObjectInfo dataObjectInfo(String aggregateId) {
-        return DataObjectInfo.builder().clazz(TransactionUnitDO.class).primaryId(aggregateId).build();
+        return DataObjectInfo.builder().clazz(UnitDO.class).primaryId(aggregateId).build();
     }
 
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
@@ -41,20 +41,20 @@ public class TransactionUnitDAOAdapter implements DaoAdapter<TransactionUnit> {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        TransactionUnit to(TransactionUnitDO transactionUnitDO);
+        Unit to(UnitDO unitDO);
 
         @AfterMapping
-        default void after(TransactionUnitDO transactionUnitDO, @MappingTarget TransactionUnit transactionUnit) {
-            transactionUnit.setUnitIdentify(UnitIdentify.resolve(transactionUnitDO.getId()));
+        default void after(UnitDO unitDO, @MappingTarget Unit unit) {
+            unit.setUnitIdentify(UnitIdentify.resolve(unitDO.getId()));
         }
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        TransactionUnitDO to(TransactionUnit item);
+        UnitDO to(Unit item);
 
         @AfterMapping
-        default void after(TransactionUnit transactionUnit, @MappingTarget TransactionUnitDO transactionUnitDO) {
-            UnitIdentify unitIdentify = UnitIdentify.resolve(transactionUnitDO.getId());
-            transactionUnit.setUnitIdentify(unitIdentify);
+        default void after(Unit unit, @MappingTarget UnitDO unitDO) {
+            UnitIdentify unitIdentify = UnitIdentify.resolve(unitDO.getId());
+            unit.setUnitIdentify(unitIdentify);
 
         }
 

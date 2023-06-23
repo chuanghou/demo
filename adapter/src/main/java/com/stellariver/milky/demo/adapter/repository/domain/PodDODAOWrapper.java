@@ -1,8 +1,8 @@
 package com.stellariver.milky.demo.adapter.repository.domain;
 
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.infrastructure.database.entity.AgentDO;
-import com.stellariver.milky.demo.infrastructure.database.mapper.AgentDOMapper;
+import com.stellariver.milky.demo.infrastructure.database.entity.PodDO;
+import com.stellariver.milky.demo.infrastructure.database.mapper.PodDOMapper;
 import com.stellariver.milky.domain.support.dependency.DAOWrapper;
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -20,28 +20,28 @@ import java.util.Set;
  */
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AgentDODAOWrapper implements DAOWrapper<AgentDO, String> {
+public class PodDODAOWrapper implements DAOWrapper<PodDO, String> {
 
-    final AgentDOMapper agentDOMapper;
+    final PodDOMapper PodDOMapper;
 
     @Override
-    public int batchSave(@NonNull List<AgentDO> agentDOs) {
-        return agentDOs.stream().map(agentDOMapper::insert).reduce(0, Integer::sum);
+    public int batchSave(@NonNull List<PodDO> podDOS) {
+        return podDOS.stream().map(PodDOMapper::insert).reduce(0, Integer::sum);
     }
 
     @Override
-    public int batchUpdate(@NonNull List<AgentDO> itemDOs) {
-        return itemDOs.stream().map(agentDOMapper::updateById).reduce(0, Integer::sum);
+    public int batchUpdate(@NonNull List<PodDO> itemDOs) {
+        return itemDOs.stream().map(PodDOMapper::updateById).reduce(0, Integer::sum);
     }
 
     @Override
-    public Map<String, AgentDO> batchGetByPrimaryIds(@NonNull Set<String> ids) {
-        List<AgentDO> AgentDOs = agentDOMapper.selectBatchIds(ids);
-        return Collect.toMap(AgentDOs, AgentDO::getId);
+    public Map<String, PodDO> batchGetByPrimaryIds(@NonNull Set<String> ids) {
+        List<PodDO> podDOS = PodDOMapper.selectBatchIds(ids);
+        return Collect.toMap(podDOS, PodDO::getId);
     }
 
     @Override
-    public AgentDO merge(@NonNull AgentDO priority, @NonNull AgentDO original) {
+    public PodDO merge(@NonNull PodDO priority, @NonNull PodDO original) {
         return Merger.INST.merge(priority, original);
     }
 
@@ -52,7 +52,7 @@ public class AgentDODAOWrapper implements DAOWrapper<AgentDO, String> {
         Merger INST = Mappers.getMapper(Merger.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        AgentDO merge(AgentDO priority, @MappingTarget AgentDO original);
+        PodDO merge(PodDO priority, @MappingTarget PodDO original);
 
     }
 }

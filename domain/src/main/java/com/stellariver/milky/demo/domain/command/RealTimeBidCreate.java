@@ -16,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RealTimeBid extends Command{
+public class RealTimeBidCreate extends Command{
 
     String bidId;
     UnitIdentify unitIdentify;
@@ -24,7 +24,7 @@ public class RealTimeBid extends Command{
 
     @Override
     public String getAggregateId() {
-        return unitIdentify.getUnitId();
+        return bidId;
     }
 
 

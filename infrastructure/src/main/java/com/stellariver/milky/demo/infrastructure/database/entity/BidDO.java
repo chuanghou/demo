@@ -12,16 +12,19 @@ import lombok.experimental.SuperBuilder;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("agent_do")
+@TableName("bid_do")
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AgentDO extends AbstractMpDO implements BaseDataObject<String> {
+public class BidDO extends AbstractMpDO implements BaseDataObject<String> {
 
     @TableId(type = IdType.INPUT)
     String id;
-    String name;
-    String password;
+    String podId;
+    String unitId;
+    String direction;
+    Double quantity;
+    Double price;
 
     @Override
     public String getPrimaryId() {

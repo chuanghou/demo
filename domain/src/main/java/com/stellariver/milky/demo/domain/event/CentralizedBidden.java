@@ -1,22 +1,22 @@
-package com.stellariver.milky.demo.domain.command;
+package com.stellariver.milky.demo.domain.event;
 
 import com.stellariver.milky.demo.basic.Transaction;
 import com.stellariver.milky.demo.basic.UnitIdentify;
-import com.stellariver.milky.domain.support.command.Command;
-import lombok.*;
+import com.stellariver.milky.domain.support.event.Event;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-/**
- * @author houchuang
- */
+
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RealTimeBid extends Command{
+public class CentralizedBidden extends Event {
 
     String bidId;
     UnitIdentify unitIdentify;
@@ -26,6 +26,5 @@ public class RealTimeBid extends Command{
     public String getAggregateId() {
         return unitIdentify.getUnitId();
     }
-
 
 }

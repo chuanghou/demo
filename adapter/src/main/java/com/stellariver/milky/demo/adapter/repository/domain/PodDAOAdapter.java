@@ -16,7 +16,7 @@ import org.mapstruct.factory.Mappers;
  */
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class NodeDAOAdapter implements DaoAdapter<Pod> {
+public class PodDAOAdapter implements DaoAdapter<Pod> {
 
     @Override
     public Pod toAggregate(@NonNull Object dataObject) {

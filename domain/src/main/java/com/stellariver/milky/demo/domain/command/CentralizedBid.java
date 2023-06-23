@@ -18,6 +18,7 @@ import lombok.experimental.SuperBuilder;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CentralizedBid extends Command {
 
+    String bidId;
     UnitIdentify unitIdentify;
     Transaction transaction;
 

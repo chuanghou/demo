@@ -3,10 +3,9 @@ package com.stellariver.milky.demo.adapter.controller;
 import com.stellariver.milky.common.base.BaseEx;
 import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
-import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Typed;
 import com.stellariver.milky.demo.adapter.controller.req.LoginReq;
-import com.stellariver.milky.demo.domain.command.Login;
+import com.stellariver.milky.demo.domain.command.AgentLogin;
 import com.stellariver.milky.domain.support.ErrorEnums;
 import com.stellariver.milky.domain.support.command.CommandBus;
 import lombok.AccessLevel;
@@ -29,11 +28,11 @@ public class AgentController {
 
     @GetMapping("login")
     public Result<String> update(@RequestBody LoginReq loginReq) {
-        Login login = Login.builder().agentId(loginReq.getAgentId()).password(loginReq.getPassword()).build();
+        AgentLogin agentLogin = AgentLogin.builder().agentId(loginReq.getAgentId()).password(loginReq.getPassword()).build();
         Map<Class<? extends Typed<?>>, Object> parameters = new HashMap<>();
         String token = null;
         try {
-            token = (String) CommandBus.accept(login, parameters);
+            token = (String) CommandBus.accept(agentLogin, parameters);
         } catch (BaseEx baseEx) {
             if (baseEx.getFirstError().getCode().equals(ErrorEnums.AGGREGATE_NOT_EXISTED.getCode())) {
                 return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("账户不存在"), ExceptionType.BIZ);
