@@ -4,8 +4,9 @@ import com.stellariver.milky.demo.basic.TokenUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TokenTest {
 
+
+public class TokenTest {
 
     @Test
     public void testToken() {
@@ -13,8 +14,6 @@ public class TokenTest {
         String agentId = TokenUtils.getUserId(test);
         Assertions.assertEquals("test", agentId);
     }
-
-
 
 }
 

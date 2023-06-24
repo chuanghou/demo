@@ -13,8 +13,6 @@ import javax.validation.constraints.Positive;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class StepCompReq {
 
-    @NotNull
-    @Positive
     Long length; // unit second
 
 }

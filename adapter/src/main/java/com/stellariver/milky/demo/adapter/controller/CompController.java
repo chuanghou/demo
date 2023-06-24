@@ -37,11 +37,17 @@ public class CompController {
 
     @PostMapping("addComp")
     public Result<Void> addComp(@RequestBody AddCompReq req, @RequestHeader("token") String token) {
-        checkAdmin(token);
-
+        if (!domainTunnel.checkAdmin(TokenUtils.getUserId(token))) {
+            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
+        }
         Comp currentComp = domainTunnel.getCurrentComp();
         if (currentComp != null) {
-            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("当前仍有运行中的竞赛，请终止相应竞赛"), ExceptionType.BIZ);
+            if (currentComp.getStage() == Stage.STAGE_FOUR_SETTLE) {
+                CompStep compStep = CompStep.builder().compId(currentComp.getCompId()).build();
+                CommandBus.accept(compStep, new HashMap<>());
+            } else {
+                return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("当前仍有运行中的竞赛，请终止相应竞赛"), ExceptionType.BIZ);
+            }
         }
 
         CompBuild compBuild = CompBuild.builder()
@@ -60,14 +66,16 @@ public class CompController {
 
     @PostMapping
     public Result<Void> stepComp(@RequestBody StepCompReq req, @RequestHeader("token") String token) {
-        checkAdmin(token);
+        if (!domainTunnel.checkAdmin(TokenUtils.getUserId(token))) {
+            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
+        }
         Comp currentComp = domainTunnel.getCurrentComp();
         if (currentComp == null) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("当前无竞赛"), ExceptionType.BIZ);
         }
         Stage stage = currentComp.getStage();
         if (stage.getAutoForNext()) {
-            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("请等待自动结束"), ExceptionType.BIZ);
+            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("请等待自动结束本阶段"), ExceptionType.BIZ);
         }
         CompStep compStep = CompStep.builder().compId(currentComp.getCompId()).build();
         CommandBus.accept(compStep, new HashMap<>());
@@ -90,13 +98,5 @@ public class CompController {
             return Result.success(currentComp.getCompId() + ":" + currentComp.getStage().getDesc());
         }
     }
-
-    private void checkAdmin(String token) {
-        String userId = TokenUtils.getUserId(token);
-        User user = domainTunnel.getByUserId(userId);
-        BizEx.trueThrow(user.getRole() != Role.ADMIN, ErrorEnums.PARAM_FORMAT_WRONG.message("管理员入口，禁止普通用户操作"));
-    }
-
-
 
 }

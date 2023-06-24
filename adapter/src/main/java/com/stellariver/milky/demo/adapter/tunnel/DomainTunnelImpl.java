@@ -5,6 +5,7 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.demo.adapter.repository.domain.CompDAOAdapter;
 import com.stellariver.milky.demo.adapter.repository.domain.PodDAOAdapter;
 import com.stellariver.milky.demo.adapter.repository.domain.UserDAOAdapter;
+import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Pod;
@@ -56,6 +57,16 @@ public class DomainTunnelImpl implements DomainTunnel {
     public User getByUserId(String userId) {
         UserDO userDO = userDOMapper.selectById(userId);
         return UserDAOAdapter.Convertor.INST.to(userDO);
+    }
+
+    @Override
+    public boolean checkAdmin(String userId) {
+        User user = getByUserId(userId);
+        if (user == null) {
+            return false;
+        } else {
+            return user.getRole() == Role.ADMIN;
+        }
     }
 
 }

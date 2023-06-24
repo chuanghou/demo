@@ -26,12 +26,8 @@ public class TokenInterceptor implements HandlerInterceptor {
 
         response.setCharacterEncoding("utf-8");
         String token = request.getHeader("token");
-        if (token!=null){
-            boolean result= TokenUtils.verify(token);
-            if (result){
-                System.out.println("通过拦截器");
-                return true;
-            }
+        if (token != null && TokenUtils.verify(token)){
+            return true;
         }
 
         response.setContentType("application/json; charset=utf-8");

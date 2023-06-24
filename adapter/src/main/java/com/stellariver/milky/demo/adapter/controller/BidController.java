@@ -3,8 +3,10 @@ package com.stellariver.milky.demo.adapter.controller;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.tool.common.BeanUtil;
 import com.stellariver.milky.demo.adapter.controller.req.CentralizedBidReq;
+import com.stellariver.milky.demo.adapter.controller.req.RealtimeBidReq;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.domain.command.CentralizedBid;
+import com.stellariver.milky.demo.domain.command.RealTimeBid;
 import com.stellariver.milky.domain.support.command.CommandBus;
 import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.AccessLevel;
@@ -23,7 +25,7 @@ import java.util.HashMap;
 @RequiredArgsConstructor
 @RequestMapping("interProvince")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TransactionController {
+public class BidController {
 
     @PostMapping("centralizedBid")
     public Result<String> centralizedBid(@RequestBody CentralizedBidReq req, @RequestHeader("token") String token) {
@@ -33,6 +35,14 @@ public class TransactionController {
         return Result.success(userId);
     }
 
+
+    @PostMapping("realtimeBid")
+    public Result<String> realtimeBid(@RequestBody RealtimeBidReq req, @RequestHeader("token") String token) {
+        String userId = TokenUtils.getUserId(token);
+        RealTimeBid realTimeBid = Convertor.INST.to(req);
+        CommandBus.accept(realTimeBid, new HashMap<>());
+        return Result.success(userId);
+    }
 
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
             nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -46,6 +56,14 @@ public class TransactionController {
         @AfterMapping
         default void after(CentralizedBidReq req, CentralizedBid centralizedBid) {
             centralizedBid.setBidId(BeanUtil.getBean(UniqueIdBuilder.class).get().toString());
+        }
+
+        @BeanMapping(builder = @Builder(disableBuilder = true))
+        RealTimeBid to(RealtimeBidReq req);
+
+        @AfterMapping
+        default void after(RealtimeBidReq req, RealTimeBid realTimeBid) {
+            realTimeBid.setBidId(BeanUtil.getBean(UniqueIdBuilder.class).get().toString());
         }
 
     }

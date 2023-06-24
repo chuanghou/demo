@@ -1,4 +1,5 @@
-package com.stellariver.milky.demo.adapter.controller.req;
+package com.stellariver.milky.demo.adapter.controller.resp;
+
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,9 +9,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class LoginReq {
-
+public class UserResp {
     String userId;
-    String password;
-
+    String name;
+    String role;
 }

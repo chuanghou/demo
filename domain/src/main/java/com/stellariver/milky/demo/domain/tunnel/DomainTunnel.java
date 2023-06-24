@@ -12,6 +12,8 @@ public interface DomainTunnel {
 
     User getByUserId(String userId);
 
+    boolean checkAdmin(String userId);
+
     @Nullable
     Comp getCurrentComp();
 }
