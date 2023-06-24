@@ -19,14 +19,14 @@ import lombok.experimental.SuperBuilder;
 public class PodDO extends AbstractMpDO implements BaseDataObject<String> {
 
     @TableId(type = IdType.INPUT)
-    String id;
-    String agentId;
-    String type;
+    String podId;
     String name;
-    String date;
-
+    String podType;
+    Double peakCapacity;
+    Double flatCapacity;
+    Double valleyCapacity;
     @Override
     public String getPrimaryId() {
-        return id;
+        return podId;
     }
 }

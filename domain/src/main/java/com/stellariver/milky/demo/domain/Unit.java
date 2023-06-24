@@ -4,6 +4,7 @@ import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.domain.command.CentralizedBid;
 import com.stellariver.milky.demo.domain.command.RealTimeBid;
+import com.stellariver.milky.demo.domain.command.UnitBuild;
 import com.stellariver.milky.demo.domain.event.CentralizedBidden;
 import com.stellariver.milky.demo.domain.event.RealtimeBidden;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
@@ -33,13 +34,20 @@ public class Unit extends AggregateRoot {
         return unitIdentify.getUnitId();
     }
 
+    public static Unit build(UnitBuild unitBuild, Context context) {
+        Unit unit = Convertor.INST.to(unitBuild);
+        unit.setBought(0D);
+        unit.setSold(0D);
+        return unit;
+    }
+
 
     public void handle(CentralizedBid centralizedBid, Context context) {
 
         Transaction transaction = centralizedBid.getTransaction();
 
-        boolean generatorSell = (Type.GENERATOR == unitIdentify.getType()) && (transaction.getDirection() == Direction.SELL);
-        boolean loadBuy = (Type.LOAD == unitIdentify.getType()) && (transaction.getDirection() == Direction.BUY);
+        boolean generatorSell = (PodType.GENERATOR == unitIdentify.getPodType()) && (transaction.getDirection() == Direction.SELL);
+        boolean loadBuy = (PodType.LOAD == unitIdentify.getPodType()) && (transaction.getDirection() == Direction.BUY);
 
         BizEx.falseThrow(generatorSell || loadBuy, ErrorEnums.PARAM_FORMAT_WRONG.message("参数异常" + centralizedBid));
 
@@ -78,6 +86,9 @@ public class Unit extends AggregateRoot {
     public interface Convertor {
 
         Convertor INST = Mappers.getMapper(Convertor.class);
+
+        @BeanMapping(builder = @Builder(disableBuilder = true))
+        Unit to(UnitBuild unitBuild);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
         CentralizedBidden to(CentralizedBid centralizedBid);

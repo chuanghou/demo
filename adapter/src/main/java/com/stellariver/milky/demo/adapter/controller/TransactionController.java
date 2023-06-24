@@ -21,13 +21,13 @@ import java.util.HashMap;
  */
 @RestController
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("interProvince")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class TransactionController {
 
     @PostMapping("centralizedBid")
     public Result<String> centralizedBid(@RequestBody CentralizedBidReq req, @RequestHeader("token") String token) {
-        String agentId = TokenUtils.getAgentId(token);
+        String agentId = TokenUtils.getUserId(token);
         CentralizedBid centralizedBid = Convertor.INST.to(req);
         CommandBus.accept(centralizedBid, new HashMap<>());
         return Result.success(agentId);

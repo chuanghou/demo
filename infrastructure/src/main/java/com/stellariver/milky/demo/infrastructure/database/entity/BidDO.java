@@ -19,7 +19,7 @@ import lombok.experimental.SuperBuilder;
 public class BidDO extends AbstractMpDO implements BaseDataObject<String> {
 
     @TableId(type = IdType.INPUT)
-    String id;
+    String bidId;
     String podId;
     String unitId;
     String direction;
@@ -28,6 +28,6 @@ public class BidDO extends AbstractMpDO implements BaseDataObject<String> {
 
     @Override
     public String getPrimaryId() {
-        return id;
+        return bidId;
     }
 }

@@ -37,7 +37,7 @@ public class UnitDODAOWrapper implements DAOWrapper<UnitDO, String> {
     @Override
     public Map<String, UnitDO> batchGetByPrimaryIds(@NonNull Set<String> ids) {
         List<UnitDO> unitDOS = unitDOMapper.selectBatchIds(ids);
-        return Collect.toMap(unitDOS, UnitDO::getId);
+        return Collect.toMap(unitDOS, UnitDO::getUnitId);
     }
 
     @Override

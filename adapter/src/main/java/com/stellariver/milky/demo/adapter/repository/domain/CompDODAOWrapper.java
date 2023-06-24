@@ -2,7 +2,9 @@ package com.stellariver.milky.demo.adapter.repository.domain;
 
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.infrastructure.database.entity.BidDO;
+import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.BidDOMapper;
+import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
 import com.stellariver.milky.domain.support.dependency.DAOWrapper;
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -20,28 +22,28 @@ import java.util.Set;
  */
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BidDODAOWrapper implements DAOWrapper<BidDO, String> {
+public class CompDODAOWrapper implements DAOWrapper<CompDO, String> {
 
-    final BidDOMapper bidDOMapper;
+    final CompDOMapper compDOMapper;
 
     @Override
-    public int batchSave(@NonNull List<BidDO> bidDOS) {
-        return bidDOS.stream().map(bidDOMapper::insert).reduce(0, Integer::sum);
+    public int batchSave(@NonNull List<CompDO> compDOs) {
+        return compDOs.stream().map(compDOMapper::insert).reduce(0, Integer::sum);
     }
 
     @Override
-    public int batchUpdate(@NonNull List<BidDO> bidDOs) {
-        return bidDOs.stream().map(bidDOMapper::updateById).reduce(0, Integer::sum);
+    public int batchUpdate(@NonNull List<CompDO> compDOs) {
+        return compDOs.stream().map(compDOMapper::updateById).reduce(0, Integer::sum);
     }
 
     @Override
-    public Map<String, BidDO> batchGetByPrimaryIds(@NonNull Set<String> ids) {
-        List<BidDO> bidDOs = bidDOMapper.selectBatchIds(ids);
-        return Collect.toMap(bidDOs, BidDO::getBidId);
+    public Map<String, CompDO> batchGetByPrimaryIds(@NonNull Set<String> ids) {
+        List<CompDO> compDOs = compDOMapper.selectBatchIds(ids);
+        return Collect.toMap(compDOs, CompDO::getCompId);
     }
 
     @Override
-    public BidDO merge(@NonNull BidDO priority, @NonNull BidDO original) {
+    public CompDO merge(@NonNull CompDO priority, @NonNull CompDO original) {
         return Merger.INST.merge(priority, original);
     }
 
@@ -52,7 +54,7 @@ public class BidDODAOWrapper implements DAOWrapper<BidDO, String> {
         Merger INST = Mappers.getMapper(Merger.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        BidDO merge(BidDO priority, @MappingTarget BidDO original);
+        CompDO merge(CompDO priority, @MappingTarget CompDO original);
 
     }
 }

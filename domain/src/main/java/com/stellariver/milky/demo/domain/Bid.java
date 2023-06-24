@@ -3,7 +3,7 @@ package com.stellariver.milky.demo.domain;
 import com.stellariver.milky.demo.basic.BidType;
 import com.stellariver.milky.demo.basic.Transaction;
 import com.stellariver.milky.demo.basic.UnitIdentify;
-import com.stellariver.milky.demo.domain.command.CentralizedBidCreate;
+import com.stellariver.milky.demo.domain.command.CentralizedBidbuild;
 import com.stellariver.milky.demo.domain.command.RealTimeBidCreate;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.command.ConstructorHandler;
@@ -23,7 +23,7 @@ import org.mapstruct.factory.Mappers;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Bid extends AggregateRoot {
 
-    String id;
+    String bidId;
     BidType type;
     UnitIdentify unitIdentify;
     Transaction transaction;
@@ -31,11 +31,11 @@ public class Bid extends AggregateRoot {
 
     @Override
     public String getAggregateId() {
-        return id;
+        return bidId;
     }
 
     @ConstructorHandler
-    static public Bid fromCentralizedBidden(CentralizedBidCreate create, Context context) {
+    static public Bid fromCentralizedBidden(CentralizedBidbuild create, Context context) {
         return Convertor.INST.toCentralized(create);
     }
 
@@ -51,10 +51,10 @@ public class Bid extends AggregateRoot {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        Bid toCentralized(CentralizedBidCreate create);
+        Bid toCentralized(CentralizedBidbuild build);
 
         @AfterMapping
-        default void after(CentralizedBidCreate create, Bid bid) {
+        default void after(CentralizedBidbuild build, Bid bid) {
             bid.setType(BidType.Centralized);
         }
 

@@ -37,7 +37,7 @@ public class PodDODAOWrapper implements DAOWrapper<PodDO, String> {
     @Override
     public Map<String, PodDO> batchGetByPrimaryIds(@NonNull Set<String> ids) {
         List<PodDO> podDOS = PodDOMapper.selectBatchIds(ids);
-        return Collect.toMap(podDOS, PodDO::getId);
+        return Collect.toMap(podDOS, PodDO::getPodId);
     }
 
     @Override

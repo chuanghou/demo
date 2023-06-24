@@ -1,7 +1,7 @@
 package com.stellariver.milky.demo.adapter.repository.domain;
 
-import com.stellariver.milky.demo.domain.Agent;
-import com.stellariver.milky.demo.infrastructure.database.entity.AgentDO;
+import com.stellariver.milky.demo.domain.User;
+import com.stellariver.milky.demo.infrastructure.database.entity.UserDO;
 import com.stellariver.milky.domain.support.dependency.DaoAdapter;
 import com.stellariver.milky.domain.support.dependency.DataObjectInfo;
 import lombok.AccessLevel;
@@ -15,22 +15,22 @@ import org.mapstruct.factory.Mappers;
  * @author houchuang
  */
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class AgentDAOAdapter implements DaoAdapter<Agent> {
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class AgentDAOAdapter implements DaoAdapter<User> {
 
     @Override
-    public Agent toAggregate(@NonNull Object dataObject) {
-        return Convertor.INST.to((AgentDO) dataObject);
+    public User toAggregate(@NonNull Object dataObject) {
+        return Convertor.INST.to((UserDO) dataObject);
     }
 
     @Override
-    public Object toDataObject(Agent agent, DataObjectInfo dataObjectInfo) {
-        return Convertor.INST.to(agent);
+    public Object toDataObject(User user, DataObjectInfo dataObjectInfo) {
+        return Convertor.INST.to(user);
     }
 
     @Override
     public DataObjectInfo dataObjectInfo(String aggregateId) {
-        return DataObjectInfo.builder().clazz(AgentDO.class).primaryId(aggregateId).build();
+        return DataObjectInfo.builder().clazz(UserDO.class).primaryId(aggregateId).build();
     }
 
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
@@ -40,10 +40,10 @@ public class AgentDAOAdapter implements DaoAdapter<Agent> {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        Agent to(AgentDO agentDO);
+        User to(UserDO userDO);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        AgentDO to(Agent agent);
+        UserDO to(User agent);
 
 
     }

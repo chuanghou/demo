@@ -3,20 +3,16 @@ package com.stellariver.milky.demo.basic;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-/**
- * @author houchuang
- */
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserInfo {
+public class Agent {
 
-    Long userId;
-
-    String userName;
-
-    boolean permission;
+    String userId;
+    List<String> podIds;
 
 }

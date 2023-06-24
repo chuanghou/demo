@@ -1,9 +1,8 @@
 package com.stellariver.milky.demo.adapter.repository.domain;
 
 import com.stellariver.milky.demo.basic.BasicConvertor;
-import com.stellariver.milky.demo.basic.UnitIdentify;
-import com.stellariver.milky.demo.domain.Unit;
-import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
+import com.stellariver.milky.demo.domain.Comp;
+import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.domain.support.dependency.DaoAdapter;
 import com.stellariver.milky.domain.support.dependency.DataObjectInfo;
 import lombok.AccessLevel;
@@ -17,22 +16,22 @@ import org.mapstruct.factory.Mappers;
  * @author houchuang
  */
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class UnitDAOAdapter implements DaoAdapter<Unit> {
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class CompDAOAdapter implements DaoAdapter<Comp> {
 
     @Override
-    public Unit toAggregate(@NonNull Object dataObject) {
-        return Convertor.INST.to((UnitDO) dataObject);
+    public Comp toAggregate(@NonNull Object dataObject) {
+        return Convertor.INST.to((CompDO) dataObject);
     }
 
     @Override
-    public Object toDataObject(Unit item, DataObjectInfo dataObjectInfo) {
-        return Convertor.INST.to(item);
+    public Object toDataObject(Comp comp, DataObjectInfo dataObjectInfo) {
+        return Convertor.INST.to(comp);
     }
 
     @Override
     public DataObjectInfo dataObjectInfo(String aggregateId) {
-        return DataObjectInfo.builder().clazz(UnitDO.class).primaryId(aggregateId).build();
+        return DataObjectInfo.builder().clazz(CompDO.class).primaryId(aggregateId).build();
     }
 
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
@@ -42,10 +41,11 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        Unit to(UnitDO unitDO);
+        Comp to(CompDO compDO);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        UnitDO to(Unit unit);
+        CompDO to(Comp comp);
+
 
     }
 }

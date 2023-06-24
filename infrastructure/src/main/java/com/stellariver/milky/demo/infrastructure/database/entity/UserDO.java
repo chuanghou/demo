@@ -9,28 +9,23 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-/**
- * @author houchuang
- */
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("unit_do")
+@TableName("agent_do")
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UnitDO extends AbstractMpDO implements BaseDataObject<String> {
+public class UserDO extends AbstractMpDO implements BaseDataObject<String> {
 
     @TableId(type = IdType.INPUT)
-    String unitId;
-    Double capacity;
-    Double bought;
-    Double sold;
+    String userId;
+    String role;
+    String name;
+    String password;
 
     @Override
     public String getPrimaryId() {
-        return unitId;
+        return userId;
     }
-
 }

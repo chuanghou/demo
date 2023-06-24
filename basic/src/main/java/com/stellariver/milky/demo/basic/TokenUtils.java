@@ -13,13 +13,13 @@ public class TokenUtils {
     private static final long EXPIRE_TIME= 10*60*60*1000;
     private static final String TOKEN_SECRET="ljdyaishijin**zxxzddaa3nkjnj??";
 
-    public static String sign(String agentId){
+    public static String sign(String userId){
  
         String token=null;
             Date expireAt=new Date(System.currentTimeMillis() + EXPIRE_TIME);
             token = JWT.create()
                     .withIssuer("auth0")
-                    .withClaim("agentId", agentId)
+                    .withClaim("userId", userId)
                     .withExpiresAt(expireAt)
                     .sign(Algorithm.HMAC256(TOKEN_SECRET));
         return token;
@@ -38,9 +38,9 @@ public class TokenUtils {
     }
 
     @SneakyThrows
-    public static String getAgentId(String token){
+    public static String getUserId(String token){
         JWTVerifier jwtVerifier=JWT.require(Algorithm.HMAC256(TOKEN_SECRET)).withIssuer("auth0").build();
-        return jwtVerifier.verify(token).getClaim("agentId").asString();
+        return jwtVerifier.verify(token).getClaim("userId").asString();
     }
  
 }

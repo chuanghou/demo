@@ -13,10 +13,11 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AgentLogin extends Command {
+public class UserEdit extends Command {
 
     String agentId;
     String password;
+    String name;
 
     @Override
     public String getAggregateId() {

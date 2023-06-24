@@ -1,5 +1,6 @@
 package com.stellariver.milky.demo.domain;
 
+import com.stellariver.milky.demo.basic.PodType;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -13,10 +14,15 @@ import lombok.experimental.SuperBuilder;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Pod extends AggregateRoot {
 
-    String id;
+    String podId;
+    String name;
+    PodType podType;
+    Double peakCapacity;
+    Double flatCapacity;
+    Double valleyCapacity;
 
     @Override
     public String getAggregateId() {
-        return id;
+        return podId;
     }
 }

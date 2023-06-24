@@ -1,5 +1,5 @@
 package com.stellariver.milky.demo.basic;
 
-public enum Type {
+public enum PodType {
     GENERATOR, LOAD
 }

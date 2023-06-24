@@ -1,10 +1,12 @@
 package com.stellariver.milky.demo.domain;
 
+
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.tool.common.Kit;
+import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.TokenUtils;
-import com.stellariver.milky.demo.domain.command.AgentEdit;
-import com.stellariver.milky.demo.domain.command.AgentLogin;
+import com.stellariver.milky.demo.domain.command.UserEdit;
+import com.stellariver.milky.demo.domain.command.UserLogin;
 import com.stellariver.milky.demo.domain.event.AgentEdited;
 import com.stellariver.milky.domain.support.ErrorEnums;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
@@ -21,22 +23,22 @@ import org.apache.commons.lang3.StringUtils;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Agent extends AggregateRoot {
+public class User extends AggregateRoot {
 
-    String id;
+    String userId;
+    Role role;
     String name;
     String password;
 
-
     @MethodHandler
-    public String login(AgentLogin command, Context context) {
+    public String login(UserLogin command, Context context) {
         BizEx.trueThrow(Kit.notEq(command.getPassword(), password),
                 ErrorEnums.PARAM_FORMAT_WRONG.message("登陆密码错误!"));
-        return TokenUtils.sign(id);
+        return TokenUtils.sign(userId);
     }
 
     @MethodHandler
-    public void edit(AgentEdit command, Context context) {
+    public void edit(UserEdit command, Context context) {
         boolean edited = false;
         AgentEdited.AgentEditedBuilder<?, ?> builder = AgentEdited.builder();
         if (StringUtils.isNotBlank(command.getPassword())) {
@@ -55,9 +57,9 @@ public class Agent extends AggregateRoot {
         }
     }
 
-
     @Override
     public String getAggregateId() {
-        return id;
+        return userId;
     }
+
 }

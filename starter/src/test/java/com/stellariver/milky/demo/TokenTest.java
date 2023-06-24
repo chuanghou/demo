@@ -10,7 +10,7 @@ public class TokenTest {
     @Test
     public void testToken() {
         String test = TokenUtils.sign("test");
-        String agentId = TokenUtils.getAgentId(test);
+        String agentId = TokenUtils.getUserId(test);
         Assertions.assertEquals("test", agentId);
     }
 
