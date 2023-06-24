@@ -28,7 +28,7 @@ public class UserController {
 
     @GetMapping("login")
     public Result<String> update(@RequestBody LoginReq loginReq) {
-        UserLogin userLogin = UserLogin.builder().agentId(loginReq.getAgentId()).password(loginReq.getPassword()).build();
+        UserLogin userLogin = UserLogin.builder().userId(loginReq.getAgentId()).password(loginReq.getPassword()).build();
         Map<Class<? extends Typed<?>>, Object> parameters = new HashMap<>();
         String token = null;
         try {

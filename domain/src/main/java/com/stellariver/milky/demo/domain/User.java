@@ -7,7 +7,7 @@ import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.domain.command.UserEdit;
 import com.stellariver.milky.demo.domain.command.UserLogin;
-import com.stellariver.milky.demo.domain.event.AgentEdited;
+import com.stellariver.milky.demo.domain.event.UserEdited;
 import com.stellariver.milky.domain.support.ErrorEnums;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.command.MethodHandler;
@@ -40,7 +40,7 @@ public class User extends AggregateRoot {
     @MethodHandler
     public void edit(UserEdit command, Context context) {
         boolean edited = false;
-        AgentEdited.AgentEditedBuilder<?, ?> builder = AgentEdited.builder();
+        UserEdited.UserEditedBuilder<?, ?> builder = UserEdited.builder();
         if (StringUtils.isNotBlank(command.getPassword())) {
             builder.oldPassword(password).newPassword(command.getPassword());
             password = command.getPassword();
@@ -52,7 +52,7 @@ public class User extends AggregateRoot {
             edited = true;
         }
         if (edited) {
-            AgentEdited event = builder.build();
+            UserEdited event = builder.build();
             context.publish(event);
         }
     }

@@ -1,7 +1,7 @@
 package com.stellariver.milky.demo.domain.event;
 
-import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.basic.Agent;
+import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.domain.support.event.Event;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,6 +24,7 @@ public class CompBuilt extends Event {
     String name;
     Stage stage;
     List<Agent> agents;
+
 
     @Override
     public String getAggregateId() {

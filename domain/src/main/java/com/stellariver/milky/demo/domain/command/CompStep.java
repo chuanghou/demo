@@ -1,26 +1,23 @@
 package com.stellariver.milky.demo.domain.command;
 
 import com.stellariver.milky.domain.support.command.Command;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 @Data
 @SuperBuilder
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserLogin extends Command {
+public class CompStep extends Command {
 
-    String userId;
-    String password;
+    String compId;
 
     @Override
     public String getAggregateId() {
-        return userId;
+        return compId;
     }
 
 }

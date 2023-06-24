@@ -27,10 +27,10 @@ public class TransactionController {
 
     @PostMapping("centralizedBid")
     public Result<String> centralizedBid(@RequestBody CentralizedBidReq req, @RequestHeader("token") String token) {
-        String agentId = TokenUtils.getUserId(token);
+        String userId = TokenUtils.getUserId(token);
         CentralizedBid centralizedBid = Convertor.INST.to(req);
         CommandBus.accept(centralizedBid, new HashMap<>());
-        return Result.success(agentId);
+        return Result.success(userId);
     }
 
 

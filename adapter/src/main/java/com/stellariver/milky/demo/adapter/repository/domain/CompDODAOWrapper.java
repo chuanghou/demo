@@ -1,9 +1,7 @@
 package com.stellariver.milky.demo.adapter.repository.domain;
 
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.infrastructure.database.entity.BidDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
-import com.stellariver.milky.demo.infrastructure.database.mapper.BidDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
 import com.stellariver.milky.domain.support.dependency.DAOWrapper;
 import lombok.AccessLevel;

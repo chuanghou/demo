@@ -8,7 +8,7 @@ import com.stellariver.milky.demo.domain.command.UnitBuild;
 import com.stellariver.milky.demo.domain.event.CentralizedBidden;
 import com.stellariver.milky.demo.domain.event.CompBuilt;
 import com.stellariver.milky.demo.domain.event.RealtimeBidden;
-import com.stellariver.milky.demo.domain.tunnel.PodTunnel;
+import com.stellariver.milky.demo.domain.tunnel.DomainTunnel;
 import com.stellariver.milky.domain.support.command.CommandBus;
 import com.stellariver.milky.domain.support.event.EventRouter;
 import com.stellariver.milky.domain.support.event.EventRouters;
@@ -25,7 +25,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Routers implements EventRouters {
 
-    final PodTunnel podRepository;
+    final DomainTunnel podRepository;
 
     @EventRouter
     public void route(CentralizedBidden bidden) {
@@ -44,7 +44,7 @@ public class Routers implements EventRouters {
         compBuilt.getAgents().forEach(agent -> {
             List<String> podIds = agent.getPodIds();
             podIds.forEach(podId -> {
-                Pod pod = podRepository.queryById(podId);
+                Pod pod = podRepository.getByPodId(podId);
                 UnitIdentify baseUnitIdentify = UnitIdentify.builder()
                         .compId(compBuilt.getCompId())
                         .podId(podId)

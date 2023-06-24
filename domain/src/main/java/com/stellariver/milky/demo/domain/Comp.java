@@ -4,10 +4,13 @@ import com.stellariver.milky.common.tool.wire.StaticWire;
 import com.stellariver.milky.demo.basic.Agent;
 import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.domain.command.CompBuild;
+import com.stellariver.milky.demo.domain.command.CompStep;
 import com.stellariver.milky.demo.domain.event.CompBuilt;
-import com.stellariver.milky.demo.domain.tunnel.PodTunnel;
+import com.stellariver.milky.demo.domain.event.CompStepped;
+import com.stellariver.milky.demo.domain.tunnel.DomainTunnel;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.command.ConstructorHandler;
+import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -37,7 +40,7 @@ public class Comp extends AggregateRoot {
     }
 
     @StaticWire
-    static PodTunnel podRepository;
+    static DomainTunnel podRepository;
 
     @ConstructorHandler
     public static Comp build(CompBuild compBuild, Context context) {
@@ -49,6 +52,13 @@ public class Comp extends AggregateRoot {
     }
 
 
+    @MethodHandler
+    public void step(CompStep compStep, Context context) {
+        Stage nextStage = Stage.valueOf(stage.getNextStage());
+        CompStepped compStepped = CompStepped.builder().compId(compId).lastStage(stage).nextStage(nextStage).build();
+        stage = Stage.valueOf(stage.getNextStage());
+        context.publish(compStepped);
+    }
 
 
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,

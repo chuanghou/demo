@@ -1,20 +1,20 @@
 package com.stellariver.milky.demo.adapter.controller.req;
 
-import com.stellariver.milky.demo.basic.Agent;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AddCompReq {
+public class StepCompReq {
 
-    String date;
-    String name;
-    List<Agent> agents;
+    @NotNull
+    @Positive
+    Long length; // unit second
 
 }

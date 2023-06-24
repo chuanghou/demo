@@ -1,6 +1,8 @@
 package com.stellariver.milky.demo.adapter.repository.domain;
 
+import com.stellariver.milky.demo.basic.BasicConvertor;
 import com.stellariver.milky.demo.domain.User;
+import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.UserDO;
 import com.stellariver.milky.domain.support.dependency.DaoAdapter;
 import com.stellariver.milky.domain.support.dependency.DataObjectInfo;
@@ -16,7 +18,7 @@ import org.mapstruct.factory.Mappers;
  */
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AgentDAOAdapter implements DaoAdapter<User> {
+public class UserDAOAdapter implements DaoAdapter<User> {
 
     @Override
     public User toAggregate(@NonNull Object dataObject) {
@@ -30,12 +32,12 @@ public class AgentDAOAdapter implements DaoAdapter<User> {
 
     @Override
     public DataObjectInfo dataObjectInfo(String aggregateId) {
-        return DataObjectInfo.builder().clazz(UserDO.class).primaryId(aggregateId).build();
+        return DataObjectInfo.builder().clazz(CompDO.class).primaryId(aggregateId).build();
     }
 
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
             nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    public interface Convertor {
+    public interface Convertor extends BasicConvertor {
 
         Convertor INST = Mappers.getMapper(Convertor.class);
 
@@ -44,7 +46,6 @@ public class AgentDAOAdapter implements DaoAdapter<User> {
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
         UserDO to(User user);
-
 
     }
 }
