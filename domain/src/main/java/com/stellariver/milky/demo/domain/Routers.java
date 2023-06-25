@@ -49,8 +49,6 @@ public class Routers implements EventRouters {
                 UnitIdentify baseUnitIdentify = UnitIdentify.builder()
                         .compId(compBuilt.getCompId())
                         .podId(podId)
-                        .date(compBuilt.getDate())
-                        .podType(pod.getPodType())
                         .build();
                 UnitIdentify peakUnitIdentify = baseUnitIdentify.toBuilder().timeFrame(TimeFrame.PEAK).build();
                 UnitBuild peakUnitBuild = UnitBuild.builder().unitIdentify(peakUnitIdentify).capacity(pod.getPeakCapacity()).build();

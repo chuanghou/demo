@@ -50,8 +50,11 @@ public class Unit extends AggregateRoot {
 
         Transaction transaction = centralizedBid.getTransaction();
 
-        boolean generatorSell = (PodType.GENERATOR == unitIdentify.getPodType()) && (transaction.getDirection() == Direction.SELL);
-        boolean loadBuy = (PodType.LOAD == unitIdentify.getPodType()) && (transaction.getDirection() == Direction.BUY);
+        Pod pod = context.getByAggregateId(Pod.class, unitIdentify.getPodId());
+
+
+        boolean generatorSell = (PodType.GENERATOR == pod.getPodType()) && (transaction.getDirection() == Direction.SELL);
+        boolean loadBuy = (PodType.LOAD == pod.getPodType()) && (transaction.getDirection() == Direction.BUY);
 
         BizEx.falseThrow(generatorSell || loadBuy, ErrorEnums.PARAM_FORMAT_WRONG.message("参数异常" + centralizedBid));
 
