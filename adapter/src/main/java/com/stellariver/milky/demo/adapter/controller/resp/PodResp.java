@@ -1,17 +1,14 @@
-package com.stellariver.milky.demo.basic;
+package com.stellariver.milky.demo.adapter.controller.resp;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Agent {
-    String userId;
-    List<String> podIds;
-
+public class PodResp {
+    String podId;
+    String podName;
 }
