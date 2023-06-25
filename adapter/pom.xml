@@ -29,5 +29,13 @@
             <groupId>com.stellariver.milky.demo</groupId>
             <artifactId>client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.stellariver.milky</groupId>
+            <artifactId>common-tool</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.stellariver.milky</groupId>
+            <artifactId>common-base</artifactId>
+        </dependency>
     </dependencies>
 </project>

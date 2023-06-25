@@ -23,6 +23,8 @@ import com.stellariver.milky.demo.domain.command.CompStep;
 import com.stellariver.milky.demo.domain.tunnel.DomainTunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
+import com.stellariver.milky.demo.infrastructure.database.mapper.PodDOMapper;
+import com.stellariver.milky.demo.infrastructure.database.mapper.UserDOMapper;
 import com.stellariver.milky.domain.support.command.CommandBus;
 import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.AccessLevel;
@@ -34,7 +36,9 @@ import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -49,6 +53,8 @@ public class CompController {
     final UniqueIdBuilder uniqueIdBuilder;
     final DomainTunnel domainTunnel;
     final CompDOMapper compDOMapper;
+    final UserDOMapper userDOMapper;
+    final PodDOMapper podDOMapper;
 
     @GetMapping
     public Result<List<CompResp>> listComps() {
@@ -65,6 +71,14 @@ public class CompController {
         if (!domainTunnel.checkAdmin(TokenUtils.getUserId(token))) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
         }
+
+        List<String> userIds = req.getAgents().stream().map(Agent::getUserId).collect(Collectors.toList());
+        boolean b0 = userDOMapper.selectBatchIds(userIds).size() == userIds.size();
+        BizEx.falseThrow(b0, ErrorEnums.PARAM_FORMAT_WRONG.message("找不到对应的用户"));
+        List<String> podIds = req.getAgents().stream().flatMap(agent -> agent.getPodIds().stream()).collect(Collectors.toList());
+        boolean b1 = podDOMapper.selectBatchIds(podIds).size() == podIds.size();
+        BizEx.falseThrow(b1, ErrorEnums.PARAM_FORMAT_WRONG.message("找不到对应的Pod"));
+
 
         CompBuild compBuild = CompBuild.builder()
                 .compId(uniqueIdBuilder.get().toString())

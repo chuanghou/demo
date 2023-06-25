@@ -11,4 +11,8 @@ import lombok.experimental.FieldDefaults;
 public class PodResp {
     String podId;
     String podName;
+    String podType;
+    Double peakCapacity;
+    Double flatCapacity;
+    Double valleyCapacity;
 }

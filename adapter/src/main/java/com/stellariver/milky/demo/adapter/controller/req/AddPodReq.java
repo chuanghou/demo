@@ -2,13 +2,16 @@ package com.stellariver.milky.demo.adapter.controller.req;
 
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.CustomValid;
+import com.stellariver.milky.common.base.OfEnum;
 import com.stellariver.milky.demo.basic.Agent;
 import com.stellariver.milky.demo.basic.ErrorEnums;
+import com.stellariver.milky.demo.basic.PodType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,22 +21,18 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AddCompReq {
+public class AddPodReq {
 
-    @NotBlank
-    String date;
     @NotBlank
     String name;
-    @Valid
-    List<Agent> agents;
+    @OfEnum(enumType = PodType.class)
+    String podType;
 
-    @CustomValid
-    public void customValid() {
-        long count = agents.stream().map(Agent::getUserId).distinct().count();
-        BizEx.trueThrow(count != agents.size(), ErrorEnums.PARAM_FORMAT_WRONG.message("存在重复用户id!"));
-        List<String> podIds = agents.stream().flatMap(agent -> agent.getPodIds().stream()).collect(Collectors.toList());
-        BizEx.trueThrow(podIds.size() != new HashSet<>(podIds).size(), ErrorEnums.PARAM_FORMAT_WRONG.message("存在重复Pod Id!"));
-
-    }
+    @Positive
+    Double peakCapacity;
+    @Positive
+    Double flatCapacity;
+    @Positive
+    Double valleyCapacity;
 
 }
