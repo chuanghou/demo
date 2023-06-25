@@ -24,6 +24,8 @@ public class UnitDO extends AbstractMpDO implements BaseDataObject<String> {
 
     @TableId(type = IdType.INPUT)
     String unitId;
+    String podPos;
+    String podType;
     String compId;
     String userId;
     Double capacity;

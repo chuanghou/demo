@@ -1,7 +1,5 @@
 package com.stellariver.milky.demo.adapter.controller.resp;
 
-import com.stellariver.milky.demo.basic.TimeFrame;
-import com.stellariver.milky.demo.basic.UnitIdentify;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -11,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UnitResp {
+    String unitId;
     String compId;
     String comName;
     String podId;

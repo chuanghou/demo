@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 /**
+ * Monthly Internal Provincial
  * @author houchuang
  */
 @Data
@@ -16,15 +17,14 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CentralizedBidbuild extends Command {
+public class MipBid extends Command {
 
-    String bidId;
     UnitIdentify unitIdentify;
     Transaction transaction;
 
     @Override
     public String getAggregateId() {
-        return bidId;
+        return unitIdentify.getUnitId();
     }
 
 }

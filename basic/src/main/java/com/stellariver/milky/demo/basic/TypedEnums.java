@@ -19,6 +19,7 @@ import java.util.Map;
  */
 @SuppressWarnings("unchecked")
 public class TypedEnums {
+    static public class USER_ID extends Typed<String> {}
     static public class CODES extends ListTyped<String> {}
     static public class EMPLOYEE extends Typed<Employee> {}
     static public class NUMBERS extends SetTyped<Integer> {}

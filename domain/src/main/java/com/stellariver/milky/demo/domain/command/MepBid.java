@@ -1,14 +1,16 @@
 package com.stellariver.milky.demo.domain.command;
 
-import com.stellariver.milky.demo.basic.PodPos;
-import com.stellariver.milky.demo.basic.PodType;
+import com.stellariver.milky.demo.basic.Transaction;
 import com.stellariver.milky.demo.basic.UnitIdentify;
 import com.stellariver.milky.domain.support.command.Command;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
 /**
+ * Monthly Exterior Provincial
  * @author houchuang
  */
 @Data
@@ -17,13 +19,10 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UnitBuild extends Command {
+public class MepBid extends Command {
 
     UnitIdentify unitIdentify;
-    PodPos podPos;
-    PodType podType;
-    String userId;
-    Double capacity;
+    List<Transaction> transactions;
 
     @Override
     public String getAggregateId() {

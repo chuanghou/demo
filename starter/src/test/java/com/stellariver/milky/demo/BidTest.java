@@ -1,8 +1,13 @@
 package com.stellariver.milky.demo;
 
+import com.stellariver.milky.common.base.Result;
+import com.stellariver.milky.demo.adapter.controller.BidController;
 import com.stellariver.milky.demo.adapter.controller.CompController;
+import com.stellariver.milky.demo.adapter.controller.UnitController;
 import com.stellariver.milky.demo.adapter.controller.req.AddCompReq;
+import com.stellariver.milky.demo.adapter.controller.req.ListUnitsReq;
 import com.stellariver.milky.demo.adapter.controller.resp.CompResp;
+import com.stellariver.milky.demo.adapter.controller.resp.UnitResp;
 import com.stellariver.milky.demo.basic.Agent;
 import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.basic.TokenUtils;
@@ -21,6 +26,12 @@ public class BidTest {
 
     @Autowired
     CompController compController;
+
+    @Autowired
+    UnitController unitController;
+
+    @Autowired
+    BidController bidController;
 
     @Test
     public void testComp() {
@@ -85,6 +96,10 @@ public class BidTest {
         Assertions.assertEquals(compResps.size(), 1);
         CompResp compResp = compResps.get(0);
 
+        String token = TokenUtils.sign("401");
+        ListUnitsReq listUnitsReq = ListUnitsReq.builder().compId(compResp.getCompId()).build();
+        Result<List<UnitResp>> listResult = unitController.listUnits(listUnitsReq, token);
+        List<UnitResp> unitResps = listResult.getData();
 
 
 

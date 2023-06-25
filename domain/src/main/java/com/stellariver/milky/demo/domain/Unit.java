@@ -1,12 +1,10 @@
 package com.stellariver.milky.demo.domain;
 
 import com.stellariver.milky.common.base.BizEx;
+import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.demo.basic.*;
-import com.stellariver.milky.demo.domain.command.CentralizedBid;
-import com.stellariver.milky.demo.domain.command.RealTimeBid;
-import com.stellariver.milky.demo.domain.command.UnitBuild;
-import com.stellariver.milky.demo.domain.event.CentralizedBidden;
-import com.stellariver.milky.demo.domain.event.RealtimeBidden;
+import com.stellariver.milky.demo.domain.command.*;
+import com.stellariver.milky.demo.domain.event.YepBidden;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.command.ConstructorHandler;
 import com.stellariver.milky.domain.support.command.MethodHandler;
@@ -18,6 +16,8 @@ import org.mapstruct.Builder;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
+import java.util.List;
+
 @Data
 @SuperBuilder
 @NoArgsConstructor
@@ -27,9 +27,14 @@ import org.mapstruct.factory.Mappers;
 public class Unit extends AggregateRoot {
 
     UnitIdentify unitIdentify;
+    PodPos podPos;
+    PodType podType;
+    String userId;
     Double capacity;
     Double bought;
     Double sold;
+    List<Transaction> yipTransactions;
+    List<Transaction> mipTransactions;
 
     @Override
     public String getAggregateId() {
@@ -46,45 +51,35 @@ public class Unit extends AggregateRoot {
 
 
     @MethodHandler
-    public void handle(CentralizedBid centralizedBid, Context context) {
-
-        Transaction transaction = centralizedBid.getTransaction();
-
+    public void handle(YepBid yepBid, Context context) {
+        String userId = context.getMetaData(TypedEnums.USER_ID.class);
+        BizEx.trueThrow(Kit.notEq(this.userId, userId), ErrorEnums.PARAM_FORMAT_WRONG.message("不能操作其他人的报单"));
         Pod pod = context.getByAggregateId(Pod.class, unitIdentify.getPodId());
+        PodPos podPos = pod.getPodPos();
+        PodType podType = pod.getPodType();
+        boolean b0 = podPos == PodPos.TRANSFER && podType == PodType.GENERATOR;
+        boolean b1 = podPos == PodPos.RECEIVE && podType == PodType.LOAD;
+        BizEx.trueThrow((!b0) && (!b1), ErrorEnums.PARAM_FORMAT_WRONG.message("第一阶段机组只能报卖单，负荷只能报买单"));
+        BizEx.trueThrow(b0 && yepBid.getDirection() == Direction.BUY, ErrorEnums.PARAM_FORMAT_WRONG.message("一阶段机组只能报卖单，负荷只能报买单"));
+        BizEx.trueThrow(b1 && yepBid.getDirection() == Direction.SELL, ErrorEnums.PARAM_FORMAT_WRONG.message("一阶段机组只能报卖单，负荷只能报买单"));
+        this.yipTransactions = yepBid.getTransactions();
+        context.publish(Convertor.INST.to(yepBid));
+    }
 
-
-        boolean generatorSell = (PodType.GENERATOR == pod.getPodType()) && (transaction.getDirection() == Direction.SELL);
-        boolean loadBuy = (PodType.LOAD == pod.getPodType()) && (transaction.getDirection() == Direction.BUY);
-
-        BizEx.falseThrow(generatorSell || loadBuy, ErrorEnums.PARAM_FORMAT_WRONG.message("参数异常" + centralizedBid));
-
-        CentralizedBidden event = null;
-        Double balance = null;
-
-        if (generatorSell) {
-            balance = capacity + bought - sold;
-        }
-
-        if (loadBuy) {
-            balance = capacity + sold - bought;
-        }
-
-        if (transaction.getQuantity() <= balance) {
-            sold += transaction.getQuantity();
-            event = Convertor.INST.to(centralizedBid);
-        }
-
-        if (event != null) {
-            context.publish(event);
-        }
+    @MethodHandler
+    public void handle(YipBid yipBid, Context context) {
 
     }
 
+    @MethodHandler
+    public void handle(MepBid mepBid, Context context) {
+        String userId = context.getMetaData(TypedEnums.USER_ID.class);
+        BizEx.trueThrow(Kit.notEq(this.userId, userId), ErrorEnums.PARAM_FORMAT_WRONG.message("不能操作其他人的报单"));
+        this.yipTransactions = mepBid.getTransactions();
+    }
 
     @MethodHandler
-    public void handle(RealTimeBid realTimeBid, Context context) {
-
-        Transaction transaction = realTimeBid.getTransaction();
+    public void handle(MipBid mipBid, Context context) {
 
     }
 
@@ -99,10 +94,7 @@ public class Unit extends AggregateRoot {
         Unit to(UnitBuild unitBuild);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        CentralizedBidden to(CentralizedBid centralizedBid);
-
-        @BeanMapping(builder = @Builder(disableBuilder = true))
-        RealtimeBidden to(RealTimeBid realTimeBid);
+        YepBidden to(YepBid yepBid);
 
     }
 

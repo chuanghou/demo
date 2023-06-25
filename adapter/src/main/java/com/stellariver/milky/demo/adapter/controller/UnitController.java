@@ -1,7 +1,6 @@
 package com.stellariver.milky.demo.adapter.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.stellariver.milky.common.base.Enumeration;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.tool.common.BeanUtil;
 import com.stellariver.milky.demo.adapter.controller.req.AddPodReq;
@@ -25,7 +24,6 @@ import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -61,7 +59,9 @@ public class UnitController {
             PodDO podDO = podDOMap.get(pId);
             boolean b = PodType.valueOf(podDO.getPodType()) == PodType.GENERATOR;
             double available = unitDO.getCapacity() + (b ? unitDO.getBought() - unitDO.getSold() : unitDO.getSold() - unitDO.getBought());
-            return UnitResp.builder().compId(compId)
+            return UnitResp.builder()
+                    .unitId(unitDO.getUnitId())
+                    .compId(compId)
                     .comName(compDO.getName())
                     .podId(podDO.getPodId())
                     .podName(podDO.getName())

@@ -1,31 +1,33 @@
-package com.stellariver.milky.demo.domain.command;
+package com.stellariver.milky.demo.domain.event;
 
+import com.stellariver.milky.demo.basic.Direction;
 import com.stellariver.milky.demo.basic.Transaction;
 import com.stellariver.milky.demo.basic.UnitIdentify;
-import com.stellariver.milky.domain.support.command.Command;
-import lombok.*;
+import com.stellariver.milky.domain.support.event.Event;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-/**
- * @author houchuang
- */
+import java.util.List;
+
+
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RealTimeBid extends Command{
+public class YepBidden extends Event {
 
-    String bidId;
+    Direction direction;
     UnitIdentify unitIdentify;
-    Transaction transaction;
+    List<Transaction> transactions;
 
     @Override
     public String getAggregateId() {
         return unitIdentify.getUnitId();
     }
-
 
 }

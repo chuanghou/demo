@@ -8,7 +8,6 @@ import com.stellariver.milky.demo.infrastructure.database.entity.UserDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.PodDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UserDOMapper;
 import com.stellariver.milky.spring.partner.UniqueIdBuilder;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 

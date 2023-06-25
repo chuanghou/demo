@@ -25,8 +25,8 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
     }
 
     @Override
-    public Object toDataObject(Unit item, DataObjectInfo dataObjectInfo) {
-        return Convertor.INST.to(item);
+    public Object toDataObject(Unit unit, DataObjectInfo dataObjectInfo) {
+        return Convertor.INST.to(unit);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
 
         @AfterMapping
         default void after(Unit unit, @MappingTarget UnitDO unitDO) {
-            unitDO.setUserId(unit.getUnitIdentify().getUnitId());
+            unitDO.setUserId(unit.getUserId());
             unitDO.setCompId(unit.getUnitIdentify().getCompId());
         }
 

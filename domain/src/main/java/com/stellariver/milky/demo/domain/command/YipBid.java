@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 /**
+ * Yearly Internal Provincial
  * @author houchuang
  */
 @Data
@@ -16,16 +17,14 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RealTimeBidCreate extends Command{
+public class YipBid extends Command {
 
-    String bidId;
     UnitIdentify unitIdentify;
     Transaction transaction;
 
     @Override
     public String getAggregateId() {
-        return bidId;
+        return unitIdentify.getUnitId();
     }
-
 
 }
