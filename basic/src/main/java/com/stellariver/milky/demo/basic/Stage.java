@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Stage {
 
-    Initializing("本次竞赛尚未开赛", "STAGE_ONE_RUNNING", false),
+    INITIALIZED("本次竞赛尚未开赛", "STAGE_ONE_RUNNING", false),
     STAGE_ONE_RUNNING("第一轮，年度省间交易中", "STAGE_ONE_SETTLE", true),
     STAGE_ONE_SETTLE("第一轮，年度省间交易结算", "STAGE_TWO_RUNNING", false),
     STAGE_TWO_RUNNING("第二轮，年度省内交易中", "STAGE_TWO_SETTLE", true),

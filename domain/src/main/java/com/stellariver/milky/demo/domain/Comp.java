@@ -45,7 +45,7 @@ public class Comp extends AggregateRoot {
     @ConstructorHandler
     public static Comp build(CompBuild compBuild, Context context) {
         Comp comp = Convertor.INST.to(compBuild);
-        comp.setStage(Stage.Initializing);
+        comp.setStage(Stage.INITIALIZED);
         CompBuilt compBuilt = Convertor.INST.to(comp);
         context.publish(compBuilt);
         return comp;

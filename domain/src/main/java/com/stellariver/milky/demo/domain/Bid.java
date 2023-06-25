@@ -7,12 +7,12 @@ import com.stellariver.milky.demo.domain.command.CentralizedBidbuild;
 import com.stellariver.milky.demo.domain.command.RealTimeBidCreate;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.command.ConstructorHandler;
+import com.stellariver.milky.domain.support.context.Context;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import org.apache.catalina.Context;
-import org.mapstruct.Builder;
 import org.mapstruct.*;
+import org.mapstruct.Builder;
 import org.mapstruct.factory.Mappers;
 
 @Data

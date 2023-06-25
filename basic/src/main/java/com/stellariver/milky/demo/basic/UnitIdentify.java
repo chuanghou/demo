@@ -13,12 +13,10 @@ public class UnitIdentify {
 
     String compId;
     String podId;
-    PodType podType;
-    String date;
     TimeFrame timeFrame;
 
     public String getUnitId() {
-        return String.format("%s.%s.%s.%s.%s", compId, podId, podType.name(), date, timeFrame.name());
+        return String.format("%s.%s.%s", compId, podId, timeFrame.name());
     }
 
     static public UnitIdentify resolve(String unitId) {
@@ -26,9 +24,7 @@ public class UnitIdentify {
         return UnitIdentify.builder()
                 .compId(split[0])
                 .podId(split[1])
-                .podType(PodType.valueOf(split[2]))
-                .date(split[3])
-                .timeFrame(TimeFrame.valueOf(split[4]))
+                .timeFrame(TimeFrame.valueOf(split[2]))
                 .build();
     }
 

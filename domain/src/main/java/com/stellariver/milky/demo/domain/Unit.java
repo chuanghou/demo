@@ -8,6 +8,8 @@ import com.stellariver.milky.demo.domain.command.UnitBuild;
 import com.stellariver.milky.demo.domain.event.CentralizedBidden;
 import com.stellariver.milky.demo.domain.event.RealtimeBidden;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
+import com.stellariver.milky.domain.support.command.ConstructorHandler;
+import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -34,6 +36,7 @@ public class Unit extends AggregateRoot {
         return unitIdentify.getUnitId();
     }
 
+    @ConstructorHandler
     public static Unit build(UnitBuild unitBuild, Context context) {
         Unit unit = Convertor.INST.to(unitBuild);
         unit.setBought(0D);
@@ -42,6 +45,7 @@ public class Unit extends AggregateRoot {
     }
 
 
+    @MethodHandler
     public void handle(CentralizedBid centralizedBid, Context context) {
 
         Transaction transaction = centralizedBid.getTransaction();
@@ -74,6 +78,7 @@ public class Unit extends AggregateRoot {
     }
 
 
+    @MethodHandler
     public void handle(RealTimeBid realTimeBid, Context context) {
 
         Transaction transaction = realTimeBid.getTransaction();

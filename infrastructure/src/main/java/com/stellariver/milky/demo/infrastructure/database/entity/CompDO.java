@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("bid_do")
+@TableName("comp_do")
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)

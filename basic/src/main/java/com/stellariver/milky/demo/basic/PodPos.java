@@ -5,9 +5,9 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum PodType {
+public enum PodPos {
 
-    GENERATOR("机组"), LOAD("负荷");
+    TRANSFER("输电"), RECEIVE("受电");
 
     final String desc;
 }

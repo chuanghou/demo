@@ -22,6 +22,7 @@ public class PodDO extends AbstractMpDO implements BaseDataObject<String> {
     String podId;
     String name;
     String podType;
+    String podPos;
     Double peakCapacity;
     Double flatCapacity;
     Double valleyCapacity;

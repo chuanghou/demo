@@ -5,16 +5,14 @@ import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.tool.common.BeanUtil;
+import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.adapter.controller.req.AddCompReq;
 import com.stellariver.milky.demo.adapter.controller.req.StepCompReq;
 import com.stellariver.milky.demo.adapter.controller.resp.AgentResp;
 import com.stellariver.milky.demo.adapter.controller.resp.CompResp;
 import com.stellariver.milky.demo.adapter.controller.resp.PodResp;
 import com.stellariver.milky.demo.adapter.repository.domain.CompDAOAdapter;
-import com.stellariver.milky.demo.basic.Agent;
-import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.basic.Stage;
-import com.stellariver.milky.demo.basic.TokenUtils;
+import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Pod;
 import com.stellariver.milky.demo.domain.User;
@@ -22,6 +20,7 @@ import com.stellariver.milky.demo.domain.command.CompBuild;
 import com.stellariver.milky.demo.domain.command.CompStep;
 import com.stellariver.milky.demo.domain.tunnel.DomainTunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
+import com.stellariver.milky.demo.infrastructure.database.entity.PodDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.PodDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UserDOMapper;
@@ -61,8 +60,7 @@ public class CompController {
         LambdaQueryWrapper<CompDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.ne(CompDO::getStage, Stage.END.name());
         List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
-        List<CompResp> compResps = compDOs.stream()
-                .map(CompDAOAdapter.Convertor.INST::to).map(Convertor.INST::to).collect(Collectors.toList());
+        List<CompResp> compResps = compDOs.stream().map(Convertor.INST::to).collect(Collectors.toList());
         return Result.success(compResps);
     }
 
@@ -123,11 +121,28 @@ public class CompController {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        CompResp to(Comp comp);
+        CompResp to(CompDO compDO);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        @Mapping(source = "podIds", target = "pods")
-        AgentResp to(Agent agent);
+        default List<AgentResp> to(String value) {
+            List<Agent> agents = Json.parseList(value, Agent.class);
+            UserDOMapper userDOMapper = BeanUtil.getBean(UserDOMapper.class);
+            PodDOMapper podDOMapper = BeanUtil.getBean(PodDOMapper.class);
+            return agents.stream().map(agent -> AgentResp.builder().userId(agent.getUserId())
+                    .userName(userDOMapper.selectById(agent.getUserId()).getName())
+                    .pods(agent.getPodIds().stream().map(podId -> {
+                        PodDO podDO = podDOMapper.selectById(podId);
+                        return PodResp.builder()
+                                .podId(podId)
+                                .podType(PodType.valueOf(podDO.getPodType()).getDesc())
+                                .podName(podDO.getName())
+                                .peakCapacity(podDO.getPeakCapacity())
+                                .flatCapacity(podDO.getFlatCapacity())
+                                .valleyCapacity(podDO.getValleyCapacity())
+                                .build();
+                    }).collect(Collectors.toList()))
+                    .build()).collect(Collectors.toList());
+        }
 
         @AfterMapping
         default void after(Agent agent, AgentResp agentResp) {

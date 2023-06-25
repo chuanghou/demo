@@ -10,6 +10,7 @@ import com.stellariver.milky.demo.domain.event.CompBuilt;
 import com.stellariver.milky.demo.domain.event.RealtimeBidden;
 import com.stellariver.milky.demo.domain.tunnel.DomainTunnel;
 import com.stellariver.milky.domain.support.command.CommandBus;
+import com.stellariver.milky.domain.support.context.Context;
 import com.stellariver.milky.domain.support.event.EventRouter;
 import com.stellariver.milky.domain.support.event.EventRouters;
 import lombok.AccessLevel;
@@ -28,19 +29,19 @@ public class Routers implements EventRouters {
     final DomainTunnel podRepository;
 
     @EventRouter
-    public void route(CentralizedBidden bidden) {
+    public void route(CentralizedBidden bidden, Context context) {
         CentralizedBidbuild centralizedBidbuild = Convertor.INST.to(bidden);
         CommandBus.driveByEvent(centralizedBidbuild, bidden);
     }
 
     @EventRouter
-    public void route(RealtimeBidden bidden) {
+    public void route(RealtimeBidden bidden, Context context) {
         RealTimeBidCreate realTimeBidCreate = Convertor.INST.to(bidden);
         CommandBus.driveByEvent(realTimeBidCreate, bidden);
     }
 
     @EventRouter
-    public void route(CompBuilt compBuilt) {
+    public void route(CompBuilt compBuilt, Context context) {
         compBuilt.getAgents().forEach(agent -> {
             List<String> podIds = agent.getPodIds();
             podIds.forEach(podId -> {
@@ -55,11 +56,11 @@ public class Routers implements EventRouters {
                 UnitBuild peakUnitBuild = UnitBuild.builder().unitIdentify(peakUnitIdentify).capacity(pod.getPeakCapacity()).build();
                 CommandBus.driveByEvent(peakUnitBuild, compBuilt);
 
-                UnitIdentify flatUnitIdentify = baseUnitIdentify.toBuilder().timeFrame(TimeFrame.PEAK).build();
+                UnitIdentify flatUnitIdentify = baseUnitIdentify.toBuilder().timeFrame(TimeFrame.FLAT).build();
                 UnitBuild flatUnitBuild = UnitBuild.builder().unitIdentify(flatUnitIdentify).capacity(pod.getFlatCapacity()).build();
                 CommandBus.driveByEvent(flatUnitBuild, compBuilt);
 
-                UnitIdentify valleyUnitIdentify = baseUnitIdentify.toBuilder().timeFrame(TimeFrame.PEAK).build();
+                UnitIdentify valleyUnitIdentify = baseUnitIdentify.toBuilder().timeFrame(TimeFrame.VALLEY).build();
                 UnitBuild valleyUnitBuild = UnitBuild.builder().unitIdentify(valleyUnitIdentify).capacity(pod.getPeakCapacity()).build();
                 CommandBus.driveByEvent(valleyUnitBuild, compBuilt);
             });
