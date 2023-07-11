@@ -47,4 +47,14 @@ public interface BasicConvertor {
         TypeReference<Map<String, Order>> typeReference = new TypeReference<Map<String, Order>>() {};
         return Json.parse(orders, typeReference);
     }
+
+    default String fromBids(Map<Stage, List<Bid>> bids) {
+        return Json.toJson(bids);
+    }
+
+    default Map<Stage, List<Bid>> toBids(String bids) {
+        TypeReference<Map<Stage, List<Bid>>> typeReference = new TypeReference<Map<Stage, List<Bid>>>() {};
+        return Json.parse(bids, typeReference);
+    }
+
 }
