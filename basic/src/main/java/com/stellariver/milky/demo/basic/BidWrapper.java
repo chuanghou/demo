@@ -1,7 +1,7 @@
 package com.stellariver.milky.demo.basic;
 
-import com.stellariver.milky.demo.common.enums.Bid;
-import com.stellariver.milky.demo.common.enums.TxGroup;
+import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.TxGroup;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;

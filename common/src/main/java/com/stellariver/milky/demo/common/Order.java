@@ -1,4 +1,4 @@
-package com.stellariver.milky.demo.common.enums;
+package com.stellariver.milky.demo.common;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -13,12 +13,15 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Order {
 
-    String id;
     TxGroup txGroup;
     Bid bid;
     @Builder.Default
     Double cancelled = 0D;
     @Builder.Default
     List<Deal> deals = new ArrayList<>();
+
+    public String getId() {
+        return bid.getId();
+    }
 
 }

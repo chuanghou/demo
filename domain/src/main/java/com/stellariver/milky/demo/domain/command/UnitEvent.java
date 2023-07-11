@@ -1,9 +1,8 @@
 package com.stellariver.milky.demo.domain.command;
 
-import com.stellariver.milky.demo.common.enums.Deal;
-import com.stellariver.milky.demo.common.enums.Order;
-import com.stellariver.milky.demo.common.enums.TxGroup;
-import com.stellariver.milky.domain.support.command.Command;
+import com.stellariver.milky.demo.common.Deal;
+import com.stellariver.milky.demo.common.Order;
+import com.stellariver.milky.demo.common.TxGroup;
 import com.stellariver.milky.domain.support.event.Event;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

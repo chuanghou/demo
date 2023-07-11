@@ -4,7 +4,11 @@ import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.wire.StaticWire;
 import com.stellariver.milky.demo.basic.*;
-import com.stellariver.milky.demo.common.enums.*;
+import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.Order;
+import com.stellariver.milky.demo.common.TxGroup;
+import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.demo.domain.command.UnitEvent;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
@@ -91,7 +95,6 @@ public class Unit extends AggregateRoot {
         centralizedBids.forEach(((timeFrame, bids) -> {
             bids.forEach(bid -> {
                 Order order = Order.builder()
-                        .id(uniqueIdBuilder.get().toString())
                         .txGroup(TxGroup.builder().unitId(unitId).timeFrame(timeFrame).build())
                         .bid(bid)
                         .build();
@@ -128,7 +131,6 @@ public class Unit extends AggregateRoot {
 
         String orderId = uniqueIdBuilder.get().toString();
         Order order = Order.builder()
-                .id(orderId)
                 .txGroup(command.getTxGroup())
                 .bid(command.getBid())
                 .build();

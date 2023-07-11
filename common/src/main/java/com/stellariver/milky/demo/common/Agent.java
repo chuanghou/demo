@@ -1,16 +1,19 @@
-package com.stellariver.milky.demo.common.enums;
+package com.stellariver.milky.demo.common;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TxGroup {
+public class Agent {
 
-    String unitId;
-    TimeFrame timeFrame;
+    String userId;
+
+    List<String> metaUnitIds;
 
 }

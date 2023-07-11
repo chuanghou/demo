@@ -1,7 +1,7 @@
 package com.stellariver.milky.demo.domain;
 
+import com.stellariver.milky.demo.common.TxGroup;
 import com.stellariver.milky.demo.common.enums.Direction;
-import com.stellariver.milky.demo.common.enums.TxGroup;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;

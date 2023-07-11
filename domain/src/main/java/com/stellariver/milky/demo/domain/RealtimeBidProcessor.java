@@ -3,7 +3,7 @@ package com.stellariver.milky.demo.domain;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.util.DaemonThreadFactory;
-import com.stellariver.milky.demo.common.enums.Bid;
+import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.enums.Direction;
 
 import java.util.Comparator;

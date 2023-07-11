@@ -1,10 +1,7 @@
 package com.stellariver.milky.demo.domain;
 
-import com.stellariver.milky.demo.basic.Stage;
-import com.stellariver.milky.demo.domain.command.CompClearStageOne;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.demo.domain.event.CompCreated;
-import com.stellariver.milky.demo.domain.event.CompStepped;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.CommandBus;

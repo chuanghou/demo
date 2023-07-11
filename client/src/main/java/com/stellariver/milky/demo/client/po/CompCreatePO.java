@@ -1,6 +1,6 @@
 package com.stellariver.milky.demo.client.po;
 
-import com.stellariver.milky.demo.common.enums.Agent;
+import com.stellariver.milky.demo.common.Agent;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

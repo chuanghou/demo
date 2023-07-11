@@ -2,7 +2,11 @@ package com.stellariver.milky.demo.basic;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.stellariver.milky.common.tool.util.Json;
-import com.stellariver.milky.demo.common.enums.*;
+import com.stellariver.milky.demo.common.Agent;
+import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.Order;
+import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.TimeFrame;
 
 import java.util.List;
 import java.util.Map;

@@ -1,6 +1,6 @@
 package com.stellariver.milky.demo.client.vo;
 
-import com.stellariver.milky.demo.common.enums.Bid;
+import com.stellariver.milky.demo.common.Bid;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;

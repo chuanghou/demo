@@ -1,7 +1,6 @@
 package com.stellariver.milky.demo.domain.event;
 
 import com.stellariver.milky.demo.domain.DealResult;
-import com.stellariver.milky.domain.support.command.Command;
 import com.stellariver.milky.domain.support.event.Event;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

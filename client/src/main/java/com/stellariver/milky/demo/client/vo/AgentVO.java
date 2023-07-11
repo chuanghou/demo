@@ -1,6 +1,5 @@
 package com.stellariver.milky.demo.client.vo;
 
-import com.stellariver.milky.demo.client.vo.UnitVO;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

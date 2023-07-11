@@ -1,6 +1,6 @@
 package com.stellariver.milky.demo.domain;
 
-import com.stellariver.milky.demo.common.enums.Bid;
+import com.stellariver.milky.demo.common.Bid;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

@@ -1,7 +1,7 @@
 package com.stellariver.milky.demo.domain.event;
 
 import com.stellariver.milky.demo.basic.Stage;
-import com.stellariver.milky.demo.common.enums.Agent;
+import com.stellariver.milky.demo.common.Agent;
 import com.stellariver.milky.domain.support.event.Event;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
