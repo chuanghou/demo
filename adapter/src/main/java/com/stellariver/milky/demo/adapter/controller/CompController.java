@@ -12,8 +12,7 @@ import com.stellariver.milky.demo.client.po.StepCompPO;
 import com.stellariver.milky.demo.client.vo.CompVO;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.User;
-import com.stellariver.milky.demo.domain.command.CompCreate;
-import com.stellariver.milky.demo.domain.command.CompStep;
+import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
@@ -61,7 +60,7 @@ public class CompController {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
         }
 
-        CompCreate command = CompCreate.builder()
+        CompCommand.Create command = CompCommand.Create.builder()
                 .agents(compCreatePO.getAgents())
                 .compId(uniqueIdBuilder.get().toString())
                 .name(compCreatePO.getName())
@@ -87,11 +86,11 @@ public class CompController {
         if (stage.getAutoForNext()) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("请等待自动结束本阶段"), ExceptionType.BIZ);
         }
-        CompStep compStep = CompStep.builder().compId(comp.getCompId()).build();
-        CommandBus.accept(compStep, new HashMap<>());
+        CompCommand.Step step = CompCommand.Step.builder().compId(comp.getCompId()).build();
+        CommandBus.accept(step, new HashMap<>());
         scheduledExecutorService.schedule(() -> {
-            CompStep autoCompStep = CompStep.builder().compId(comp.getCompId()).build();
-            CommandBus.accept(autoCompStep, new HashMap<>());
+            CompCommand.Step autoStep = CompCommand.Step.builder().compId(comp.getCompId()).build();
+            CommandBus.accept(autoStep, new HashMap<>());
         }, stepCompPO.getLength(), TimeUnit.SECONDS);
 
         return Result.success();

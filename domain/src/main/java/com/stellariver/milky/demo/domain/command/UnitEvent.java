@@ -1,5 +1,6 @@
 package com.stellariver.milky.demo.domain.command;
 
+import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.Order;
 import com.stellariver.milky.demo.common.TxGroup;
@@ -20,7 +21,24 @@ public class UnitEvent {
     public static class CentralizedBidden extends Event {
 
         String unitId;
-        List<Order> orders;
+        List<Bid> bids;
+
+        @Override
+        public String getAggregateId() {
+            return unitId;
+        }
+
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class CentralizedTriggered extends Event {
+
+        String unitId;
+        List<Bid> bids;
 
         @Override
         public String getAggregateId() {
@@ -37,7 +55,8 @@ public class UnitEvent {
     public static class RealtimeBidden extends Event {
 
         String unitId;
-        Order order;
+        String compId;
+        Bid bid;
 
         @Override
         public String getAggregateId() {

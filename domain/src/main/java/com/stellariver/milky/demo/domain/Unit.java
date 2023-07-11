@@ -6,7 +6,6 @@ import com.stellariver.milky.common.tool.wire.StaticWire;
 import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Order;
-import com.stellariver.milky.demo.common.TxGroup;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
@@ -24,11 +23,9 @@ import org.mapstruct.Builder;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.stellariver.milky.common.base.ErrorEnumsBase.PARAM_FORMAT_WRONG;
 
@@ -49,7 +46,7 @@ public class Unit extends AggregateRoot {
 
     Map<TimeFrame, Map<Direction, Double>> balanceQuantities;
     @lombok.Builder.Default
-    Map<TimeFrame, List<Bid>> centralizedBids = new HashMap<>();
+    Map<Stage, List<Bid>> centralizedBids = new HashMap<>();
     @lombok.Builder.Default
     Map<String, Order> orders = new HashMap<>();
 
@@ -77,6 +74,8 @@ public class Unit extends AggregateRoot {
             Direction direction = position.interProvincial();
             boolean b = unitType.generalDirection() == direction;
             BizEx.falseThrow(b, PARAM_FORMAT_WRONG.message("省间交易只能是送电省的机组和受电省的负荷"));
+        } else {
+            throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
         Direction direction = unitType.generalDirection();
         List<Bid> bids = command.getBids();
@@ -84,35 +83,16 @@ public class Unit extends AggregateRoot {
         Double bidQuantity = bids.stream().map(Bid::getQuantity).reduce(0D, Double::sum);
         Double balanceQuantity = balanceQuantities.get(command.getTxGroup().getTimeFrame()).get(direction);
         BizEx.trueThrow(balanceQuantity > bidQuantity, PARAM_FORMAT_WRONG.message("余额不足"));
-        centralizedBids.put(command.getTxGroup().getTimeFrame(), command.getBids());
-        context.publish(UnitCommand.CentralizedBidden.builder().unitId(unitId).build());
-    }
-
-    @MethodHandler
-    public void handle(UnitCommand.CentralizedTrigger command, Context context) {
-        List<Order> centralizedOrders = new ArrayList<>();
-
-        centralizedBids.forEach(((timeFrame, bids) -> {
-            bids.forEach(bid -> {
-                Order order = Order.builder()
-                        .txGroup(TxGroup.builder().unitId(unitId).timeFrame(timeFrame).build())
-                        .bid(bid)
-                        .build();
-                deduct(order);
-                centralizedOrders.add(order);
-            });
-        }));
-
-        UnitEvent.CentralizedBidden event = UnitEvent.CentralizedBidden.builder().unitId(unitId).orders(centralizedOrders).build();
+        centralizedBids.put(stage, command.getBids());
+        UnitCommand.CentralizedBidden event = UnitCommand.CentralizedBidden.builder().unitId(unitId).build();
         context.publish(event);
     }
-
 
     @MethodHandler
     public void handle(UnitCommand.RealtimeBid command, Context context) {
 
         Stage stage = context.getMetaData(TypedEnums.STAGE.class);
-        if (stage == Stage.STAGE_FOUR_CLEARANCE) {
+        if (stage == Stage.STAGE_FOUR_RUNNING) {
             if (stageFourDirection == null) {
                 stageFourDirection = command.getBid().getDirection();
                 if (stageFourDirection.opposite() == unitType.generalDirection()){
@@ -129,13 +109,13 @@ public class Unit extends AggregateRoot {
             BizEx.trueThrow(unitType.generalDirection() != command.getBid().getDirection(), PARAM_FORMAT_WRONG.message("买卖方向错误"));
         }
 
-        String orderId = uniqueIdBuilder.get().toString();
-        Order order = Order.builder()
-                .txGroup(command.getTxGroup())
-                .bid(command.getBid())
-                .build();
+        Order order = Order.builder().bid(command.getBid()).build();
         deduct(order);
-        UnitEvent.RealtimeBidden event = UnitEvent.RealtimeBidden.builder().unitId(unitId).order(order).build();
+        UnitEvent.RealtimeBidden event = UnitEvent.RealtimeBidden.builder()
+                .unitId(unitId)
+                .compId(compId)
+                .bid(order.getBid())
+                .build();
         context.publish(event);
     }
 

@@ -1,7 +1,6 @@
 package com.stellariver.milky.demo.domain;
 
 import com.stellariver.milky.common.base.SysEx;
-import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.wire.StaticWire;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Stage;
@@ -10,12 +9,8 @@ import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
-import com.stellariver.milky.demo.domain.command.CompClearStageOne;
-import com.stellariver.milky.demo.domain.command.CompCreate;
-import com.stellariver.milky.demo.domain.command.CompStep;
-import com.stellariver.milky.demo.domain.event.CompClearStagedOne;
-import com.stellariver.milky.demo.domain.event.CompCreated;
-import com.stellariver.milky.demo.domain.event.CompStepped;
+import com.stellariver.milky.demo.domain.command.CompCommand;
+import com.stellariver.milky.demo.domain.event.CompEvent;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
@@ -52,9 +47,6 @@ public class Comp extends AggregateRoot {
     Stage stage;
     List<Agent> agents;
 
-    List<Bid> stageOneCentralizedBids;
-    List<Bid> stageThreeCentralizedBids;
-
     Map<TimeFrame, Pair<Double, Double>> limitations;
     Map<TimeFrame, Double> replenishMap = new HashMap<>();
 
@@ -68,43 +60,41 @@ public class Comp extends AggregateRoot {
     @StaticWire
     static DomainTunnel domainTunnel;
     @StaticWire
-    static Tunnel unitTunnel;
+    static Tunnel tunnel;
 
     @ConstructorHandler
-    public static Comp create(CompCreate compCreate, Context context) {
-        Comp comp = Convertor.INST.to(compCreate);
+    public static Comp create(CompCommand.Create create, Context context) {
+        Comp comp = Convertor.INST.to(create);
         comp.setStage(Stage.INITIALIZED);
-        CompCreated compCreated = Convertor.INST.to(comp);
-        context.publish(compCreated);
+        CompEvent.Created created = Convertor.INST.to(comp);
+        context.publish(created);
         return comp;
     }
 
     @MethodHandler
-    public void handle(CompStep compStep, Context context) {
+    public void handle(CompCommand.Step command, Context context) {
         Stage nextStage = Stage.valueOf(stage.getNextStage());
-        CompStepped compStepped = CompStepped.builder().compId(compId).lastStage(stage).nextStage(nextStage).build();
+        CompEvent.Stepped stepped = CompEvent.Stepped.builder().compId(compId).lastStage(stage).nextStage(nextStage).build();
         stage = Stage.valueOf(stage.getNextStage());
-        context.publish(compStepped);
+        context.publish(stepped);
     }
 
-
     @MethodHandler
-    public void handle(CompClearStageOne compClearStageOne, Context context) {
+    public void handle(CompCommand.Clear clear, Context context) {
+        List<Bid> bids = tunnel.getByCompId(compId).stream()
+                .map(unit -> unit.getCentralizedBids().get(clear.getStage()))
+                .flatMap(Collection::stream).collect(Collectors.toList());
 
-        List<List<Bid>> collect = stageThreeCentralizedBids.stream().collect(Collect.select(
-                bid -> bid.getDirection() == Direction.BUY,
-                bid -> bid.getDirection() == Direction.SELL)
-        );
+        List<Bid> buyBids = bids.stream().filter(bid -> bid.getDirection() == Direction.BUY).collect(Collectors.toList());
+        List<Bid> sellBids = bids.stream().filter(bid -> bid.getDirection() == Direction.SELL).collect(Collectors.toList());
 
-        List<Bid> buyBids = collect.get(0);
-        List<Bid> sellBids = collect.get(1);
 
         List<DealResult> dealResults0 = resolveDealResults(buyBids, sellBids, TimeFrame.PEAK);
         List<DealResult> dealResults1 = resolveDealResults(buyBids, sellBids, TimeFrame.FLAT);
         List<DealResult> dealResults2 = resolveDealResults(buyBids, sellBids, TimeFrame.VALLEY);
 
         List<DealResult> dealResults = Stream.of(dealResults0, dealResults1, dealResults2).flatMap(Collection::stream).collect(Collectors.toList());
-        CompClearStagedOne event = CompClearStagedOne.builder().compId(compId).dealResults(dealResults).build();
+        CompEvent.Cleared event = CompEvent.Cleared.builder().compId(compId).stage(clear.getStage()).dealResults(dealResults).build();
         context.publish(event);
     }
 
@@ -316,6 +306,14 @@ public class Comp extends AggregateRoot {
     }
 
 
+
+    @MethodHandler
+    public void handle(CompCommand.RealtimeBid command, Context context) {
+        Bid bid = command.getBid();
+        TimeFrame timeFrame = bid.getTxGroup().getTimeFrame();
+    }
+
+
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
             nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     public interface Convertor {
@@ -323,10 +321,10 @@ public class Comp extends AggregateRoot {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        Comp to(CompCreate compCreate);
+        Comp to(CompCommand.Create create);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        CompCreated to(Comp comp);
+        CompEvent.Created to(Comp comp);
 
     }
 

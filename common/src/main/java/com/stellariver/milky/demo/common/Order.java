@@ -13,7 +13,6 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Order {
 
-    TxGroup txGroup;
     Bid bid;
     @Builder.Default
     Double cancelled = 0D;
@@ -22,6 +21,10 @@ public class Order {
 
     public String getId() {
         return bid.getId();
+    }
+
+    public TxGroup getTxGroup() {
+        return bid.getTxGroup();
     }
 
 }

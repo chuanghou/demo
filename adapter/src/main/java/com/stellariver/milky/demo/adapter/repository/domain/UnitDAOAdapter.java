@@ -21,12 +21,14 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
 
     @Override
     public Unit toAggregate(@NonNull Object dataObject) {
-        return Convertor.INST.to((UnitDO) dataObject);
+        return (Unit) ((UnitDO) dataObject).getUnit();
     }
 
     @Override
     public Object toDataObject(Unit unit, DataObjectInfo dataObjectInfo) {
-        return Convertor.INST.to(unit);
+        UnitDO unitDO = Convertor.INST.to(unit);
+        unitDO.setUnit(unit);
+        return unitDO;
     }
 
     @Override

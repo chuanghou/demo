@@ -1,6 +1,7 @@
 package com.stellariver.milky.demo.infrastructure.database.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.stellariver.milky.domain.support.base.BaseDataObject;
@@ -32,6 +33,9 @@ public class UnitDO extends AbstractMpDO implements BaseDataObject<String> {
     String centralizedBids;
     String orders;
     String stageFourDirection;
+
+    @TableField(exist = false)
+    Object unit;
 
     @Override
     public String getPrimaryId() {

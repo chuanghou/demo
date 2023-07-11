@@ -1,6 +1,7 @@
 package com.stellariver.milky.demo.infrastructure.database.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.stellariver.milky.demo.basic.Stage;
@@ -25,6 +26,9 @@ public class CompDO extends AbstractMpDO implements BaseDataObject<String> {
     String name;
     Stage stage;
     String agents;
+
+    @TableField(exist = false)
+    Object comp;
 
     @Override
     public String getPrimaryId() {

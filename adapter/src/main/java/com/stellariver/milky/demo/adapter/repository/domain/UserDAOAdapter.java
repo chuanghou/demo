@@ -22,7 +22,7 @@ public class UserDAOAdapter implements DaoAdapter<User> {
 
     @Override
     public User toAggregate(@NonNull Object dataObject) {
-        return Convertor.INST.to((UserDO) dataObject);
+        return (User) ((UserDO) dataObject).getUser();
     }
 
     @Override

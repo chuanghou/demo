@@ -21,7 +21,7 @@ public class CompDAOAdapter implements DaoAdapter<Comp> {
 
     @Override
     public Comp toAggregate(@NonNull Object dataObject) {
-        return Convertor.INST.to((CompDO) dataObject);
+        return (Comp) ((CompDO) dataObject).getComp();
     }
 
     @Override

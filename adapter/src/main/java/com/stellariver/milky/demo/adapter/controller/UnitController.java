@@ -3,6 +3,8 @@ package com.stellariver.milky.demo.adapter.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.Result;
+import com.stellariver.milky.common.tool.common.BeanUtil;
+import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.common.Typed;
 import com.stellariver.milky.common.tool.util.Collect;
@@ -25,6 +27,7 @@ import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UnitDOMapper;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.CommandBus;
+import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -118,6 +121,12 @@ public class UnitController {
         @BeanMapping(builder = @Builder(disableBuilder = true))
         @Mapping(source = "txGroupPO", target = "txGroup")
         Bid to(BidPO bidPO);
+
+        @AfterMapping
+        default void after(BidPO bidPO, @MappingTarget Bid bid) {
+            bid.setId(BeanUtil.getBean(UniqueIdBuilder.class).get().toString());
+            bid.setDate(Clock.now());
+        }
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
         @Mapping(source = "txGroup", target = "txGroupVO")
