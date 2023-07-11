@@ -1,8 +1,8 @@
 package com.stellariver.milky.demo;
 
-import com.stellariver.milky.demo.basic.PodPos;
-import com.stellariver.milky.demo.basic.PodType;
+import com.stellariver.milky.demo.basic.Position;
 import com.stellariver.milky.demo.basic.Role;
+import com.stellariver.milky.demo.basic.UnitType;
 import com.stellariver.milky.demo.infrastructure.database.entity.PodDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.UserDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.PodDOMapper;
@@ -60,8 +60,8 @@ public class DataPrepareTest {
     public void preparePods() {
         PodDO podDO00 = PodDO.builder()
                 .podId(uniqueIdBuilder.get().toString())
-                .podType(PodType.GENERATOR.name())
-                .podPos(PodPos.TRANSFER.name())
+                .podType(UnitType.GENERATOR.name())
+                .podPos(Position.TRANSFER.name())
                 .name("800MW机组_输电_TOM")
                 .peakCapacity(300D)
                 .flatCapacity(280D)
@@ -70,8 +70,8 @@ public class DataPrepareTest {
 
         PodDO podDO01 = PodDO.builder()
                 .podId(uniqueIdBuilder.get().toString())
-                .podType(PodType.GENERATOR.name())
-                .podPos(PodPos.RECEIVE.name())
+                .podType(UnitType.GENERATOR.name())
+                .podPos(Position.RECEIVE.name())
                 .name("700MW机组_受电_TOM")
                 .peakCapacity(300D)
                 .flatCapacity(280D)
@@ -80,8 +80,8 @@ public class DataPrepareTest {
 
         PodDO podDO02 = PodDO.builder()
                 .podId(uniqueIdBuilder.get().toString())
-                .podType(PodType.LOAD.name())
-                .podPos(PodPos.TRANSFER.name())
+                .podType(UnitType.LOAD.name())
+                .podPos(Position.TRANSFER.name())
                 .name("400MW负荷_输电_TOM")
                 .peakCapacity(200D)
                 .flatCapacity(380D)
@@ -90,8 +90,8 @@ public class DataPrepareTest {
 
         PodDO podDO03 = PodDO.builder()
                 .podId(uniqueIdBuilder.get().toString())
-                .podType(PodType.LOAD.name())
-                .podPos(PodPos.RECEIVE.name())
+                .podType(UnitType.LOAD.name())
+                .podPos(Position.RECEIVE.name())
                 .name("600MW负荷_受电_TOM")
                 .peakCapacity(200D)
                 .flatCapacity(380D)
@@ -100,8 +100,8 @@ public class DataPrepareTest {
 
         PodDO podDO04 = PodDO.builder()
                 .podId(uniqueIdBuilder.get().toString())
-                .podType(PodType.GENERATOR.name())
-                .podPos(PodPos.TRANSFER.name())
+                .podType(UnitType.GENERATOR.name())
+                .podPos(Position.TRANSFER.name())
                 .name("800MW机组_输电_JACK")
                 .peakCapacity(300D)
                 .flatCapacity(280D)
@@ -110,8 +110,8 @@ public class DataPrepareTest {
 
         PodDO podDO05 = PodDO.builder()
                 .podId(uniqueIdBuilder.get().toString())
-                .podType(PodType.GENERATOR.name())
-                .podPos(PodPos.RECEIVE.name())
+                .podType(UnitType.GENERATOR.name())
+                .podPos(Position.RECEIVE.name())
                 .name("700MW机组_受电_JACK")
                 .peakCapacity(300D)
                 .flatCapacity(280D)
@@ -120,8 +120,8 @@ public class DataPrepareTest {
 
         PodDO podDO06 = PodDO.builder()
                 .podId(uniqueIdBuilder.get().toString())
-                .podType(PodType.LOAD.name())
-                .podPos(PodPos.TRANSFER.name())
+                .podType(UnitType.LOAD.name())
+                .podPos(Position.TRANSFER.name())
                 .name("400MW负荷_输电_JACK")
                 .peakCapacity(200D)
                 .flatCapacity(380D)
@@ -130,8 +130,8 @@ public class DataPrepareTest {
 
         PodDO podDO07 = PodDO.builder()
                 .podId(uniqueIdBuilder.get().toString())
-                .podType(PodType.LOAD.name())
-                .podPos(PodPos.RECEIVE.name())
+                .podType(UnitType.LOAD.name())
+                .podPos(Position.RECEIVE.name())
                 .name("600MW负荷_受电_JACK")
                 .peakCapacity(200D)
                 .flatCapacity(380D)

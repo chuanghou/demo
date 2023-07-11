@@ -1,7 +1,7 @@
 package com.stellariver.milky.demo.domain;
 
-import com.stellariver.milky.demo.basic.PodPos;
-import com.stellariver.milky.demo.basic.PodType;
+import com.stellariver.milky.demo.basic.Position;
+import com.stellariver.milky.demo.basic.UnitType;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -17,8 +17,8 @@ public class Pod extends AggregateRoot {
 
     String podId;
     String name;
-    PodType podType;
-    PodPos podPos;
+    UnitType unitType;
+    Position position;
     Double peakCapacity;
     Double flatCapacity;
     Double valleyCapacity;

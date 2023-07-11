@@ -41,18 +41,11 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        @Mapping(source = "unitId", target = "unitIdentify")
         Unit to(UnitDO unitDO);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        @Mapping(source = "unitIdentify", target = "unitId")
         UnitDO to(Unit unit);
 
-        @AfterMapping
-        default void after(Unit unit, @MappingTarget UnitDO unitDO) {
-            unitDO.setUserId(unit.getUserId());
-            unitDO.setCompId(unit.getUnitIdentify().getCompId());
-        }
 
     }
 }

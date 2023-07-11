@@ -13,18 +13,17 @@ public class UnitIdentify {
 
     String compId;
     String podId;
-    TimeFrame timeFrame;
 
-    public String getUnitId() {
-        return String.format("%s.%s.%s", compId, podId, timeFrame.name());
+    @Override
+    public String toString() {
+        return String.format("%s.%s", compId, podId);
     }
 
-    static public UnitIdentify resolve(String unitId) {
-        String[] split = StringUtils.split(unitId);
+    static public UnitIdentify resolve(String unitIdentify) {
+        String[] split = StringUtils.split(unitIdentify);
         return UnitIdentify.builder()
                 .compId(split[0])
                 .podId(split[1])
-                .timeFrame(TimeFrame.valueOf(split[2]))
                 .build();
     }
 

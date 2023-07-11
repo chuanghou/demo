@@ -1,74 +1,111 @@
 package com.stellariver.milky.demo.adapter.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.Result;
-import com.stellariver.milky.common.tool.common.BeanUtil;
-import com.stellariver.milky.demo.adapter.controller.req.AddPodReq;
-import com.stellariver.milky.demo.adapter.controller.req.ListUnitsReq;
-import com.stellariver.milky.demo.adapter.controller.resp.PodResp;
-import com.stellariver.milky.demo.adapter.controller.resp.UnitResp;
-import com.stellariver.milky.demo.basic.PodType;
+import com.stellariver.milky.common.tool.common.Kit;
+import com.stellariver.milky.common.tool.common.Typed;
+import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
+import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TokenUtils;
-import com.stellariver.milky.demo.basic.UnitIdentify;
-import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
-import com.stellariver.milky.demo.infrastructure.database.entity.PodDO;
+import com.stellariver.milky.demo.basic.TypedEnums;
+import com.stellariver.milky.demo.client.po.BidPO;
+import com.stellariver.milky.demo.client.po.CentralizedBidPO;
+import com.stellariver.milky.demo.client.po.RealtimeBidPO;
+import com.stellariver.milky.demo.client.vo.OrderVO;
+import com.stellariver.milky.demo.client.vo.UnitVO;
+import com.stellariver.milky.demo.common.enums.Bid;
+import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.Order;
+import com.stellariver.milky.demo.common.enums.TimeFrame;
+import com.stellariver.milky.demo.domain.Unit;
+import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
-import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
-import com.stellariver.milky.demo.infrastructure.database.mapper.PodDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UnitDOMapper;
-import com.stellariver.milky.spring.partner.UniqueIdBuilder;
+import com.stellariver.milky.domain.support.base.DomainTunnel;
+import com.stellariver.milky.domain.support.command.CommandBus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.mapstruct.Mapping;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * @author houchuang
+ */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("pod")
+@RequestMapping("demo")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UnitController {
 
+    final DomainTunnel domainTunnel;
     final UnitDOMapper unitDOMapper;
-    final CompDOMapper compDOMapper;
-    final PodDOMapper podDOMapper;
+
+    @PostMapping("centralizedBid")
+    public Result<Void> centralizedBid(@RequestBody CentralizedBidPO centralizedBidPO, @RequestHeader("token") String token) {
+        String userId = TokenUtils.getUserId(token);
+        Unit unit = domainTunnel.getByAggregateId(Unit.class, centralizedBidPO.getTxGroup().getUnitId());
+        BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
+
+        UnitCommand.CentralizedBid centralizedBid = UnitCommand.CentralizedBid.builder()
+                .txGroup(centralizedBidPO.getTxGroup())
+                .bids(Collect.transfer(centralizedBidPO.getBidPOs(), Convertor.INST::to))
+                .build();
+
+        Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.USER_ID.class, userId);
+        CommandBus.accept(centralizedBid, parameters);
+        return Result.success();
+    }
+
+    @PostMapping("realtimeBid")
+    public Result<Void> realtimeBid(@RequestBody RealtimeBidPO realtimeBidPO, @RequestHeader("token") String token) {
+        String userId = TokenUtils.getUserId(token);
+        Unit unit = domainTunnel.getByAggregateId(Unit.class, realtimeBidPO.getTxGroup().getUnitId());
+        BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
+        UnitCommand.RealtimeBid realtimeBid = UnitCommand.RealtimeBid.builder()
+                .txGroup(realtimeBidPO.getTxGroup())
+                .bid(Convertor.INST.to(realtimeBidPO.getBidPO()))
+                .build();
+        Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.USER_ID.class, userId);
+        CommandBus.accept(realtimeBid, parameters);
+        return Result.success();
+    }
+
 
     @GetMapping("listUnits")
-    public Result<List<UnitResp>> listUnits(@RequestBody ListUnitsReq listUnitsReq, @RequestHeader("token") String token) {
+    public Result<List<UnitVO>> listOrders(@RequestHeader("token") String token) {
         String userId = TokenUtils.getUserId(token);
+        LambdaQueryWrapper<UnitDO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UnitDO::getUserId, userId);
+        List<UnitDO> unitDOs = unitDOMapper.selectList(wrapper);
 
-        String compId = listUnitsReq.getCompId();
-        CompDO compDO = compDOMapper.selectById(compId);
+        List<Unit> units = Collect.transfer(unitDOs, UnitDAOAdapter.Convertor.INST::to);
 
-        LambdaQueryWrapper<UnitDO> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(UnitDO::getCompId, compId);
-        lambdaQueryWrapper.eq(UnitDO::getUserId, userId);
-        List<UnitDO> unitDOs = unitDOMapper.selectList(lambdaQueryWrapper);
+        List<UnitVO> unitVOs = units.stream().map(unit -> UnitVO.builder()
+                .unitId(unit.getUnitId())
+                .compId(unit.getCompId())
+                .name(unit.getName())
+                .orderVOs(Collect.transfer(unit.getOrders().values(), Convertor.INST::toOrderVO))
+                .peakBids(unit.getCentralizedBids().get(TimeFrame.PEAK))
+                .flatBids(unit.getCentralizedBids().get(TimeFrame.FLAT))
+                .valleyBids(unit.getCentralizedBids().get(TimeFrame.VALLEY))
+                .peakBuyBalance(unit.getBalanceQuantities().get(TimeFrame.PEAK).get(Direction.BUY))
+                .peakSellBalance(unit.getBalanceQuantities().get(TimeFrame.PEAK).get(Direction.SELL))
+                .flatBuyBalance(unit.getBalanceQuantities().get(TimeFrame.FLAT).get(Direction.BUY))
+                .flatSellBalance(unit.getBalanceQuantities().get(TimeFrame.FLAT).get(Direction.SELL))
+                .valleyBuyBalance(unit.getBalanceQuantities().get(TimeFrame.VALLEY).get(Direction.BUY))
+                .valleySellBalance(unit.getBalanceQuantities().get(TimeFrame.VALLEY).get(Direction.SELL))
+                .build()).collect(Collectors.toList());
 
-        List<UnitIdentify> unitIdentifies = unitDOs.stream().map(UnitDO::getUnitId).map(UnitIdentify::resolve).collect(Collectors.toList());
-        List<String> podIds = unitIdentifies.stream().map(UnitIdentify::getPodId).collect(Collectors.toList());
-        Map<String, PodDO> podDOMap = podDOMapper.selectBatchIds(podIds).stream().collect(Collectors.toMap(PodDO::getPodId, Function.identity()));
-        List<UnitResp> unitResps = unitDOs.stream().map(unitDO -> {
-            String pId = UnitIdentify.resolve(unitDO.getUnitId()).getPodId();
-            PodDO podDO = podDOMap.get(pId);
-            boolean b = PodType.valueOf(podDO.getPodType()) == PodType.GENERATOR;
-            double available = unitDO.getCapacity() + (b ? unitDO.getBought() - unitDO.getSold() : unitDO.getSold() - unitDO.getBought());
-            return UnitResp.builder()
-                    .unitId(unitDO.getUnitId())
-                    .compId(compId)
-                    .comName(compDO.getName())
-                    .podId(podDO.getPodId())
-                    .podName(podDO.getName())
-                    .capacity(available)
-                    .build();
-        }).collect(Collectors.toList());
-        return Result.success(unitResps);
+        return Result.success(unitVOs);
     }
 
 
@@ -80,20 +117,11 @@ public class UnitController {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        PodResp to(PodDO podDO);
-
-        @AfterMapping
-        default void after(PodDO podDO, @MappingTarget PodResp podResp) {
-            podResp.setPodType(PodType.valueOf(podDO.getPodType()).getDesc());
-        }
+        Bid to(BidPO bidPO);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        PodDO to(AddPodReq addPodReq);
-
-        @AfterMapping
-        default void after(AddPodReq addPodReq, @MappingTarget PodDO podDO) {
-            podDO.setPodId(BeanUtil.getBean(UniqueIdBuilder.class).get().toString());
-        }
+        @Mapping(source = "txGroup", target = "txGroupVO")
+        OrderVO toOrderVO(Order order);
 
     }
 

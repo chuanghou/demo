@@ -19,6 +19,9 @@ import java.util.Map;
  */
 @SuppressWarnings("unchecked")
 public class TypedEnums {
+
+    static public class STAGE extends Typed<Stage> {};
+
     static public class USER_ID extends Typed<String> {}
     static public class CODES extends ListTyped<String> {}
     static public class EMPLOYEE extends Typed<Employee> {}

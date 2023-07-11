@@ -5,16 +5,17 @@ import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.PageResult;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.tool.common.Typed;
-import com.stellariver.milky.demo.adapter.controller.req.LoginReq;
-import com.stellariver.milky.demo.adapter.controller.req.UserAddReq;
-import com.stellariver.milky.demo.adapter.controller.resp.UserResp;
+import com.stellariver.milky.demo.client.po.LoginPO;
+import com.stellariver.milky.demo.client.po.UserAddPO;
+import com.stellariver.milky.demo.client.vo.UserVO;
 import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.TokenUtils;
+import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.UserLogin;
-import com.stellariver.milky.demo.domain.tunnel.DomainTunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.UserDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UserDOMapper;
 import com.stellariver.milky.domain.support.ErrorEnums;
+import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.CommandBus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +39,9 @@ public class UserController {
     final UserDOMapper userDOMapper;
 
     @PostMapping("addUser")
-    public Result<Void> addUser(@RequestBody UserAddReq userAddReq, @RequestHeader("token") String token) {
-        if (!domainTunnel.checkAdmin(TokenUtils.getUserId(token))) {
+    public Result<Void> addUser(@RequestBody UserAddPO userAddReq, @RequestHeader("token") String token) {
+        User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
+        if (user.getRole() != Role.ADMIN) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
         }
         UserDO userDO = Convertor.INST.to(userAddReq);
@@ -48,19 +50,20 @@ public class UserController {
     }
 
     @PostMapping("listUsers")
-    public Result<List<UserResp>> listUsers(@RequestHeader("token") String token) {
-        if (!domainTunnel.checkAdmin(TokenUtils.getUserId(token))) {
+    public Result<List<UserVO>> listUsers(@RequestHeader("token") String token) {
+        User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
+        if (user.getRole() != Role.ADMIN) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
         }
         List<UserDO> userDOs = userDOMapper.selectList(null);
-        List<UserResp> userResps = userDOs.stream().map(Convertor.INST::to).collect(Collectors.toList());
-        return PageResult.success(userResps);
+        List<UserVO> userVOS = userDOs.stream().map(Convertor.INST::to).collect(Collectors.toList());
+        return PageResult.success(userVOS);
     }
 
 
     @GetMapping("login")
-    public Result<String> update(@RequestBody LoginReq loginReq) {
-        UserLogin userLogin = UserLogin.builder().userId(loginReq.getUserId()).password(loginReq.getPassword()).build();
+    public Result<String> update(@RequestBody LoginPO loginPO) {
+        UserLogin userLogin = UserLogin.builder().userId(loginPO.getUserId()).password(loginPO.getPassword()).build();
         Map<Class<? extends Typed<?>>, Object> parameters = new HashMap<>();
         String token = null;
         try {
@@ -80,14 +83,14 @@ public class UserController {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        UserDO to(UserAddReq userAddReq);
+        UserDO to(UserAddPO userAddReq);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        UserResp to(UserDO userDO);
+        UserVO to(UserDO userDO);
 
         @AfterMapping
-        default void after(UserDO userDO, UserResp userResp) {
-            userResp.setRole(Role.valueOf(userResp.getRole()).getDesc());
+        default void after(UserDO userDO, UserVO userVO) {
+            userVO.setRole(Role.valueOf(userVO.getRole()).getDesc());
         }
 
     }

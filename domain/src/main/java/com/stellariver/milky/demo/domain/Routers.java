@@ -1,17 +1,17 @@
 package com.stellariver.milky.demo.domain;
 
 import com.stellariver.milky.demo.basic.Stage;
-import com.stellariver.milky.demo.basic.TimeFrame;
-import com.stellariver.milky.demo.basic.UnitIdentify;
 import com.stellariver.milky.demo.domain.command.CompClear;
-import com.stellariver.milky.demo.domain.command.UnitBuild;
-import com.stellariver.milky.demo.domain.event.CompBuilt;
+import com.stellariver.milky.demo.domain.command.UnitCommand;
+import com.stellariver.milky.demo.domain.event.CompCreated;
 import com.stellariver.milky.demo.domain.event.CompStepped;
-import com.stellariver.milky.demo.domain.tunnel.DomainTunnel;
+import com.stellariver.milky.demo.domain.tunnel.Tunnel;
+import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.CommandBus;
 import com.stellariver.milky.domain.support.context.Context;
 import com.stellariver.milky.domain.support.event.EventRouter;
 import com.stellariver.milky.domain.support.event.EventRouters;
+import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,47 +23,24 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Routers implements EventRouters {
 
-    final DomainTunnel podRepository;
+    final DomainTunnel domainTunnel;
+    final Tunnel tunnel;
+    final UniqueIdBuilder uniqueIdBuilder;
 
     @EventRouter
-    public void route(CompBuilt compBuilt, Context context) {
-        compBuilt.getAgents().forEach(agent -> {
-            List<String> podIds = agent.getPodIds();
-            podIds.forEach(podId -> {
-                Pod pod = podRepository.getByPodId(podId);
-                UnitIdentify baseUnitIdentify = UnitIdentify.builder()
-                        .compId(compBuilt.getCompId())
-                        .podId(podId)
-                        .build();
-                UnitIdentify peakUnitIdentify = baseUnitIdentify.toBuilder().timeFrame(TimeFrame.PEAK).build();
-                UnitBuild peakUnitBuild = UnitBuild.builder()
-                        .podPos(pod.getPodPos())
-                        .podType(pod.getPodType())
+    public void route(CompCreated compCreated, Context context) {
+        compCreated.getAgents().forEach(agent -> {
+            List<String> metaUniIds = agent.getMetaUnitIds();
+            metaUniIds.forEach(metaUnitId -> {
+                MetaUnit metaUnit = tunnel.getByMetaUnitId(metaUnitId);
+                UnitCommand.UnitCreate command = UnitCommand.UnitCreate.builder()
+                        .unitId(uniqueIdBuilder.get().toString())
+                        .metaUnitId(metaUnit.getName())
                         .userId(agent.getUserId())
-                        .unitIdentify(peakUnitIdentify)
-                        .capacity(pod.getPeakCapacity())
+                        .quantities(metaUnit.getQuantities())
+                        .compId(compCreated.getCompId())
                         .build();
-                CommandBus.driveByEvent(peakUnitBuild, compBuilt);
-
-                UnitIdentify flatUnitIdentify = baseUnitIdentify.toBuilder().timeFrame(TimeFrame.FLAT).build();
-                UnitBuild flatUnitBuild = UnitBuild.builder()
-                        .podPos(pod.getPodPos())
-                        .podType(pod.getPodType())
-                        .userId(agent.getUserId())
-                        .unitIdentify(flatUnitIdentify)
-                        .capacity(pod.getFlatCapacity())
-                        .build();
-                CommandBus.driveByEvent(flatUnitBuild, compBuilt);
-
-                UnitIdentify valleyUnitIdentify = baseUnitIdentify.toBuilder().timeFrame(TimeFrame.VALLEY).build();
-                UnitBuild valleyUnitBuild = UnitBuild.builder()
-                        .podPos(pod.getPodPos())
-                        .podType(pod.getPodType())
-                        .userId(agent.getUserId())
-                        .unitIdentify(valleyUnitIdentify)
-                        .capacity(pod.getPeakCapacity())
-                        .build();
-                CommandBus.driveByEvent(valleyUnitBuild, compBuilt);
+                CommandBus.driveByEvent(command, compCreated);
             });
         });
     }

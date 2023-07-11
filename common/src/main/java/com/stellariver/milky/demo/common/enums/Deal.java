@@ -1,6 +1,5 @@
-package com.stellariver.milky.demo.basic;
+package com.stellariver.milky.demo.common.enums;
 
-import com.stellariver.milky.demo.common.enums.Direction;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,9 +12,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Transaction {
+public class Deal {
 
-    Direction direction;
     Double quantity;
     Double price;
 

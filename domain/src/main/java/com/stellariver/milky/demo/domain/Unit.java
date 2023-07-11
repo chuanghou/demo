@@ -1,14 +1,20 @@
 package com.stellariver.milky.demo.domain;
 
 import com.stellariver.milky.common.base.BizEx;
-import com.stellariver.milky.common.tool.common.Kit;
-import com.stellariver.milky.demo.basic.*;
-import com.stellariver.milky.demo.domain.command.*;
-import com.stellariver.milky.demo.domain.event.YepBidden;
+import com.stellariver.milky.common.tool.wire.StaticWire;
+import com.stellariver.milky.demo.basic.Position;
+import com.stellariver.milky.demo.basic.Stage;
+import com.stellariver.milky.demo.basic.TypedEnums;
+import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.common.enums.*;
+import com.stellariver.milky.demo.domain.command.UnitCommand;
+import com.stellariver.milky.demo.domain.command.UnitEvent;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.command.ConstructorHandler;
 import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
+import com.stellariver.milky.domain.support.dependency.Nulliable;
+import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
@@ -16,7 +22,13 @@ import org.mapstruct.Builder;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
+import static com.stellariver.milky.common.base.ErrorEnumsBase.PARAM_FORMAT_WRONG;
 
 @Data
 @SuperBuilder
@@ -26,61 +38,131 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Unit extends AggregateRoot {
 
-    UnitIdentify unitIdentify;
-    PodPos podPos;
-    PodType podType;
+    String unitId;
+    String compId;
+    String name;
+    Position position;
+    UnitType unitType;
     String userId;
-    Double capacity;
-    Double bought;
-    Double sold;
-    List<Transaction> yipTransactions;
-    List<Transaction> mipTransactions;
+
+    Map<TimeFrame, Map<Direction, Double>> balanceQuantities;
+    @lombok.Builder.Default
+    Map<TimeFrame, List<Bid>> centralizedBids = new HashMap<>();
+    @lombok.Builder.Default
+    Map<String, Order> orders = new HashMap<>();
+
+    @Nulliable(replacerSupplier = NullSupplier.class)
+    Direction stageFourDirection;
+
+    @StaticWire
+    static private UniqueIdBuilder uniqueIdBuilder;
 
     @Override
     public String getAggregateId() {
-        return unitIdentify.getUnitId();
+        return unitId;
     }
 
     @ConstructorHandler
-    public static Unit build(UnitBuild unitBuild, Context context) {
-        Unit unit = Convertor.INST.to(unitBuild);
-        unit.setBought(0D);
-        unit.setSold(0D);
-        return unit;
+    public static Unit create(UnitCommand.UnitCreate unitCreate, Context context) {
+        return Convertor.INST.to(unitCreate);
     }
 
 
     @MethodHandler
-    public void handle(YepBid yepBid, Context context) {
-        String userId = context.getMetaData(TypedEnums.USER_ID.class);
-        BizEx.trueThrow(Kit.notEq(this.userId, userId), ErrorEnums.PARAM_FORMAT_WRONG.message("不能操作其他人的报单"));
-        Pod pod = context.getByAggregateId(Pod.class, unitIdentify.getPodId());
-        PodPos podPos = pod.getPodPos();
-        PodType podType = pod.getPodType();
-        boolean b0 = podPos == PodPos.TRANSFER && podType == PodType.GENERATOR;
-        boolean b1 = podPos == PodPos.RECEIVE && podType == PodType.LOAD;
-        BizEx.trueThrow((!b0) && (!b1), ErrorEnums.PARAM_FORMAT_WRONG.message("第一阶段机组只能报卖单，负荷只能报买单"));
-        BizEx.trueThrow(b0 && yepBid.getDirection() == Direction.BUY, ErrorEnums.PARAM_FORMAT_WRONG.message("一阶段机组只能报卖单，负荷只能报买单"));
-        BizEx.trueThrow(b1 && yepBid.getDirection() == Direction.SELL, ErrorEnums.PARAM_FORMAT_WRONG.message("一阶段机组只能报卖单，负荷只能报买单"));
-        this.yipTransactions = yepBid.getTransactions();
-        context.publish(Convertor.INST.to(yepBid));
+    public void handle(UnitCommand.CentralizedBid command, Context context) {
+        Direction direction = unitType.generalDirection();
+        List<Bid> bids = command.getBids();
+        bids.forEach(bid -> BizEx.trueThrow(bid.getDirection() != unitType.generalDirection(), PARAM_FORMAT_WRONG.message("买卖方向错误")));
+        Double bidQuantity = bids.stream().map(Bid::getQuantity).reduce(0D, Double::sum);
+        Double balanceQuantity = balanceQuantities.get(command.getTxGroup().getTimeFrame()).get(direction);
+        BizEx.trueThrow(balanceQuantity > bidQuantity, PARAM_FORMAT_WRONG.message("余额不足"));
+        centralizedBids.put(command.getTxGroup().getTimeFrame(), command.getBids());
+        context.publish(UnitCommand.CentralizedBidden.builder().unitId(unitId).build());
     }
 
     @MethodHandler
-    public void handle(YipBid yipBid, Context context) {
+    public void handle(UnitCommand.CentralizedTrigger command, Context context) {
+        List<Order> centralizedOrders = new ArrayList<>();
+
+        centralizedBids.forEach(((timeFrame, bids) -> {
+            bids.forEach(bid -> {
+                String orderId = uniqueIdBuilder.get().toString();
+                Order order = Order.builder()
+                        .id(orderId)
+                        .txGroup(TxGroup.builder().unitId(unitId).timeFrame(timeFrame).build())
+                        .bid(bid)
+                        .build();
+                deduct(order);
+                centralizedOrders.add(order);
+            });
+        }));
+
+        UnitEvent.CentralizedBidden event = UnitEvent.CentralizedBidden.builder().unitId(unitId).orders(centralizedOrders).build();
+        context.publish(event);
+    }
+
+
+    @MethodHandler
+    public void handle(UnitCommand.RealtimeBid command, Context context) {
+
+        Stage stage = context.getMetaData(TypedEnums.STAGE.class);
+        if (stage == Stage.STAGE_FOUR_CLEARANCE) {
+            if (stageFourDirection == null) {
+                stageFourDirection = command.getBid().getDirection();
+            } else {
+                boolean b = stageFourDirection != command.getBid().getDirection();
+                BizEx.trueThrow(b, PARAM_FORMAT_WRONG.message("第四阶段只能发布同向的报价"));
+            }
+        }
+
+        String orderId = uniqueIdBuilder.get().toString();
+        Order order = Order.builder()
+                .id(orderId)
+                .txGroup(command.getTxGroup())
+                .bid(command.getBid())
+                .build();
+        deduct(order);
+        UnitEvent.RealtimeBidden event = UnitEvent.RealtimeBidden.builder().unitId(unitId).order(order).build();
+        context.publish(event);
+    }
+
+    private void deduct(Order order) {
+        orders.put(order.getId(), order);
+        TimeFrame timeFrame = order.getTxGroup().getTimeFrame();
+        Direction direction = order.getBid().getDirection();
+        Double balance = balanceQuantities.get(timeFrame).get(direction);
+        double newBalance = balance - order.getBid().getQuantity();
+        BizEx.trueThrow(newBalance < 0, PARAM_FORMAT_WRONG.message("超过余额"));
+        balanceQuantities.get(timeFrame).put(direction, newBalance);
+    }
+
+
+    @MethodHandler
+    public void handle(UnitCommand.DealReport command, Context context) {
+        Order order = orders.get(command.getOrderId());
+        order.getDeals().add(command.getDeal());
 
     }
 
     @MethodHandler
-    public void handle(MepBid mepBid, Context context) {
-        String userId = context.getMetaData(TypedEnums.USER_ID.class);
-        BizEx.trueThrow(Kit.notEq(this.userId, userId), ErrorEnums.PARAM_FORMAT_WRONG.message("不能操作其他人的报单"));
-        this.yipTransactions = mepBid.getTransactions();
+    public void handle(UnitCommand.Cancel command, Context context) {
+        String orderId = command.getOrderId();
+        Order order = orders.get(orderId);
+        UnitEvent.Cancelled event = UnitEvent.Cancelled.builder().unitId(unitId).order(order).build();
+        context.publish(event);
     }
 
     @MethodHandler
-    public void handle(MipBid mipBid, Context context) {
-
+    public void handle(UnitCommand.CancelReport command, Context context) {
+        Order order = orders.get(command.getOrderId());
+        order.setCancelled(command.getQuantity());
+        TimeFrame timeFrame = command.getTxGroup().getTimeFrame();
+        Direction direction = order.getBid().getDirection();
+        Double balanceQuantity = balanceQuantities.get(timeFrame).get(direction);
+        balanceQuantity += command.getQuantity();
+        balanceQuantities.get(timeFrame).put(direction, balanceQuantity);
+        UnitEvent.CancelledReported cancelled = UnitEvent.CancelledReported.builder().unitId(unitId).order(order).build();
+        context.publish(cancelled);
     }
 
 
@@ -91,11 +173,31 @@ public class Unit extends AggregateRoot {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        Unit to(UnitBuild unitBuild);
+        Unit to(UnitCommand.UnitCreate unitCreate);
 
-        @BeanMapping(builder = @Builder(disableBuilder = true))
-        YepBidden to(YepBid yepBid);
+        @AfterMapping
+        default void after(UnitCommand.UnitCreate unitCreate, @MappingTarget Unit unit) {
+            Map<TimeFrame, Double> quantities = unitCreate.getQuantities();
+            Map<TimeFrame, Map<Direction, Double>> balanceQuantities = new HashMap<>();
+            Direction direction = unitCreate.getUnitType().generalDirection();
+            Direction oppositeDirection = direction.opposite();
+            quantities.forEach((tf, quantity) -> {
+                Map<Direction, Double> directionMap = new HashMap<>();
+                directionMap.put(direction, quantities.get(tf));
+                directionMap.put(oppositeDirection, 0D);
+                balanceQuantities.put(tf, directionMap);
+            });
+            unit.setBalanceQuantities(balanceQuantities);
+        }
 
+
+    }
+
+    static class NullSupplier implements Supplier<Object> {
+        @Override
+        public Direction get() {
+            return Direction.UNKNOWN;
+        }
     }
 
 }

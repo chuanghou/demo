@@ -57,6 +57,9 @@ public class User extends AggregateRoot {
         }
     }
 
+
+
+
     @Override
     public String getAggregateId() {
         return userId;
