@@ -25,7 +25,7 @@ public class UnitCommand {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class DealReport extends Command {
 
-        String orderId;
+        String bidId;
         TxGroup txGroup;
         Deal deal;
 
@@ -70,12 +70,15 @@ public class UnitCommand {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class CentralizedBid extends Command {
 
-        TxGroup txGroup;
         List<Bid> bids;
 
         @Override
         public String getAggregateId() {
-            return txGroup.getUnitId();
+            return getTxGroup().getUnitId();
+        }
+
+        public TxGroup getTxGroup() {
+            return bids.get(0).getTxGroup();
         }
 
     }

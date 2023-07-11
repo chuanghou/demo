@@ -12,10 +12,9 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CompClear extends Command {
+public class CompClearStageOne extends Command {
 
     String compId;
-    Stage stage;
 
     @Override
     public String getAggregateId() {

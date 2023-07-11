@@ -15,6 +15,8 @@ import javax.validation.constraints.Positive;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BidPO {
 
+    TxGroupPO txGroupPO;
+
     @NotNull
     @OfEnum(enumType = Direction.class)
     String direction;

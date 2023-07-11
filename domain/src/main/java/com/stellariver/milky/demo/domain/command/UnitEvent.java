@@ -88,9 +88,9 @@ public class UnitEvent {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class DealReported extends Command {
+    public static class DealReported extends Event {
 
-        String orderId;
+        String bidId;
         TxGroup txGroup;
         Deal deal;
 

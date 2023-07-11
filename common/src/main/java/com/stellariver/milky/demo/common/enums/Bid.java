@@ -17,6 +17,7 @@ import java.util.Date;
 public class Bid {
 
     String id;
+    TxGroup txGroup;
     Direction direction;
     Double quantity;
     Double price;

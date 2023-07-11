@@ -56,7 +56,6 @@ public class UnitController {
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
 
         UnitCommand.CentralizedBid centralizedBid = UnitCommand.CentralizedBid.builder()
-                .txGroup(centralizedBidPO.getTxGroup())
                 .bids(Collect.transfer(centralizedBidPO.getBidPOs(), Convertor.INST::to))
                 .build();
 
@@ -117,6 +116,7 @@ public class UnitController {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
+        @Mapping(source = "txGroupPO", target = "txGroup")
         Bid to(BidPO bidPO);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))

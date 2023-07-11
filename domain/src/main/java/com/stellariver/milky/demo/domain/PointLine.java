@@ -14,9 +14,12 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PointLine {
+
+    String bidId;
     TxGroup txGroup;
     Direction direction;
-    Double cumulateQuantity;
-    Double widthQuantity;
+    Double quantity;
     Double price;
+
+    Double cumulateQuantity;
 }

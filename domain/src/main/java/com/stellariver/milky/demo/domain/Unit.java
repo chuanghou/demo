@@ -150,9 +150,13 @@ public class Unit extends AggregateRoot {
 
     @MethodHandler
     public void handle(UnitCommand.DealReport command, Context context) {
-        Order order = orders.get(command.getOrderId());
+        Order order = orders.get(command.getBidId());
         order.getDeals().add(command.getDeal());
-
+        UnitEvent.DealReported event = UnitEvent.DealReported.builder()
+                .bidId(command.getBidId())
+                .deal(command.getDeal())
+                .build();
+        context.publish(event);
     }
 
     @MethodHandler
