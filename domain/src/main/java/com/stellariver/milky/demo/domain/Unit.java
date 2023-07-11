@@ -1,11 +1,9 @@
 package com.stellariver.milky.demo.domain;
 
 import com.stellariver.milky.common.base.BizEx;
+import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.wire.StaticWire;
-import com.stellariver.milky.demo.basic.Position;
-import com.stellariver.milky.demo.basic.Stage;
-import com.stellariver.milky.demo.basic.TypedEnums;
-import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.demo.domain.command.UnitEvent;
@@ -70,9 +68,15 @@ public class Unit extends AggregateRoot {
 
     @MethodHandler
     public void handle(UnitCommand.CentralizedBid command, Context context) {
+        Stage stage = context.getMetaData(TypedEnums.STAGE.class);
+        if (stage == Stage.STAGE_ONE_RUNNING || stage == Stage.STAGE_THREE_RUNNING) {
+            Direction direction = position.interProvincial();
+            boolean b = unitType.generalDirection() == direction;
+            BizEx.falseThrow(b, PARAM_FORMAT_WRONG.message("省间交易只能是送电省的机组和受电省的负荷"));
+        }
         Direction direction = unitType.generalDirection();
         List<Bid> bids = command.getBids();
-        bids.forEach(bid -> BizEx.trueThrow(bid.getDirection() != unitType.generalDirection(), PARAM_FORMAT_WRONG.message("买卖方向错误")));
+        bids.forEach(bid -> BizEx.trueThrow(bid.getDirection() != direction, PARAM_FORMAT_WRONG.message("买卖方向错误")));
         Double bidQuantity = bids.stream().map(Bid::getQuantity).reduce(0D, Double::sum);
         Double balanceQuantity = balanceQuantities.get(command.getTxGroup().getTimeFrame()).get(direction);
         BizEx.trueThrow(balanceQuantity > bidQuantity, PARAM_FORMAT_WRONG.message("余额不足"));
@@ -86,9 +90,8 @@ public class Unit extends AggregateRoot {
 
         centralizedBids.forEach(((timeFrame, bids) -> {
             bids.forEach(bid -> {
-                String orderId = uniqueIdBuilder.get().toString();
                 Order order = Order.builder()
-                        .id(orderId)
+                        .id(uniqueIdBuilder.get().toString())
                         .txGroup(TxGroup.builder().unitId(unitId).timeFrame(timeFrame).build())
                         .bid(bid)
                         .build();
@@ -109,10 +112,18 @@ public class Unit extends AggregateRoot {
         if (stage == Stage.STAGE_FOUR_CLEARANCE) {
             if (stageFourDirection == null) {
                 stageFourDirection = command.getBid().getDirection();
+                if (stageFourDirection.opposite() == unitType.generalDirection()){
+                    Double balance = balanceQuantities.get(command.getTxGroup().getTimeFrame()).get(stageFourDirection.opposite());
+                    balanceQuantities.get(command.getTxGroup().getTimeFrame()).put(stageFourDirection, balance);
+                } else {
+                    throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+                }
             } else {
                 boolean b = stageFourDirection != command.getBid().getDirection();
                 BizEx.trueThrow(b, PARAM_FORMAT_WRONG.message("第四阶段只能发布同向的报价"));
             }
+        } else {
+            BizEx.trueThrow(unitType.generalDirection() != command.getBid().getDirection(), PARAM_FORMAT_WRONG.message("买卖方向错误"));
         }
 
         String orderId = uniqueIdBuilder.get().toString();

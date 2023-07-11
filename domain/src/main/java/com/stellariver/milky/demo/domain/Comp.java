@@ -53,6 +53,8 @@ public class Comp extends AggregateRoot {
 
     Map<TimeFrame, Double> replenishMap = new HashMap<>();
 
+    Map<TimeFrame, RealtimeBidProcessor> realtimeBidProcessors = new HashMap<>();
+
     @Override
     public String getAggregateId() {
         return compId;
