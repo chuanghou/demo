@@ -3,10 +3,8 @@ package com.stellariver.milky.demo.domain;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.wire.StaticWire;
 import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.basic.Stage;
-import com.stellariver.milky.demo.common.Agent;
-import com.stellariver.milky.demo.common.Bid;
-import com.stellariver.milky.demo.common.Deal;
+import com.stellariver.milky.demo.common.Stage;
+import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.command.CompCommand;
@@ -28,6 +26,7 @@ import org.mapstruct.factory.Mappers;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,7 +49,7 @@ public class Comp extends AggregateRoot {
     Map<TimeFrame, Pair<Double, Double>> limitations;
     Map<TimeFrame, Double> replenishMap = new HashMap<>();
 
-    Map<TimeFrame, RealtimeBidProcessor> realtimeBidProcessors = new HashMap<>();
+    static Map<BidGroup, RealtimeBidProcessor> realtimeBidProcessors = new ConcurrentHashMap<>();
 
     @Override
     public String getAggregateId() {
@@ -311,6 +310,9 @@ public class Comp extends AggregateRoot {
     public void handle(CompCommand.RealtimeBid command, Context context) {
         Bid bid = command.getBid();
         TimeFrame timeFrame = bid.getTxGroup().getTimeFrame();
+        BidGroup bidGroup = BidGroup.builder().compId(compId).timeFrame(timeFrame).build();
+        RealtimeBidProcessor realtimeBidProcessor = realtimeBidProcessors.computeIfAbsent(bidGroup, bG -> new RealtimeBidProcessor());
+        realtimeBidProcessor.post(bid);
     }
 
 

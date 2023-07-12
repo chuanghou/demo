@@ -23,5 +23,6 @@ public class Bid {
     Double quantity;
     Double price;
     Date date;
+    Stage stage;
 
 }

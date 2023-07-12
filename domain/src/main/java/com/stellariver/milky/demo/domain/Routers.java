@@ -1,6 +1,6 @@
 package com.stellariver.milky.demo.domain;
 
-import com.stellariver.milky.demo.basic.Stage;
+import com.stellariver.milky.demo.common.Stage;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.domain.command.UnitCommand;

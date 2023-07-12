@@ -1,6 +1,6 @@
 package com.stellariver.milky.demo.domain.event;
 
-import com.stellariver.milky.demo.basic.Stage;
+import com.stellariver.milky.demo.common.Stage;
 import com.stellariver.milky.demo.common.Agent;
 import com.stellariver.milky.demo.domain.DealResult;
 import com.stellariver.milky.domain.support.event.Event;

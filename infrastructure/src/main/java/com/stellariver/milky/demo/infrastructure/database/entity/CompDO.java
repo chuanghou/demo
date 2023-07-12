@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.stellariver.milky.demo.basic.Stage;
+import com.stellariver.milky.demo.common.Stage;
 import com.stellariver.milky.domain.support.base.BaseDataObject;
 import com.stellariver.milky.infrastructure.base.database.AbstractMpDO;
 import lombok.*;

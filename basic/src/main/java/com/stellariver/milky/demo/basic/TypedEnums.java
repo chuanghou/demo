@@ -8,6 +8,7 @@ import com.stellariver.milky.common.tool.common.SetTyped;
 import com.stellariver.milky.common.tool.common.Typed;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.common.tool.util.StreamMap;
+import com.stellariver.milky.demo.common.Stage;
 import lombok.NonNull;
 
 import java.util.Arrays;

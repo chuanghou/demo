@@ -10,6 +10,7 @@ import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.client.po.CompCreatePO;
 import com.stellariver.milky.demo.client.po.StepCompPO;
 import com.stellariver.milky.demo.client.vo.CompVO;
+import com.stellariver.milky.demo.common.Stage;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.CompCommand;
