@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.common.Agent;
 import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Order;
-import com.stellariver.milky.demo.common.Stage;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 
@@ -49,12 +49,12 @@ public interface BasicConvertor {
         return Json.parse(orders, typeReference);
     }
 
-    default String fromBids(Map<Stage, List<Bid>> bids) {
+    default String fromBids(Map<MarketType, List<Bid>> bids) {
         return Json.toJson(bids);
     }
 
-    default Map<Stage, List<Bid>> toBids(String bids) {
-        TypeReference<Map<Stage, List<Bid>>> typeReference = new TypeReference<Map<Stage, List<Bid>>>() {};
+    default Map<MarketType, List<Bid>> toBids(String bids) {
+        TypeReference<Map<MarketType, List<Bid>>> typeReference = new TypeReference<Map<MarketType, List<Bid>>>() {};
         return Json.parse(bids, typeReference);
     }
 

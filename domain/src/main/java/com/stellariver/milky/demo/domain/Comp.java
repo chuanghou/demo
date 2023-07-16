@@ -3,13 +3,17 @@ package com.stellariver.milky.demo.domain;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
+import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.wire.StaticWire;
+import com.stellariver.milky.demo.basic.AgentConfig;
 import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.common.Stage;
-import com.stellariver.milky.demo.common.*;
+import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.BidGroup;
+import com.stellariver.milky.demo.common.Deal;
+import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.command.CompCommand;
@@ -17,9 +21,9 @@ import com.stellariver.milky.demo.domain.event.CompEvent;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
-import com.stellariver.milky.domain.support.command.ConstructorHandler;
 import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
+import com.stellariver.milky.domain.support.dependency.Nulliable;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
@@ -29,6 +33,7 @@ import org.mapstruct.Builder;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -43,12 +48,15 @@ import java.util.stream.Stream;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Comp extends AggregateRoot {
 
-    String compId;
-
-    String date;
-    String name;
-    Stage stage;
-    List<Agent> agents;
+    Integer compId;
+    Integer roundId;
+    Integer roundNum;
+    @Nulliable
+    MarketType marketType;
+    @Nulliable
+    Boolean marketStatus;
+    Map<MarketType, Duration> durationMap;
+    List<AgentConfig> agentConfigs;
 
     Map<TimeFrame, Pair<Double, Double>> limitations;
     Map<TimeFrame, Double> replenishMap = new HashMap<>();
@@ -57,7 +65,7 @@ public class Comp extends AggregateRoot {
 
     @Override
     public String getAggregateId() {
-        return compId;
+        return compId.toString();
     }
 
     @StaticWire
@@ -65,27 +73,53 @@ public class Comp extends AggregateRoot {
     @StaticWire
     static Tunnel tunnel;
 
-    @ConstructorHandler
-    public static Comp create(CompCommand.Create create, Context context) {
-        Comp comp = Convertor.INST.to(create);
-        comp.setStage(Stage.INITIALIZED);
-        CompEvent.Created created = Convertor.INST.to(comp);
-        context.publish(created);
-        return comp;
+
+    @MethodHandler
+    public void start(CompCommand.Start start, Context context) {
+        CompEvent.Stepped.SteppedBuilder<?, ?> builder = CompEvent.Stepped.builder()
+                .lastRoundId(roundId)
+                .lastMarketType(marketType)
+                .lastMarketStatus(marketStatus);
+        roundId = 1;
+        marketType = MarketType.INTER_ANNUAL_PROVINCIAL;
+        marketStatus = Boolean.TRUE;
+        CompEvent.Stepped stepped = builder.nextRoundId(roundId)
+                .nextMarketType(marketType)
+                .nextMarketStatus(marketStatus)
+                .build();
+        context.publish(stepped);
     }
 
     @MethodHandler
     public void handle(CompCommand.Step command, Context context) {
-        Stage nextStage = Stage.valueOf(stage.getNextStage());
-        CompEvent.Stepped stepped = CompEvent.Stepped.builder().compId(compId).lastStage(stage).nextStage(nextStage).build();
-        stage = Stage.valueOf(stage.getNextStage());
+        CompEvent.Stepped.SteppedBuilder<?, ?> builder = CompEvent.Stepped.builder()
+                .lastRoundId(roundId)
+                .lastMarketType(marketType)
+                .lastMarketStatus(marketStatus);
+        if (marketStatus) {
+            marketStatus = false;
+        } else {
+            int nextDbCode = marketType.getDbCode() + 1;
+            if (nextDbCode > MarketType.INTER_SPOT_PROVINCIAL.getDbCode()) {
+                nextDbCode = MarketType.INTER_ANNUAL_PROVINCIAL.getDbCode();
+                BizEx.trueThrow(Kit.eq(roundId, roundNum), ErrorEnums.CONFIG_ERROR.message("本场比赛已经结束!"));
+                roundId += 1;
+            }
+            marketType = Kit.enumOfMightEx(MarketType::getDbCode, nextDbCode);
+            marketStatus = true;
+        }
+        CompEvent.Stepped stepped = builder.nextRoundId(roundId)
+                .nextMarketType(marketType)
+                .nextMarketStatus(marketStatus)
+                .build();
         context.publish(stepped);
+
     }
 
     @MethodHandler
     public void handle(CompCommand.Clear clear, Context context) {
         List<Bid> bids = tunnel.getByCompId(compId).stream()
-                .map(unit -> unit.getCentralizedBids().get(clear.getStage()))
+                .map(unit -> unit.getCentralizedBids().get(clear.getMarketType()))
                 .flatMap(Collection::stream).collect(Collectors.toList());
 
         List<Bid> buyBids = bids.stream().filter(bid -> bid.getDirection() == Direction.BUY).collect(Collectors.toList());
@@ -97,7 +131,7 @@ public class Comp extends AggregateRoot {
         List<DealResult> dealResults2 = resolveDealResults(buyBids, sellBids, TimeFrame.VALLEY);
 
         List<DealResult> dealResults = Stream.of(dealResults0, dealResults1, dealResults2).flatMap(Collection::stream).collect(Collectors.toList());
-        CompEvent.Cleared event = CompEvent.Cleared.builder().compId(compId).stage(clear.getStage()).dealResults(dealResults).build();
+        CompEvent.Cleared event = CompEvent.Cleared.builder().compId(compId).marketType(clear.getMarketType()).dealResults(dealResults).build();
         context.publish(event);
     }
 
@@ -338,9 +372,6 @@ public class Comp extends AggregateRoot {
     public interface Convertor {
 
         Convertor INST = Mappers.getMapper(Convertor.class);
-
-        @BeanMapping(builder = @Builder(disableBuilder = true))
-        Comp to(CompCommand.Create create);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
         CompEvent.Created to(Comp comp);

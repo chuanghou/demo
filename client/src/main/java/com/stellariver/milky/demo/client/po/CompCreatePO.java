@@ -14,6 +14,5 @@ import java.util.List;
 public class CompCreatePO {
 
     List<Agent> agents;
-    String name;
 
 }

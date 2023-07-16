@@ -5,7 +5,6 @@ import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.util.DaemonThreadFactory;
 import com.stellariver.milky.common.tool.common.Typed;
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.common.Stage;
 import com.stellariver.milky.demo.basic.TypedEnums;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
@@ -15,7 +14,6 @@ import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.domain.support.command.CommandBus;
 
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
@@ -121,14 +119,14 @@ public class RealtimeBidProcessor implements EventHandler<RealtimeBidContainer> 
                 .txGroup(txGroup)
                 .deal(Deal.builder().quantity(dealQuantity).price(dealPrice).build())
                 .build();
-        Map<Class<? extends Typed<?>>, Object> parameters0 = Collect.asMap(TypedEnums.STAGE.class, buyBid.getStage());
+        Map<Class<? extends Typed<?>>, Object> parameters0 = Collect.asMap(TypedEnums.STAGE.class, buyBid.getMarketType());
         CompletableFuture.runAsync(() -> CommandBus.accept(buyBidDealReport, parameters0));
         UnitCommand.DealReport sellBidDealReport = UnitCommand.DealReport.builder()
                 .bidId(sellBid.getId())
                 .txGroup(txGroup)
                 .deal(Deal.builder().quantity(dealQuantity).price(dealPrice).build())
                 .build();
-        Map<Class<? extends Typed<?>>, Object> parameters1 = Collect.asMap(TypedEnums.STAGE.class, buyBid.getStage());
+        Map<Class<? extends Typed<?>>, Object> parameters1 = Collect.asMap(TypedEnums.STAGE.class, buyBid.getMarketType());
         CompletableFuture.runAsync(() -> CommandBus.accept(sellBidDealReport, parameters1));
     }
 }

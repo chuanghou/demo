@@ -1,13 +1,14 @@
 package com.stellariver.milky.demo.domain.event;
 
-import com.stellariver.milky.demo.common.Stage;
 import com.stellariver.milky.demo.common.Agent;
+import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.domain.DealResult;
 import com.stellariver.milky.domain.support.event.Event;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class CompEvent {
@@ -20,15 +21,15 @@ public class CompEvent {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Cleared extends Event {
 
-        String compId;
+        Integer compId;
 
-        Stage stage;
+        MarketType marketType;
 
         List<DealResult> dealResults;
 
         @Override
         public String getAggregateId() {
-            return compId;
+            return compId.toString();
         }
 
     }
@@ -43,7 +44,7 @@ public class CompEvent {
         String compId;
         String date;
         String name;
-        Stage stage;
+        MarketType marketType;
         List<Agent> agents;
 
 
@@ -61,8 +62,17 @@ public class CompEvent {
     public static class Stepped extends Event {
 
         String compId;
-        Stage lastStage;
-        Stage nextStage;
+
+        @Nullable
+        Integer lastRoundId;
+        @Nullable
+        MarketType lastMarketType;
+        @Nullable
+        Boolean lastMarketStatus;
+
+        Integer nextRoundId;
+        MarketType nextMarketType;
+        Boolean nextMarketStatus;
 
         @Override
         public String getAggregateId() {

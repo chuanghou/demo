@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(" dataController")
+@RequestMapping("dataController")
 public class DataController {
 
     final SprMapper sprMapper;
@@ -108,8 +108,7 @@ public class DataController {
         transferData.put(Label.annual_transfer_forecast_mw.name(),
                 Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
 
-        result.put(Label.receiver_96_analysis.getDesc(), receiveData);
-
+        result.put(Label.receiver_96_analysis.name(), receiveData);
 
         Map<String, List<Double>> linkData = new HashMap<>();
         linkData.put(Label.receive_target_upper_limit.name(),

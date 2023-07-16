@@ -1,14 +1,11 @@
 package com.stellariver.milky.demo.domain.command;
 
-import com.stellariver.milky.demo.common.Stage;
-import com.stellariver.milky.demo.common.Agent;
 import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.domain.support.command.Command;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-
-import java.util.List;
 
 public class CompCommand {
     @Data
@@ -21,7 +18,7 @@ public class CompCommand {
 
         String compId;
 
-        Stage stage;
+        MarketType marketType;
 
         @Override
         public String getAggregateId() {
@@ -36,16 +33,13 @@ public class CompCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class Create extends Command {
+    public static class Start extends Command {
 
-        String compId;
-        String name;
-        String date;
-        List<Agent> agents;
+        Integer compId;
 
         @Override
         public String getAggregateId() {
-            return compId;
+            return compId.toString();
         }
 
     }
@@ -58,11 +52,11 @@ public class CompCommand {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Step extends Command {
 
-        String compId;
+        Integer compId;
 
         @Override
         public String getAggregateId() {
-            return compId;
+            return compId.toString();
         }
 
     }

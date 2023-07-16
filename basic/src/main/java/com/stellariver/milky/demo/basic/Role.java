@@ -8,7 +8,7 @@ import lombok.Getter;
 public enum Role {
 
     ADMIN("管理员"),
-    COMPETITOR("参赛者");
+    TRADER("参赛者");
 
     final String desc;
 

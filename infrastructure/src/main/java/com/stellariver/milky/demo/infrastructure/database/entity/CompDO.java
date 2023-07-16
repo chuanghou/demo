@@ -1,10 +1,8 @@
 package com.stellariver.milky.demo.infrastructure.database.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.stellariver.milky.demo.common.Stage;
 import com.stellariver.milky.domain.support.base.BaseDataObject;
 import com.stellariver.milky.infrastructure.base.database.AbstractMpDO;
 import lombok.*;
@@ -14,25 +12,28 @@ import lombok.experimental.SuperBuilder;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("comp_do")
+@TableName("market_setting")
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CompDO extends AbstractMpDO implements BaseDataObject<String> {
+public class CompDO extends AbstractMpDO implements BaseDataObject<Integer> {
 
     @TableId(type = IdType.INPUT)
-    String compId;
-    String date;
-    String name;
-    Stage stage;
+    Integer marketSettingId;
+    Integer roundNum;
+    Integer roundId;
+    Integer marketType;
+    Integer intraprovincialAnnualBidDuration;
+    Integer intraprovincialMonthlyBidDuration;
+    Integer interprovincialAnnualBidDuration;
+    Integer interprovincialSpotBidDuration;
+    Integer intraprovincialSpotBidDuration;
     String agents;
-
-    @TableField(exist = false)
-    Object comp;
-
+    Long marketCloseTime;
+    Boolean marketStatus;
     @Override
-    public String getPrimaryId() {
-        return compId;
+    public Integer getPrimaryId() {
+        return marketSettingId;
     }
 
 

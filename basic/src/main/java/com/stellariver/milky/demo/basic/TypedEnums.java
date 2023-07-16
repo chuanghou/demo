@@ -8,7 +8,7 @@ import com.stellariver.milky.common.tool.common.SetTyped;
 import com.stellariver.milky.common.tool.common.Typed;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.common.tool.util.StreamMap;
-import com.stellariver.milky.demo.common.Stage;
+import com.stellariver.milky.demo.common.MarketType;
 import lombok.NonNull;
 
 import java.util.Arrays;
@@ -21,7 +21,7 @@ import java.util.Map;
 @SuppressWarnings("unchecked")
 public class TypedEnums {
 
-    static public class STAGE extends Typed<Stage> {};
+    static public class STAGE extends Typed<MarketType> {};
 
     static public class USER_ID extends Typed<String> {}
     static public class CODES extends ListTyped<String> {}

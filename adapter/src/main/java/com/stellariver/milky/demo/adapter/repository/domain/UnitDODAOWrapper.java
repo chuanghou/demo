@@ -1,7 +1,6 @@
 package com.stellariver.milky.demo.adapter.repository.domain;
 
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UnitDOMapper;
 import com.stellariver.milky.domain.support.dependency.DAOWrapper;

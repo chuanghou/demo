@@ -3,10 +3,13 @@ package com.stellariver.milky.demo.domain;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.wire.StaticWire;
-import com.stellariver.milky.demo.basic.*;
+import com.stellariver.milky.demo.basic.ErrorEnums;
+import com.stellariver.milky.demo.basic.Position;
+import com.stellariver.milky.demo.basic.TypedEnums;
+import com.stellariver.milky.demo.basic.UnitType;
 import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Order;
-import com.stellariver.milky.demo.common.Stage;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
@@ -24,7 +27,9 @@ import org.mapstruct.Builder;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import static com.stellariver.milky.common.base.ErrorEnumsBase.PARAM_FORMAT_WRONG;
@@ -46,7 +51,7 @@ public class Unit extends AggregateRoot {
 
     Map<TimeFrame, Map<Direction, Double>> balanceQuantities;
     @lombok.Builder.Default
-    Map<Stage, List<Bid>> centralizedBids = new HashMap<>();
+    Map<MarketType, List<Bid>> centralizedBids = new HashMap<>();
     @lombok.Builder.Default
     Map<String, Order> orders = new HashMap<>();
 
@@ -69,8 +74,8 @@ public class Unit extends AggregateRoot {
 
     @MethodHandler
     public void handle(UnitCommand.CentralizedBid command, Context context) {
-        Stage stage = context.getMetaData(TypedEnums.STAGE.class);
-        if (stage == Stage.STAGE_ONE_RUNNING || stage == Stage.STAGE_THREE_RUNNING) {
+        MarketType marketType = context.getMetaData(TypedEnums.STAGE.class);
+        if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
             Direction direction = position.interProvincial();
             boolean b = unitType.generalDirection() == direction;
             BizEx.falseThrow(b, PARAM_FORMAT_WRONG.message("省间交易只能是送电省的机组和受电省的负荷"));
@@ -83,7 +88,7 @@ public class Unit extends AggregateRoot {
         Double bidQuantity = bids.stream().map(Bid::getQuantity).reduce(0D, Double::sum);
         Double balanceQuantity = balanceQuantities.get(command.getTxGroup().getTimeFrame()).get(direction);
         BizEx.trueThrow(balanceQuantity > bidQuantity, PARAM_FORMAT_WRONG.message("余额不足"));
-        centralizedBids.put(stage, command.getBids());
+        centralizedBids.put(marketType, command.getBids());
         UnitCommand.CentralizedBidden event = UnitCommand.CentralizedBidden.builder().unitId(unitId).build();
         context.publish(event);
     }
@@ -91,8 +96,8 @@ public class Unit extends AggregateRoot {
     @MethodHandler
     public void handle(UnitCommand.RealtimeBid command, Context context) {
 
-        Stage stage = context.getMetaData(TypedEnums.STAGE.class);
-        if (stage == Stage.STAGE_FOUR_RUNNING) {
+        MarketType marketType = context.getMetaData(TypedEnums.STAGE.class);
+        if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
             if (stageFourDirection == null) {
                 stageFourDirection = command.getBid().getDirection();
                 if (stageFourDirection.opposite() == unitType.generalDirection()){

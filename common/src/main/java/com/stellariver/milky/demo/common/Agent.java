@@ -14,6 +14,6 @@ public class Agent {
 
     String userId;
 
-    List<String> metaUnitIds;
+    List<String> unitIds;
 
 }

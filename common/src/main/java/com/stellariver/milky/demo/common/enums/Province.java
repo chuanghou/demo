@@ -1,7 +1,6 @@
 package com.stellariver.milky.demo.common.enums;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 
 @Getter

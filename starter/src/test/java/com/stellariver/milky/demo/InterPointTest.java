@@ -4,14 +4,9 @@ import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.domain.Comp;
-import com.stellariver.milky.demo.domain.PointLine;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.util.Assert;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class InterPointTest {
 

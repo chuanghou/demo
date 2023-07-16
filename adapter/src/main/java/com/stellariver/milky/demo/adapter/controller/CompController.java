@@ -1,38 +1,35 @@
 package com.stellariver.milky.demo.adapter.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
-import com.stellariver.milky.common.tool.common.Typed;
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.basic.*;
-import com.stellariver.milky.demo.client.po.CompCreatePO;
-import com.stellariver.milky.demo.client.po.StepCompPO;
+import com.stellariver.milky.demo.basic.ErrorEnums;
+import com.stellariver.milky.demo.basic.Role;
+import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.client.vo.CompVO;
-import com.stellariver.milky.demo.common.Stage;
-import com.stellariver.milky.demo.domain.Comp;
+import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
+import com.stellariver.milky.demo.infrastructure.database.mapper.GeneratorDOMapper;
+import com.stellariver.milky.demo.infrastructure.database.mapper.LoadDOMapper;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.CommandBus;
-import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.apache.commons.lang3.tuple.Pair;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,61 +37,105 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CompController {
 
-    final UniqueIdBuilder uniqueIdBuilder;
     final DomainTunnel domainTunnel;
     final CompDOMapper compDOMapper;
+    final GeneratorDOMapper generatorDOMapper;
+    final LoadDOMapper loadDOMapper;
 
     @GetMapping
-    public Result<List<CompVO>> listComps() {
-        LambdaQueryWrapper<CompDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.ne(CompDO::getStage, Stage.END.name());
-        List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
-        List<CompVO> compVOS = compDOs.stream().map(Convertor.INST::to).collect(Collectors.toList());
-        return Result.success(compVOS);
-    }
+    public Result<Void> createComp(Integer agentNumber) {
+        BizEx.trueThrow(agentNumber > 15, ErrorEnums.PARAM_FORMAT_WRONG.message("不允许超过15个交易员"));
+        CompDO compDO = compDOMapper.selectById(1);
+        compDO.setRoundId(null);
+        compDO.setMarketType(null);
+        compDO.setMarketStatus(null);
 
-    @PostMapping("createComp")
-    public Result<Void> createComp(@RequestBody CompCreatePO compCreatePO, @RequestHeader("token") String token) {
-        User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
+//        IntStream.range(1, agentNumber + 1).forEach(agentId -> {
+//            IntStream.range(1, 4).forEach(roundId -> {
+//                Pair<Integer, Integer> allocateIds = allocate(roundId, agentId);
+//                AgentConfig.builder()
+//                        .roundId(roundId)
+//                        .agentId(agentId)
+//                        .generatorIds(allocateIds)
+//                        .loadIds(allocateIds)
+//
+//            });
+//        });
 
-        if (user.getRole() != Role.ADMIN) {
-            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
-        }
-
-        CompCommand.Create command = CompCommand.Create.builder()
-                .agents(compCreatePO.getAgents())
-                .compId(uniqueIdBuilder.get().toString())
-                .name(compCreatePO.getName())
-                .build();
-
-        Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.USER_ID.class, user.getUserId());
-        CommandBus.accept(command, parameters);
+        compDOMapper.updateById(compDO);
         return Result.success();
     }
 
-   private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+    static Map<Integer, Pair<Integer, Integer>> roundOneMap = Collect.asMap(
+            1, Pair.of(1, 6),
+            2, Pair.of(2, 4),
+            3, Pair.of(3, 5)
+    );
+
+    static Map<Integer, Pair<Integer, Integer>> roundTwoMap = Collect.asMap(
+            1, Pair.of(2, 4),
+            2, Pair.of(3, 5),
+            3, Pair.of(1, 6)
+    );
+
+    static Map<Integer, Pair<Integer, Integer>> roundThreeMap = Collect.asMap(
+            1, Pair.of(3, 5),
+            2, Pair.of(1, 6),
+            3, Pair.of(2, 4)
+    );
+
+    static Map<Integer, Map<Integer, Pair<Integer, Integer>>> alloacteMap = Collect.asMap(
+            1, roundOneMap,
+            2, roundTwoMap,
+            3, roundThreeMap
+    );
+
+
+
+
+
+    private static Pair<Integer, Integer> allocate(Integer roundId, Integer userId, Integer userCount, Integer unitCount) {
+        int groupMemberCount =  (userCount / 3) + (((userCount % 3) == 0) ? 0 : 1);
+        Map<Integer, Pair<Integer, Integer>> integerPairMap = alloacteMap.get(roundId);
+        int groupNumber = userId / groupMemberCount + (((userId % groupMemberCount) == 0) ? 0 : 1);
+        Pair<Integer, Integer> pair = integerPairMap.get(groupNumber);
+        int i = userId - ( userCount / groupMemberCount ) * groupMemberCount;
+        int j = unitCount / 6;
+        return Pair.of( (pair.getLeft() - 1) * j + i, (pair.getRight() - 1) * j + i);
+    }
+
+    public static void main(String[] args) {
+        for (int i = 1; i < 4; i++) {
+            for (int j = 1; j < 6; j++) {
+                System.out.println(allocate(i, j, 5, 30));
+            }
+        }
+    }
+
+    @GetMapping
+    public Result<Void> startComp() {
+        CompCommand.Start command = CompCommand.Start.builder().compId(1).build();
+        CommandBus.accept(command, new HashMap<>());
+        return Result.success();
+    }
+
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
     @PostMapping
-    public Result<Void> stepComp(@RequestBody StepCompPO stepCompPO, @RequestHeader("token") String token) {
+    public Result<Void> stepComp(@RequestHeader("token") String token) {
         User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
-
         if (user.getRole() != Role.ADMIN) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
         }
-        Comp comp = domainTunnel.getByAggregateId(Comp.class, stepCompPO.getCompId());
-        BizEx.trueThrow(comp == null, ErrorEnums.PARAM_FORMAT_WRONG.message("对应竞赛不存在"));
-        Stage stage = comp.getStage();
-        if (stage.getAutoForNext()) {
-            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("请等待自动结束本阶段"), ExceptionType.BIZ);
-        }
-        CompCommand.Step step = CompCommand.Step.builder().compId(comp.getCompId()).build();
-        CommandBus.accept(step, new HashMap<>());
-        scheduledExecutorService.schedule(() -> {
-            CompCommand.Step autoStep = CompCommand.Step.builder().compId(comp.getCompId()).build();
-            CommandBus.accept(autoStep, new HashMap<>());
-        }, stepCompPO.getLength(), TimeUnit.SECONDS);
+        CompCommand.Step command = CompCommand.Step.builder().compId(1).build();
+        CommandBus.accept(command, new HashMap<>());
 
         return Result.success();
+    }
+
+
+    private Duration markingDuration(CompDO compDO, MarketType marketType) {
+        return null;
     }
 
 

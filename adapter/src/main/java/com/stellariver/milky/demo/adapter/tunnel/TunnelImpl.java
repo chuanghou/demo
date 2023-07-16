@@ -23,7 +23,7 @@ public class TunnelImpl implements Tunnel {
     final UnitDOMapper unitDOMapper;
 
     @Override
-    public List<Unit> getByCompId(String compId) {
+    public List<Unit> getByCompId(Integer compId) {
         LambdaQueryWrapper<UnitDO> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(UnitDO::getCompId, compId);
         List<UnitDO> unitDOs = unitDOMapper.selectList(lambdaQueryWrapper);

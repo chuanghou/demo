@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BidGroup {
 
-    String compId;
+    Integer compId;
     TimeFrame timeFrame;
 
 }

@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface Tunnel {
 
-    List<Unit> getByCompId(String compId);
+    List<Unit> getByCompId(Integer compId);
 
     MetaUnit getByMetaUnitId(String metaUnitId);
 
