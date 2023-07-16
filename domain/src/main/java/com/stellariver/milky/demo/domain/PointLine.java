@@ -21,5 +21,8 @@ public class PointLine {
     Double quantity;
     Double price;
 
-    Double cumulateQuantity;
+    Double leftX;
+    Double rightX;
+    Double width;
+    Double y;
 }
