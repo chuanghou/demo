@@ -7,23 +7,26 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.tuple.Pair;
-import org.redisson.api.RedissonClient;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * @author houchuang
  */
+@Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RedissionConcurrentOperateImpl extends ConcurrentOperate {
+public class ConcurrentOperateImpl extends ConcurrentOperate {
 
-    final RedissonClient redissonClient;
 
     @Override
     @SneakyThrows

@@ -6,6 +6,7 @@ import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import lombok.NonNull;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -18,7 +19,7 @@ public class TokenInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request,
                              @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
- 
+
         if(request.getMethod().equals("OPTIONS")){
             response.setStatus(HttpServletResponse.SC_OK);
             return true;
@@ -29,11 +30,12 @@ public class TokenInterceptor implements HandlerInterceptor {
         if (token != null && TokenUtils.verify(token)){
             return true;
         }
-
-        response.setContentType("application/json; charset=utf-8");
-        Result<Object> result = Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("账户密码错误!"), ExceptionType.BIZ);
-        response.getWriter().append(Json.toJson(result));
-        return false;
+        return true;
+        //TODO release
+//        response.setContentType("application/json; charset=utf-8");
+//        Result<Object> result = Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("账户密码错误!"), ExceptionType.BIZ);
+//        response.getWriter().append(Json.toJson(result));
+//        return false;
     }
 
 }
