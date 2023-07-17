@@ -37,7 +37,7 @@ public class Routers implements EventRouters {
         Comp comp = context.getByAggregateId(Comp.class, stepped.getAggregateId());
         Duration duration = comp.getDurationMap().get(stepped.getNextMarketType());
         scheduledExecutorService.schedule(() -> {
-            CompCommand.Step command = CompCommand.Step.builder().compId(1).build();
+            CompCommand.Close command = CompCommand.Close.builder().compId(1).build();
             CommandBus.accept(command, new HashMap<>());
         }, duration.getSeconds(), TimeUnit.SECONDS);
     }

@@ -141,6 +141,7 @@ public class Comp extends AggregateRoot {
                 .lastMarketType(marketType)
                 .lastMarketStatus(marketStatus);
         SysEx.trueThrow(marketStatus != MarketStatus.OPEN, ErrorEnums.SYS_EX);
+        marketStatus = MarketStatus.CLOSE;
         CompEvent.Closed closed = builder.nextRoundId(roundId)
                 .nextMarketType(marketType)
                 .nextMarketStatus(marketStatus)
