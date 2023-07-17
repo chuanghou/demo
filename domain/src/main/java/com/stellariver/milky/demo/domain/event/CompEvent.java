@@ -1,6 +1,7 @@
 package com.stellariver.milky.demo.domain.event;
 
 import com.stellariver.milky.demo.common.Agent;
+import com.stellariver.milky.demo.common.MarketStatus;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.domain.DealResult;
 import com.stellariver.milky.domain.support.event.Event;
@@ -61,22 +62,48 @@ public class CompEvent {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Stepped extends Event {
 
-        String compId;
+        Integer compId;
 
         @Nullable
         Integer lastRoundId;
         @Nullable
         MarketType lastMarketType;
         @Nullable
-        Boolean lastMarketStatus;
+        MarketStatus lastMarketStatus;
 
         Integer nextRoundId;
         MarketType nextMarketType;
-        Boolean nextMarketStatus;
+        MarketStatus nextMarketStatus;
 
         @Override
         public String getAggregateId() {
-            return compId;
+            return compId.toString();
+        }
+    }
+
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class Closed extends Event {
+
+        Integer compId;
+
+        @Nullable
+        Integer lastRoundId;
+        @Nullable
+        MarketType lastMarketType;
+        @Nullable
+        MarketStatus lastMarketStatus;
+
+        Integer nextRoundId;
+        MarketType nextMarketType;
+        MarketStatus nextMarketStatus;
+
+        @Override
+        public String getAggregateId() {
+            return compId.toString();
         }
     }
 

@@ -13,7 +13,9 @@ public class AgentConfig {
 
     Integer roundId;
     Integer agentId;
-    Pair<Integer, Integer> generatorIds;
-    Pair<Integer, Integer> loadIds;
+    Integer generatorId0;
+    Integer generatorId1;
+    Integer loadId0;
+    Integer loadId1;
 
 }

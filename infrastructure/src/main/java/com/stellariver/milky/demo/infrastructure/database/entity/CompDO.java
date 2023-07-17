@@ -14,7 +14,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @TableName("market_setting")
 @SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CompDO extends AbstractMpDO implements BaseDataObject<Integer> {
 
@@ -26,11 +25,11 @@ public class CompDO extends AbstractMpDO implements BaseDataObject<Integer> {
     Integer intraprovincialAnnualBidDuration;
     Integer intraprovincialMonthlyBidDuration;
     Integer interprovincialAnnualBidDuration;
+    Integer interprovincialMonthlyBidDuration;
     Integer interprovincialSpotBidDuration;
     Integer intraprovincialSpotBidDuration;
-    String agents;
-    Long marketCloseTime;
-    Boolean marketStatus;
+    String agentConfig;
+    String marketStatus;
     @Override
     public Integer getPrimaryId() {
         return marketSettingId;

@@ -10,10 +10,7 @@ import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.wire.StaticWire;
 import com.stellariver.milky.demo.basic.AgentConfig;
 import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.common.Bid;
-import com.stellariver.milky.demo.common.BidGroup;
-import com.stellariver.milky.demo.common.Deal;
-import com.stellariver.milky.demo.common.MarketType;
+import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.command.CompCommand;
@@ -37,6 +34,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,41 +47,63 @@ import java.util.stream.Stream;
 public class Comp extends AggregateRoot {
 
     Integer compId;
-    Integer roundId;
     Integer roundNum;
     @Nulliable
+    Integer roundId;
+    @Nulliable(replacerSupplier = MarketTypeReplacer.class)
     MarketType marketType;
-    @Nulliable
-    Boolean marketStatus;
+    @Nulliable(replacerSupplier = MarketStatusReplacer.class)
+    MarketStatus marketStatus;
+
     Map<MarketType, Duration> durationMap;
     List<AgentConfig> agentConfigs;
-
     Map<TimeFrame, Pair<Double, Double>> limitations;
-    Map<TimeFrame, Double> replenishMap = new HashMap<>();
+    Map<Pair<Integer, MarketType>, Map<TimeFrame, Double>> replenishMap = new HashMap<>();
 
     static Map<BidGroup, RealtimeBidProcessor> realtimeBidProcessors = new ConcurrentHashMap<>();
+    @StaticWire
+    static DomainTunnel domainTunnel;
+    @StaticWire
+    static Tunnel tunnel;
+
+    static public class MarketStatusReplacer implements Supplier<Object> {
+        @Override
+        public Object get() {
+            return MarketStatus.NULL;
+        }
+
+    }
+
+    static public class MarketTypeReplacer implements Supplier<Object> {
+        @Override
+        public Object get() {
+            return MarketType.NULL;
+        }
+
+    }
+
 
     @Override
     public String getAggregateId() {
         return compId.toString();
     }
 
-    @StaticWire
-    static DomainTunnel domainTunnel;
-    @StaticWire
-    static Tunnel tunnel;
-
-
     @MethodHandler
     public void start(CompCommand.Start start, Context context) {
+
+        BizEx.trueThrow(roundId != null, ErrorEnums.PARAM_FORMAT_WRONG.message("应该首先初始化项目"));
+
         CompEvent.Stepped.SteppedBuilder<?, ?> builder = CompEvent.Stepped.builder()
+                .compId(compId)
                 .lastRoundId(roundId)
                 .lastMarketType(marketType)
                 .lastMarketStatus(marketStatus);
         roundId = 1;
         marketType = MarketType.INTER_ANNUAL_PROVINCIAL;
-        marketStatus = Boolean.TRUE;
-        CompEvent.Stepped stepped = builder.nextRoundId(roundId)
+        marketStatus = MarketStatus.OPEN;
+        CompEvent.Stepped stepped = builder
+                .compId(compId)
+                .nextRoundId(roundId)
                 .nextMarketType(marketType)
                 .nextMarketStatus(marketStatus)
                 .build();
@@ -93,12 +113,11 @@ public class Comp extends AggregateRoot {
     @MethodHandler
     public void handle(CompCommand.Step command, Context context) {
         CompEvent.Stepped.SteppedBuilder<?, ?> builder = CompEvent.Stepped.builder()
+                .compId(compId)
                 .lastRoundId(roundId)
                 .lastMarketType(marketType)
                 .lastMarketStatus(marketStatus);
-        if (marketStatus) {
-            marketStatus = false;
-        } else {
+        BizEx.trueThrow(marketStatus == MarketStatus.OPEN, ErrorEnums.PARAM_FORMAT_WRONG);
             int nextDbCode = marketType.getDbCode() + 1;
             if (nextDbCode > MarketType.INTER_SPOT_PROVINCIAL.getDbCode()) {
                 nextDbCode = MarketType.INTER_ANNUAL_PROVINCIAL.getDbCode();
@@ -106,8 +125,6 @@ public class Comp extends AggregateRoot {
                 roundId += 1;
             }
             marketType = Kit.enumOfMightEx(MarketType::getDbCode, nextDbCode);
-            marketStatus = true;
-        }
         CompEvent.Stepped stepped = builder.nextRoundId(roundId)
                 .nextMarketType(marketType)
                 .nextMarketStatus(marketStatus)
@@ -115,6 +132,23 @@ public class Comp extends AggregateRoot {
         context.publish(stepped);
 
     }
+
+    @MethodHandler
+    public void handle(CompCommand.Close command, Context context) {
+        CompEvent.Closed.ClosedBuilder<?, ?> builder = CompEvent.Closed.builder()
+                .compId(compId)
+                .lastRoundId(roundId)
+                .lastMarketType(marketType)
+                .lastMarketStatus(marketStatus);
+        SysEx.trueThrow(marketStatus != MarketStatus.OPEN, ErrorEnums.SYS_EX);
+        CompEvent.Closed closed = builder.nextRoundId(roundId)
+                .nextMarketType(marketType)
+                .nextMarketStatus(marketStatus)
+                .build();
+        context.publish(closed);
+    }
+
+
 
     @MethodHandler
     public void handle(CompCommand.Clear clear, Context context) {
@@ -232,7 +266,7 @@ public class Comp extends AggregateRoot {
             dealResults.add(dealResult);
         }
 
-        replenishMap.put(timeFrame, triple.getRight());
+//        replenishMap.put(timeFrame, triple.getRight());
 
         return dealResults;
 

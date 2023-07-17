@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum MarketType {
 
+    NULL(100,"空状态"),
     INTER_ANNUAL_PROVINCIAL(1, "省间年度"),
     INTRA_ANNUAL_PROVINCIAL(2,"省内年度"),
     INTER_MONTHLY_PROVINCIAL(3, "省间月度"),

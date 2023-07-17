@@ -4,11 +4,14 @@ import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.common.tool.util.Json;
+import com.stellariver.milky.demo.basic.AgentConfig;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.TokenUtils;
-import com.stellariver.milky.demo.client.vo.CompVO;
+import com.stellariver.milky.demo.common.MarketStatus;
 import com.stellariver.milky.demo.common.MarketType;
+import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
@@ -21,19 +24,19 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.tuple.Pair;
-import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.IntStream;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("comp")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CompController {
 
@@ -42,25 +45,36 @@ public class CompController {
     final GeneratorDOMapper generatorDOMapper;
     final LoadDOMapper loadDOMapper;
 
-    @GetMapping
-    public Result<Void> createComp(Integer agentNumber) {
+    @GetMapping("init")
+    public Result<Void> init(@NotNull @Positive Integer agentNumber) {
         BizEx.trueThrow(agentNumber > 15, ErrorEnums.PARAM_FORMAT_WRONG.message("不允许超过15个交易员"));
         CompDO compDO = compDOMapper.selectById(1);
-        compDO.setRoundId(null);
-        compDO.setMarketType(null);
-        compDO.setMarketStatus(null);
+        compDO.setRoundId(Integer.MIN_VALUE + 1);
+        compDO.setMarketType(MarketType.NULL.getDbCode());
+        compDO.setMarketStatus(MarketStatus.NULL.name());
 
-//        IntStream.range(1, agentNumber + 1).forEach(agentId -> {
-//            IntStream.range(1, 4).forEach(roundId -> {
-//                Pair<Integer, Integer> allocateIds = allocate(roundId, agentId);
-//                AgentConfig.builder()
-//                        .roundId(roundId)
-//                        .agentId(agentId)
-//                        .generatorIds(allocateIds)
-//                        .loadIds(allocateIds)
-//
-//            });
-//        });
+        Long loadCount = loadDOMapper.selectCount(null);
+        Long generatorCount = generatorDOMapper.selectCount(null);
+        long count = Math.min(loadCount, generatorCount) / 6 * 6;
+        BizEx.trueThrow(count / 2 < agentNumber,  ErrorEnums.CONFIG_ERROR.message("数据库中机组或者负荷数量太少"));
+
+
+        List<AgentConfig> agentConfigs = new ArrayList<>();
+
+        IntStream.range(1, agentNumber + 1).forEach(agentId -> IntStream.range(1, 4).forEach(roundId -> {
+            Pair<Integer, Integer> allocateIds = allocate(roundId, agentId, agentNumber, (int) count);
+            AgentConfig agentConfig = AgentConfig.builder()
+                    .roundId(roundId)
+                    .agentId(agentId)
+                    .generatorId0(allocateIds.getLeft())
+                    .generatorId1(allocateIds.getRight())
+                    .loadId0(allocateIds.getLeft())
+                    .loadId1(allocateIds.getRight())
+                    .build();
+            agentConfigs.add(agentConfig);
+        }));
+
+        compDO.setAgentConfig(Json.toJson(agentConfigs));
 
         compDOMapper.updateById(compDO);
         return Result.success();
@@ -90,65 +104,37 @@ public class CompController {
             3, roundThreeMap
     );
 
-
-
-
-
     private static Pair<Integer, Integer> allocate(Integer roundId, Integer userId, Integer userCount, Integer unitCount) {
         int groupMemberCount =  (userCount / 3) + (((userCount % 3) == 0) ? 0 : 1);
         Map<Integer, Pair<Integer, Integer>> integerPairMap = alloacteMap.get(roundId);
         int groupNumber = userId / groupMemberCount + (((userId % groupMemberCount) == 0) ? 0 : 1);
         Pair<Integer, Integer> pair = integerPairMap.get(groupNumber);
-        int i = userId - ( userCount / groupMemberCount ) * groupMemberCount;
-        int j = unitCount / 6;
-        return Pair.of( (pair.getLeft() - 1) * j + i, (pair.getRight() - 1) * j + i);
+        int i = ((userId - 1) % groupMemberCount) + 1;
+        int k = unitCount / 6;
+        return Pair.of( (pair.getLeft() - 1) * k + i, (pair.getRight() - 1) * k + i);
     }
 
-    public static void main(String[] args) {
-        for (int i = 1; i < 4; i++) {
-            for (int j = 1; j < 6; j++) {
-                System.out.println(allocate(i, j, 5, 30));
-            }
-        }
-    }
 
-    @GetMapping
-    public Result<Void> startComp() {
+    @PostMapping("start")
+    public Result<Void> start() {
         CompCommand.Start command = CompCommand.Start.builder().compId(1).build();
         CommandBus.accept(command, new HashMap<>());
         return Result.success();
     }
 
-    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
-    @PostMapping
-    public Result<Void> stepComp(@RequestHeader("token") String token) {
+    @PostMapping("step")
+    public Result<Void> step(@RequestHeader("token") String token) {
         User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
         if (user.getRole() != Role.ADMIN) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
         }
+        Comp comp = domainTunnel.getByAggregateId(Comp.class, "1");
+        boolean notClosed = comp.getMarketStatus() != MarketStatus.CLOSE;
+        BizEx.trueThrow(notClosed, ErrorEnums.PARAM_FORMAT_WRONG.message("当前市场自动倒计时结束，无须手动控制"));
         CompCommand.Step command = CompCommand.Step.builder().compId(1).build();
         CommandBus.accept(command, new HashMap<>());
-
         return Result.success();
-    }
-
-
-    private Duration markingDuration(CompDO compDO, MarketType marketType) {
-        return null;
-    }
-
-
-    @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
-            nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    public interface Convertor {
-
-        Convertor INST = Mappers.getMapper(Convertor.class);
-
-        @BeanMapping(builder = @Builder(disableBuilder = true))
-        CompVO to(CompDO compDO);
-
-
     }
 
 }
