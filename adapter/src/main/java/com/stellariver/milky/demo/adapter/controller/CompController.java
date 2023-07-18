@@ -9,8 +9,8 @@ import com.stellariver.milky.demo.basic.AgentConfig;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.TokenUtils;
-import com.stellariver.milky.demo.common.MarketStatus;
 import com.stellariver.milky.demo.common.MarketType;
+import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.CompCommand;
@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,10 +48,6 @@ public class CompController {
     public Result<Void> init(@NotNull @Positive Integer agentNumber) {
         BizEx.trueThrow(agentNumber > 15, ErrorEnums.PARAM_FORMAT_WRONG.message("不允许超过15个交易员"));
         CompDO compDO = compDOMapper.selectById(1);
-        compDO.setRoundId(Integer.MIN_VALUE + 1);
-        compDO.setMarketType(MarketType.NULL.getDbCode());
-        compDO.setMarketStatus(MarketStatus.NULL.name());
-
         Long loadCount = loadDOMapper.selectCount(null);
         Long generatorCount = generatorDOMapper.selectCount(null);
         long count = Math.min(loadCount, generatorCount) / 6 * 6;
@@ -130,7 +125,7 @@ public class CompController {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
         }
         Comp comp = domainTunnel.getByAggregateId(Comp.class, "1");
-        boolean notClosed = comp.getMarketStatus() != MarketStatus.CLOSE;
+        boolean notClosed = comp.getMarketStatus() != Status.MarketStatus.CLOSE;
         BizEx.trueThrow(notClosed, ErrorEnums.PARAM_FORMAT_WRONG.message("当前市场自动倒计时结束，无须手动控制"));
         CompCommand.Step command = CompCommand.Step.builder().compId(1).build();
         CommandBus.accept(command, new HashMap<>());

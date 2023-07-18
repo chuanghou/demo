@@ -4,9 +4,8 @@ import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.common.tool.util.StreamMap;
 import com.stellariver.milky.demo.basic.AgentConfig;
-import com.stellariver.milky.demo.basic.BasicConvertor;
-import com.stellariver.milky.demo.common.MarketStatus;
 import com.stellariver.milky.demo.common.MarketType;
+import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.domain.support.dependency.DaoAdapter;
@@ -15,8 +14,6 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -58,7 +55,7 @@ public class CompDAOAdapter implements DaoAdapter<Comp> {
                 .agentConfigs(Json.parseList(compDO.getAgentConfig(), AgentConfig.class))
                 .durationMap(marketTypeDuration)
                 .limitations(new HashMap<>())
-                .marketStatus(MarketStatus.valueOf(compDO.getMarketStatus()))
+                .marketStatus(Status.MarketStatus.valueOf(compDO.getMarketStatus()))
                 .version(compDO.getVersion())
                 .replenishMap(new HashMap<>())
                 .build();

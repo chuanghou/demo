@@ -20,7 +20,6 @@ import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
-import com.stellariver.milky.domain.support.dependency.Nulliable;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
@@ -34,7 +33,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,12 +46,10 @@ public class Comp extends AggregateRoot {
 
     Integer compId;
     Integer roundNum;
-    @Nulliable
+    Status.CompStatus compStatus;
     Integer roundId;
-    @Nulliable(replacerSupplier = MarketTypeReplacer.class)
     MarketType marketType;
-    @Nulliable(replacerSupplier = MarketStatusReplacer.class)
-    MarketStatus marketStatus;
+    Status.MarketStatus marketStatus;
 
     Map<MarketType, Duration> durationMap;
     List<AgentConfig> agentConfigs;
@@ -66,22 +62,6 @@ public class Comp extends AggregateRoot {
     @StaticWire
     static Tunnel tunnel;
 
-    static public class MarketStatusReplacer implements Supplier<Object> {
-        @Override
-        public Object get() {
-            return MarketStatus.NULL;
-        }
-
-    }
-
-    static public class MarketTypeReplacer implements Supplier<Object> {
-        @Override
-        public Object get() {
-            return MarketType.NULL;
-        }
-
-    }
-
 
     @Override
     public String getAggregateId() {
@@ -89,66 +69,60 @@ public class Comp extends AggregateRoot {
     }
 
     @MethodHandler
-    public void start(CompCommand.Start start, Context context) {
-
-        BizEx.trueThrow(roundId != null, ErrorEnums.PARAM_FORMAT_WRONG.message("应该首先初始化项目"));
-
-        CompEvent.Stepped.SteppedBuilder<?, ?> builder = CompEvent.Stepped.builder()
-                .compId(compId)
-                .lastRoundId(roundId)
-                .lastMarketType(marketType)
-                .lastMarketStatus(marketStatus);
+    public void reset(CompCommand.Reset reset, Context context) {
+        compStatus = Status.CompStatus.CLOSE;
         roundId = 1;
         marketType = MarketType.INTER_ANNUAL_PROVINCIAL;
-        marketStatus = MarketStatus.OPEN;
-        CompEvent.Stepped stepped = builder
-                .compId(compId)
-                .nextRoundId(roundId)
-                .nextMarketType(marketType)
-                .nextMarketStatus(marketStatus)
-                .build();
-        context.publish(stepped);
+        marketStatus = Status.MarketStatus.CLOSE;
+        context.publish(CompEvent.Started.builder().compId(compId).build());
+    }
+
+    @MethodHandler
+    public void start(CompCommand.Start start, Context context) {
+        BizEx.trueThrow(compStatus != Status.CompStatus.CLOSE, ErrorEnums.CONFIG_ERROR.message(""));
+        compStatus = Status.CompStatus.OPEN;
+        CompEvent.Started.StartedBuilder<?, ?> builder = CompEvent.Started.builder().compId(compId).lastCompStatus(compStatus);
+        compStatus = Status.CompStatus.OPEN;
+        CompEvent.Started started = builder.nextCompStatus(compStatus).build();
+        context.publish(started);
     }
 
     @MethodHandler
     public void handle(CompCommand.Step command, Context context) {
+        BizEx.trueThrow(compStatus != Status.CompStatus.OPEN, ErrorEnums.CONFIG_ERROR.message("本场未开放"));
         CompEvent.Stepped.SteppedBuilder<?, ?> builder = CompEvent.Stepped.builder()
                 .compId(compId)
                 .lastRoundId(roundId)
                 .lastMarketType(marketType)
                 .lastMarketStatus(marketStatus);
-        BizEx.trueThrow(marketStatus == MarketStatus.OPEN, ErrorEnums.PARAM_FORMAT_WRONG);
-            int nextDbCode = marketType.getDbCode() + 1;
-            if (nextDbCode > MarketType.INTER_SPOT_PROVINCIAL.getDbCode()) {
-                nextDbCode = MarketType.INTER_ANNUAL_PROVINCIAL.getDbCode();
-                BizEx.trueThrow(Kit.eq(roundId, roundNum), ErrorEnums.CONFIG_ERROR.message("本场比赛已经结束!"));
-                roundId += 1;
-            }
-            marketType = Kit.enumOfMightEx(MarketType::getDbCode, nextDbCode);
+
+        BizEx.trueThrow(marketStatus == Status.MarketStatus.OPEN, ErrorEnums.PARAM_FORMAT_WRONG);
+        boolean b = Objects.equals(roundId, roundNum) && marketType == MarketType.INTER_SPOT_PROVINCIAL;
+        BizEx.trueThrow(b, ErrorEnums.CONFIG_ERROR.message("已经到了最后一轮"));
+
+        int nextDbCode = marketType.getDbCode() + 1;
+        if (nextDbCode > MarketType.INTER_SPOT_PROVINCIAL.getDbCode()) {
+            nextDbCode = MarketType.INTER_ANNUAL_PROVINCIAL.getDbCode();
+            BizEx.trueThrow(Kit.eq(roundId, roundNum), ErrorEnums.CONFIG_ERROR.message("本场比赛已经结束!"));
+            roundId += 1;
+        }
+
+        marketType = Kit.enumOfMightEx(MarketType::getDbCode, nextDbCode);
         CompEvent.Stepped stepped = builder.nextRoundId(roundId)
                 .nextMarketType(marketType)
                 .nextMarketStatus(marketStatus)
                 .build();
+
         context.publish(stepped);
 
     }
 
     @MethodHandler
     public void handle(CompCommand.Close command, Context context) {
-        CompEvent.Closed.ClosedBuilder<?, ?> builder = CompEvent.Closed.builder()
-                .compId(compId)
-                .lastRoundId(roundId)
-                .lastMarketType(marketType)
-                .lastMarketStatus(marketStatus);
-        SysEx.trueThrow(marketStatus != MarketStatus.OPEN, ErrorEnums.SYS_EX);
-        marketStatus = MarketStatus.CLOSE;
-        CompEvent.Closed closed = builder.nextRoundId(roundId)
-                .nextMarketType(marketType)
-                .nextMarketStatus(marketStatus)
-                .build();
+        BizEx.trueThrow(marketStatus != Status.MarketStatus.OPEN, ErrorEnums.CONFIG_ERROR.message("该市场不处于开放状态"));
+        CompEvent.Closed closed = CompEvent.Closed.builder().roundId(roundId).marketType(marketType).build();
         context.publish(closed);
     }
-
 
 
     @MethodHandler

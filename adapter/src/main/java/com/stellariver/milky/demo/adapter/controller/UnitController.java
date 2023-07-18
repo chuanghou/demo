@@ -57,7 +57,6 @@ public class UnitController {
         String userId = TokenUtils.getUserId(token);
         Unit unit = domainTunnel.getByAggregateId(Unit.class, centralizedBidPO.getTxGroup().getUnitId());
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
-
         UnitCommand.CentralizedBid centralizedBid = UnitCommand.CentralizedBid.builder()
                 .bids(Collect.transfer(centralizedBidPO.getBidPOs(), Convertor.INST::to))
                 .build();

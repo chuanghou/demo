@@ -8,6 +8,25 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 public class CompCommand {
+
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class Reset extends Command {
+
+        String compId;
+        Integer agentNumber;
+
+        @Override
+        public String getAggregateId() {
+            return compId;
+        }
+
+    }
+
     @Data
     @SuperBuilder
     @NoArgsConstructor

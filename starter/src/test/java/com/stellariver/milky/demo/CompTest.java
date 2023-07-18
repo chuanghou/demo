@@ -3,10 +3,9 @@ package com.stellariver.milky.demo;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.demo.adapter.controller.CompController;
-import com.stellariver.milky.demo.common.MarketStatus;
 import com.stellariver.milky.demo.common.MarketType;
+import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.Comp;
-import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import lombok.CustomLog;
 import org.junit.jupiter.api.Assertions;
@@ -44,12 +43,12 @@ public class CompTest {
         Comp comp = domainTunnel.getByAggregateId(Comp.class, "1");
         Assertions.assertEquals(comp.getRoundId(), 1);
         Assertions.assertEquals(comp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
-        Assertions.assertEquals(comp.getMarketStatus(), MarketStatus.OPEN);
+        Assertions.assertEquals(comp.getMarketStatus(), Status.MarketStatus.OPEN);
         Thread.sleep(20_000);
         comp = domainTunnel.getByAggregateId(Comp.class, "1");
         Assertions.assertEquals(comp.getRoundId(), 1);
         Assertions.assertEquals(comp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
-        Assertions.assertEquals(comp.getMarketStatus(), MarketStatus.CLOSE);
+        Assertions.assertEquals(comp.getMarketStatus(), Status.MarketStatus.CLOSE);
 
     }
 
