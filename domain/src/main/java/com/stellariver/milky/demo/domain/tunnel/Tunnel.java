@@ -11,4 +11,8 @@ public interface Tunnel {
 
     MetaUnit getByMetaUnitId(String metaUnitId);
 
+    long loadGeneratorNumber();
+
+    long loadLoadNumber();
+
 }

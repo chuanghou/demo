@@ -7,6 +7,8 @@ import com.stellariver.milky.demo.domain.MetaUnit;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
+import com.stellariver.milky.demo.infrastructure.database.mapper.GeneratorDOMapper;
+import com.stellariver.milky.demo.infrastructure.database.mapper.LoadDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UnitDOMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,8 @@ import java.util.List;
 public class TunnelImpl implements Tunnel {
 
     final UnitDOMapper unitDOMapper;
+    final GeneratorDOMapper generatorDOMapper;
+    final LoadDOMapper loadDOMapper;
 
     @Override
     public List<Unit> getByCompId(Integer compId) {
@@ -33,6 +37,16 @@ public class TunnelImpl implements Tunnel {
     @Override
     public MetaUnit getByMetaUnitId(String metaUnitId) {
         return new MetaUnit();
+    }
+
+    @Override
+    public long loadGeneratorNumber() {
+        return generatorDOMapper.selectCount(null);
+    }
+
+    @Override
+    public long loadLoadNumber() {
+        return loadDOMapper.selectCount(null);
     }
 
 }

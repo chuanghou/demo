@@ -17,12 +17,12 @@ public class CompCommand {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Reset extends Command {
 
-        String compId;
+        Integer compId;
         Integer agentNumber;
 
         @Override
         public String getAggregateId() {
-            return compId;
+            return compId.toString();
         }
 
     }

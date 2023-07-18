@@ -1,5 +1,7 @@
 package com.stellariver.milky.demo.infrastructure.database.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -12,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GeneratorDO {
 
+    @TableId(type = IdType.AUTO)
     Integer unitId;
     String unitName;
     Integer prov;

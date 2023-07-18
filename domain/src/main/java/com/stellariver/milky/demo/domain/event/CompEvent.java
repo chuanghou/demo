@@ -55,6 +55,23 @@ public class CompEvent {
         }
     }
 
+
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class Reset extends Event {
+
+        Integer compId;
+        Status.CompStatus compStatus;
+
+        @Override
+        public String getAggregateId() {
+            return compId.toString();
+        }
+    }
+
     @Data
     @SuperBuilder
     @NoArgsConstructor
@@ -65,6 +82,9 @@ public class CompEvent {
         Integer compId;
         Status.CompStatus lastCompStatus;
         Status.CompStatus nextCompStatus;
+        Integer roundId;
+        MarketType marketType;
+        Status.MarketStatus marketStatus;
 
         @Override
         public String getAggregateId() {

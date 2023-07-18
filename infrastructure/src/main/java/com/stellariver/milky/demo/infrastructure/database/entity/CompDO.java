@@ -30,6 +30,7 @@ public class CompDO extends AbstractMpDO implements BaseDataObject<Integer> {
     Integer intraprovincialSpotBidDuration;
     String agentConfig;
     String marketStatus;
+    String compStatus;
     @Override
     public Integer getPrimaryId() {
         return marketSettingId;

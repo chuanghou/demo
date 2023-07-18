@@ -44,74 +44,25 @@ public class CompController {
     final GeneratorDOMapper generatorDOMapper;
     final LoadDOMapper loadDOMapper;
 
-    @GetMapping("init")
-    public Result<Void> init(@NotNull @Positive Integer agentNumber) {
+    @GetMapping("reset")
+    public Result<Void> reset(@NotNull @Positive Integer agentNumber, @RequestHeader("token") String token) {
+        User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
+        if (user.getRole() != Role.ADMIN) {
+            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
+        }
         BizEx.trueThrow(agentNumber > 15, ErrorEnums.PARAM_FORMAT_WRONG.message("不允许超过15个交易员"));
-        CompDO compDO = compDOMapper.selectById(1);
-        Long loadCount = loadDOMapper.selectCount(null);
-        Long generatorCount = generatorDOMapper.selectCount(null);
-        long count = Math.min(loadCount, generatorCount) / 6 * 6;
-        BizEx.trueThrow(count / 2 < agentNumber,  ErrorEnums.CONFIG_ERROR.message("数据库中机组或者负荷数量太少"));
-
-
-        List<AgentConfig> agentConfigs = new ArrayList<>();
-
-        IntStream.range(1, agentNumber + 1).forEach(agentId -> IntStream.range(1, 4).forEach(roundId -> {
-            Pair<Integer, Integer> allocateIds = allocate(roundId, agentId, agentNumber, (int) count);
-            AgentConfig agentConfig = AgentConfig.builder()
-                    .roundId(roundId)
-                    .agentId(agentId)
-                    .generatorId0(allocateIds.getLeft())
-                    .generatorId1(allocateIds.getRight())
-                    .loadId0(allocateIds.getLeft())
-                    .loadId1(allocateIds.getRight())
-                    .build();
-            agentConfigs.add(agentConfig);
-        }));
-
-        compDO.setAgentConfig(Json.toJson(agentConfigs));
-
-        compDOMapper.updateById(compDO);
+        CompCommand.Reset command = CompCommand.Reset.builder().compId(1).agentNumber(agentNumber).build();
+        CommandBus.accept(command, new HashMap<>());
         return Result.success();
-    }
-
-    static Map<Integer, Pair<Integer, Integer>> roundOneMap = Collect.asMap(
-            1, Pair.of(1, 6),
-            2, Pair.of(2, 4),
-            3, Pair.of(3, 5)
-    );
-
-    static Map<Integer, Pair<Integer, Integer>> roundTwoMap = Collect.asMap(
-            1, Pair.of(2, 4),
-            2, Pair.of(3, 5),
-            3, Pair.of(1, 6)
-    );
-
-    static Map<Integer, Pair<Integer, Integer>> roundThreeMap = Collect.asMap(
-            1, Pair.of(3, 5),
-            2, Pair.of(1, 6),
-            3, Pair.of(2, 4)
-    );
-
-    static Map<Integer, Map<Integer, Pair<Integer, Integer>>> alloacteMap = Collect.asMap(
-            1, roundOneMap,
-            2, roundTwoMap,
-            3, roundThreeMap
-    );
-
-    private static Pair<Integer, Integer> allocate(Integer roundId, Integer userId, Integer userCount, Integer unitCount) {
-        int groupMemberCount =  (userCount / 3) + (((userCount % 3) == 0) ? 0 : 1);
-        Map<Integer, Pair<Integer, Integer>> integerPairMap = alloacteMap.get(roundId);
-        int groupNumber = userId / groupMemberCount + (((userId % groupMemberCount) == 0) ? 0 : 1);
-        Pair<Integer, Integer> pair = integerPairMap.get(groupNumber);
-        int i = ((userId - 1) % groupMemberCount) + 1;
-        int k = unitCount / 6;
-        return Pair.of( (pair.getLeft() - 1) * k + i, (pair.getRight() - 1) * k + i);
     }
 
 
     @PostMapping("start")
-    public Result<Void> start() {
+    public Result<Void> start(@RequestHeader("token") String token) {
+        User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
+        if (user.getRole() != Role.ADMIN) {
+            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
+        }
         CompCommand.Start command = CompCommand.Start.builder().compId(1).build();
         CommandBus.accept(command, new HashMap<>());
         return Result.success();

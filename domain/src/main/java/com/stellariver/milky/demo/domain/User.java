@@ -25,7 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User extends AggregateRoot {
 
-    String userId;
+    Integer userId;
     Role role;
     String name;
     String password;
@@ -34,7 +34,7 @@ public class User extends AggregateRoot {
     public String login(UserLogin command, Context context) {
         BizEx.trueThrow(Kit.notEq(command.getPassword(), password),
                 ErrorEnums.PARAM_FORMAT_WRONG.message("登陆密码错误!"));
-        return TokenUtils.sign(userId);
+        return TokenUtils.sign(userId.toString());
     }
 
     @MethodHandler
@@ -62,7 +62,7 @@ public class User extends AggregateRoot {
 
     @Override
     public String getAggregateId() {
-        return userId;
+        return userId.toString();
     }
 
 }

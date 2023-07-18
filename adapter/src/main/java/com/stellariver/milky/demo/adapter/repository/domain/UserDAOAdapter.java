@@ -22,7 +22,7 @@ public class UserDAOAdapter implements DaoAdapter<User> {
 
     @Override
     public User toAggregate(@NonNull Object dataObject) {
-        return (User) ((UserDO) dataObject).getUser();
+        return Convertor.INST.to((UserDO) dataObject);
     }
 
     @Override
@@ -32,7 +32,7 @@ public class UserDAOAdapter implements DaoAdapter<User> {
 
     @Override
     public DataObjectInfo dataObjectInfo(String aggregateId) {
-        return DataObjectInfo.builder().clazz(CompDO.class).primaryId(aggregateId).build();
+        return DataObjectInfo.builder().clazz(UserDO.class).primaryId(Integer.parseInt(aggregateId)).build();
     }
 
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,

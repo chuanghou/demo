@@ -29,8 +29,17 @@ public class Routers implements EventRouters {
     final DomainTunnel domainTunnel;
     final Tunnel tunnel;
     final UniqueIdBuilder uniqueIdBuilder;
+    final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
-    ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+    @EventRouter
+    public void route(CompEvent.Started started, Context context) {
+        Comp comp = context.getByAggregateId(Comp.class, started.getAggregateId());
+        Duration duration = comp.getDurationMap().get(started.getMarketType());
+        scheduledExecutorService.schedule(() -> {
+            CompCommand.Close command = CompCommand.Close.builder().compId(1).build();
+            CommandBus.accept(command, new HashMap<>());
+        }, duration.getSeconds(), TimeUnit.SECONDS);
+    }
 
     @EventRouter
     public void route(CompEvent.Stepped stepped, Context context) {

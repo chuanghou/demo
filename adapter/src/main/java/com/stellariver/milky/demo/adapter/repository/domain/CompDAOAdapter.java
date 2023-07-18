@@ -55,6 +55,7 @@ public class CompDAOAdapter implements DaoAdapter<Comp> {
                 .agentConfigs(Json.parseList(compDO.getAgentConfig(), AgentConfig.class))
                 .durationMap(marketTypeDuration)
                 .limitations(new HashMap<>())
+                .compStatus(Status.CompStatus.valueOf(compDO.getCompStatus()))
                 .marketStatus(Status.MarketStatus.valueOf(compDO.getMarketStatus()))
                 .version(compDO.getVersion())
                 .replenishMap(new HashMap<>())
@@ -63,10 +64,11 @@ public class CompDAOAdapter implements DaoAdapter<Comp> {
 
     @Override
     public Object toDataObject(Comp comp, DataObjectInfo dataObjectInfo) {
-        return CompDO.builder()
+        return  CompDO.builder()
                 .marketSettingId(comp.getCompId())
                 .roundId(comp.getRoundId())
                 .marketType(comp.getMarketType().getDbCode())
+                .compStatus(comp.getCompStatus().name())
                 .marketStatus(comp.getMarketStatus().name())
                 .version(comp.getVersion())
                 .build();

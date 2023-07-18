@@ -1,8 +1,10 @@
 package com.stellariver.milky.demo.adapter.repository.domain;
 
+import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.infrastructure.database.entity.UserDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UserDOMapper;
+import com.stellariver.milky.domain.support.ErrorEnums;
 import com.stellariver.milky.domain.support.dependency.DAOWrapper;
 import lombok.AccessLevel;
 import lombok.CustomLog;
@@ -25,39 +27,24 @@ import java.util.stream.Collectors;
 @CustomLog
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserDODAOWrapper implements DAOWrapper<UserDO, String> {
+public class UserDODAOWrapper implements DAOWrapper<UserDO, Integer> {
 
     final UserDOMapper userDOMapper;
 
-    private Map<String, UserDO> userDOMap = new ConcurrentHashMap<>();
     @Override
     public int batchSave(@NonNull List<UserDO> userDOs) {
-        CompletableFuture.runAsync(() -> {
-            Integer reduce = userDOs.stream().map(userDOMapper::insert).reduce(0, Integer::sum);
-            if (reduce != userDOs.size()) {
-                log.error("ERROR" + userDOs);
-            }
-        });
-        userDOs.forEach(userDO -> userDOMap.put(userDO.getUserId(), userDO));
-        return userDOs.size();
+        throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
     }
 
     @Override
     public int batchUpdate(@NonNull List<UserDO> userDOs) {
-        CompletableFuture.runAsync(() -> {
-            Integer reduce = userDOs.stream().map(userDOMapper::updateById).reduce(0, Integer::sum);
-            if (reduce != userDOs.size()) {
-                log.error("ERROR" + userDOs);
-            }
-        });
-        userDOs.forEach(userDO -> userDOMap.put(userDO.getUserId(), userDO));
-        return userDOs.size();
+        return userDOs.stream().map(userDOMapper::updateById).reduce(0, Integer::sum);
     }
 
     @Override
-    public Map<String, UserDO> batchGetByPrimaryIds(@NonNull Set<String> ids) {
-        List<UserDO> userDOS = ids.stream().map(userDOMap::get).collect(Collectors.toList());
-        return Collect.toMap(userDOS, UserDO::getUserId);
+    public Map<Integer, UserDO> batchGetByPrimaryIds(@NonNull Set<Integer> ids) {
+        List<UserDO> userDOs = userDOMapper.selectBatchIds(ids);
+        return Collect.toMap(userDOs, UserDO::getUserId);
     }
 
     @Override

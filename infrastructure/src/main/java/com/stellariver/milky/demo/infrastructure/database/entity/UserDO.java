@@ -20,16 +20,13 @@ import lombok.experimental.SuperBuilder;
 public class UserDO extends AbstractMpDO implements BaseDataObject<String> {
 
     @TableId(type = IdType.INPUT)
-    String userId;
+    Integer userId;
     String role;
     String name;
     String password;
 
-    @TableField(exist = false)
-    Object user;
-
     @Override
     public String getPrimaryId() {
-        return userId;
+        return userId.toString();
     }
 }

@@ -5,6 +5,7 @@ import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.SysEx;
+import com.stellariver.milky.common.tool.common.BeanUtil;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.wire.StaticWire;
@@ -20,6 +21,7 @@ import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
+import com.stellariver.milky.domain.support.dependency.Milkywired;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
@@ -34,6 +36,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Data
@@ -57,11 +60,6 @@ public class Comp extends AggregateRoot {
     Map<Pair<Integer, MarketType>, Map<TimeFrame, Double>> replenishMap = new HashMap<>();
 
     static Map<BidGroup, RealtimeBidProcessor> realtimeBidProcessors = new ConcurrentHashMap<>();
-    @StaticWire
-    static DomainTunnel domainTunnel;
-    @StaticWire
-    static Tunnel tunnel;
-
 
     @Override
     public String getAggregateId() {
@@ -71,19 +69,81 @@ public class Comp extends AggregateRoot {
     @MethodHandler
     public void reset(CompCommand.Reset reset, Context context) {
         compStatus = Status.CompStatus.CLOSE;
-        roundId = 1;
-        marketType = MarketType.INTER_ANNUAL_PROVINCIAL;
-        marketStatus = Status.MarketStatus.CLOSE;
-        context.publish(CompEvent.Started.builder().compId(compId).build());
+        Tunnel tunnel = BeanUtil.getBean(Tunnel.class);
+        long loadCount = tunnel.loadLoadNumber();
+        long generatorCount = tunnel.loadGeneratorNumber();
+        long count = Math.min(loadCount, generatorCount) / 6 * 6;
+        BizEx.trueThrow(count / 2 < reset.getAgentNumber(),  ErrorEnums.CONFIG_ERROR.message("数据库中机组或者负荷数量太少"));
+
+
+        agentConfigs = new ArrayList<>();
+
+        IntStream.range(1, reset.getAgentNumber() + 1).forEach(agentId -> IntStream.range(1, 4).forEach(roundId -> {
+            Pair<Integer, Integer> allocateIds = allocate(roundId, agentId, reset.getAgentNumber(), (int) count);
+            AgentConfig agentConfig = AgentConfig.builder()
+                    .roundId(roundId)
+                    .agentId(agentId)
+                    .generatorId0(allocateIds.getLeft())
+                    .generatorId1(allocateIds.getRight())
+                    .loadId0(allocateIds.getLeft())
+                    .loadId1(allocateIds.getRight())
+                    .build();
+            agentConfigs.add(agentConfig);
+        }));
+
+
+        context.publish(CompEvent.Reset.builder().compId(compId).build());
+    }
+
+
+    static Map<Integer, Pair<Integer, Integer>> roundOneMap = Collect.asMap(
+            1, Pair.of(1, 6),
+            2, Pair.of(2, 4),
+            3, Pair.of(3, 5)
+    );
+
+    static Map<Integer, Pair<Integer, Integer>> roundTwoMap = Collect.asMap(
+            1, Pair.of(2, 4),
+            2, Pair.of(3, 5),
+            3, Pair.of(1, 6)
+    );
+
+    static Map<Integer, Pair<Integer, Integer>> roundThreeMap = Collect.asMap(
+            1, Pair.of(3, 5),
+            2, Pair.of(1, 6),
+            3, Pair.of(2, 4)
+    );
+
+    static Map<Integer, Map<Integer, Pair<Integer, Integer>>> alloacteMap = Collect.asMap(
+            1, roundOneMap,
+            2, roundTwoMap,
+            3, roundThreeMap
+    );
+
+    private static Pair<Integer, Integer> allocate(Integer roundId, Integer userId, Integer userCount, Integer unitCount) {
+        int groupMemberCount =  (userCount / 3) + (((userCount % 3) == 0) ? 0 : 1);
+        Map<Integer, Pair<Integer, Integer>> integerPairMap = alloacteMap.get(roundId);
+        int groupNumber = userId / groupMemberCount + (((userId % groupMemberCount) == 0) ? 0 : 1);
+        Pair<Integer, Integer> pair = integerPairMap.get(groupNumber);
+        int i = ((userId - 1) % groupMemberCount) + 1;
+        int k = unitCount / 6;
+        return Pair.of( (pair.getLeft() - 1) * k + i, (pair.getRight() - 1) * k + i);
     }
 
     @MethodHandler
     public void start(CompCommand.Start start, Context context) {
-        BizEx.trueThrow(compStatus != Status.CompStatus.CLOSE, ErrorEnums.CONFIG_ERROR.message(""));
-        compStatus = Status.CompStatus.OPEN;
+        BizEx.trueThrow(compStatus != Status.CompStatus.CLOSE, ErrorEnums.CONFIG_ERROR.message("需要初始化项目"));
         CompEvent.Started.StartedBuilder<?, ?> builder = CompEvent.Started.builder().compId(compId).lastCompStatus(compStatus);
         compStatus = Status.CompStatus.OPEN;
-        CompEvent.Started started = builder.nextCompStatus(compStatus).build();
+        roundId = 1;
+        marketType = MarketType.INTER_ANNUAL_PROVINCIAL;
+        marketStatus = Status.MarketStatus.OPEN;
+        CompEvent.Started started = builder
+                .nextCompStatus(compStatus)
+                .roundId(roundId)
+                .marketType(marketType)
+                .marketStatus(marketStatus)
+                .build();
         context.publish(started);
     }
 
@@ -120,13 +180,15 @@ public class Comp extends AggregateRoot {
     @MethodHandler
     public void handle(CompCommand.Close command, Context context) {
         BizEx.trueThrow(marketStatus != Status.MarketStatus.OPEN, ErrorEnums.CONFIG_ERROR.message("该市场不处于开放状态"));
-        CompEvent.Closed closed = CompEvent.Closed.builder().roundId(roundId).marketType(marketType).build();
+        marketStatus = Status.MarketStatus.CLOSE;
+        CompEvent.Closed closed = CompEvent.Closed.builder().compId(compId).roundId(roundId).marketType(marketType).build();
         context.publish(closed);
     }
 
 
     @MethodHandler
     public void handle(CompCommand.Clear clear, Context context) {
+        Tunnel tunnel = BeanUtil.getBean(Tunnel.class);
         List<Bid> bids = tunnel.getByCompId(compId).stream()
                 .map(unit -> unit.getCentralizedBids().get(clear.getMarketType()))
                 .flatMap(Collection::stream).collect(Collectors.toList());
