@@ -16,9 +16,9 @@ public class LoadForecastDO {
 
     Integer loadId;
     Integer prd;
-    @TableId("annual_p_forecast")
+    @TableField("annual_p_forecast")
     Double annualForecast;
-    @TableId("monthly_p_forecast")
+    @TableField("monthly_p_forecast")
     Double monthlyForecast;
     @TableField("da_p_forecast")
     Double daForecast;

@@ -186,10 +186,9 @@ public class DataController {
     final DomainTunnel domainTunnel;
     final RenewableUnitDOMapper renewableUnitDOMapper;
     @GetMapping("listAgentInventory")
-    public Map<String, Map<String, List<Double>>> listAgentInventory(@RequestHeader("token") String token,
-                                                                     @RequestParam String maketTypeValue) {
-        MarketType marketType = MarketType.valueOf(maketTypeValue);
-        String userId = TokenUtils.getUserId(token);
+    public Map<String, Map<String, List<Double>>> listAgentInventory(@RequestParam String marketTypeValue) {
+        MarketType marketType = MarketType.valueOf(marketTypeValue);
+        String userId = "1";
         Comp comp = domainTunnel.getByAggregateId(Comp.class, "1");
 
         AgentConfig config = comp.getAgentConfigs().stream()
