@@ -21,10 +21,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -45,13 +42,12 @@ public class DataController {
             .expireAfterWrite(3600, TimeUnit.SECONDS)
             .build();
 
-    @SuppressWarnings("unchecked")
-    @GetMapping("systemParameterRelease")
-    Map<String, Map<String, List<Double>>> systemParameterRelease() throws ExecutionException {
-        return (Map<String, Map<String, List<Double>>>) cache.get("systemParameterRelease", this::doLoad);
-    }
 
-    private Map<String, Map<String, List<Double>>> doLoad() {
+
+    @GetMapping("systemParameterRelease")
+    Map<String, Map<String, List<Double>>> systemParameterRelease(@RequestParam String marketTypeValue) throws ExecutionException {
+
+        MarketType marketType = MarketType.valueOf(marketTypeValue);
 
         List<SprDO> sprDOs = sprMapper.selectList(null);
 
@@ -63,10 +59,22 @@ public class DataController {
                 .collect(Collectors.toList());
 
         Map<String, List<Double>> transferData = new HashMap<>();
+
         transferData.put("全省火电最小", Collect.transfer(transferSprDOs, SprDO::getMinThermalMw));
-        transferData.put("全省新能源预测", Collect.transfer(transferSprDOs, SprDO::getAnnualRenewableForecast));
         transferData.put("全省火电可调", Collect.transfer(transferSprDOs, SprDO::getAdjustableThermalMw));
-        transferData.put("全省负荷预测", Collect.transfer(transferSprDOs, SprDO::getAnnualLoadForecast));
+
+        if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
+            transferData.put("全省新能源预测", Collect.transfer(transferSprDOs, SprDO::getAnnualRenewableForecast));
+            transferData.put("全省负荷预测", Collect.transfer(transferSprDOs, SprDO::getAnnualLoadForecast));
+        } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
+            transferData.put("全省新能源预测", Collect.transfer(transferSprDOs, SprDO::getDaRenewableForecast));
+            transferData.put("全省负荷预测", Collect.transfer(transferSprDOs, SprDO::getMonthlyLoadForecast));
+        } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
+            transferData.put("全省新能源预测", Collect.transfer(transferSprDOs, SprDO::getDaRenewableForecast));
+            transferData.put("全省负荷预测", Collect.transfer(transferSprDOs, SprDO::getDaLoadForecast));
+        } else {
+            throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+        }
 
         LambdaQueryWrapper<TpbfsdDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(TpbfsdDO::getRoundId, Round.ONE.getDbCode());
@@ -88,9 +96,17 @@ public class DataController {
 
         Map<String, List<Double>> receiveData = new HashMap<>();
         receiveData.put("全省火电最小", Collect.transfer(receiveSprDOs, SprDO::getMinThermalMw));
-        receiveData.put("全省新能源预测", Collect.transfer(receiveSprDOs, SprDO::getAnnualRenewableForecast));
         receiveData.put("全省火电可调", Collect.transfer(receiveSprDOs, SprDO::getAdjustableThermalMw));
-        receiveData.put("全省负荷预测", Collect.transfer(receiveSprDOs, SprDO::getAnnualLoadForecast));
+        if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
+            receiveData.put("全省新能源预测", Collect.transfer(receiveSprDOs, SprDO::getAnnualRenewableForecast));
+            receiveData.put("全省负荷预测", Collect.transfer(receiveSprDOs, SprDO::getAnnualLoadForecast));
+        } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
+            receiveData.put("全省新能源预测", Collect.transfer(receiveSprDOs, SprDO::getMonthlyRenewableForecast));
+            receiveData.put("全省负荷预测", Collect.transfer(receiveSprDOs, SprDO::getMonthlyLoadForecast));
+        } else {
+            receiveData.put("全省新能源预测", Collect.transfer(receiveSprDOs, SprDO::getDaRenewableForecast));
+            receiveData.put("全省负荷预测", Collect.transfer(receiveSprDOs, SprDO::getDaLoadForecast));
+        }
 
         queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(TpbfsdDO::getRoundId, Round.ONE.getDbCode());
@@ -110,6 +126,7 @@ public class DataController {
         linkData.put("受电目标下限", Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMinAnnualReceivingMw));
 
         result.put("省间联络线图", linkData);
+
         return result;
     }
 
@@ -179,7 +196,9 @@ public class DataController {
     final DomainTunnel domainTunnel;
     final RenewableUnitDOMapper renewableUnitDOMapper;
     @GetMapping("listAgentInventory")
-    public Map<String, Map<String, List<Double>>> listAgentInventory(@RequestHeader("token") String token) {
+    public Map<String, Map<String, List<Double>>> listAgentInventory(@RequestHeader("token") String token,
+                                                                     @RequestParam String maketTypeValue) {
+        MarketType marketType = MarketType.valueOf(maketTypeValue);
         String userId = TokenUtils.getUserId(token);
         Comp comp = domainTunnel.getByAggregateId(Comp.class, "1");
 
@@ -189,10 +208,10 @@ public class DataController {
 
         Map<String, Map<String, List<Double>>> result = new HashMap<>();
 
-        Pair<String, Map<String, List<Double>>> mapPair = loadGenerator(config.getGeneratorId0());
+        Pair<String, Map<String, List<Double>>> mapPair = loadGenerator(config.getGeneratorId0(), marketType);
         result.put(mapPair.getKey(), mapPair.getValue());
 
-        mapPair = loadGenerator(config.getGeneratorId1());
+        mapPair = loadGenerator(config.getGeneratorId1(), marketType);
         result.put(mapPair.getKey(), mapPair.getValue());
 
         mapPair = loadLoad(config.getLoadId0());
