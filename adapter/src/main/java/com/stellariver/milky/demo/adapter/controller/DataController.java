@@ -1,8 +1,6 @@
 package com.stellariver.milky.demo.adapter.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;
@@ -24,8 +22,6 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -38,14 +34,8 @@ public class DataController {
     final SprMapper sprMapper;
     final TpbfsdMapper tpbfsdMapper;
 
-    Cache<String, Object> cache = CacheBuilder.newBuilder().maximumSize(100)
-            .expireAfterWrite(3600, TimeUnit.SECONDS)
-            .build();
-
-
-
     @GetMapping("systemParameterRelease")
-    Map<String, Map<String, List<Double>>> systemParameterRelease(@RequestParam String marketTypeValue) throws ExecutionException {
+    Map<String, Map<String, List<Double>>> systemParameterRelease(@RequestParam String marketTypeValue) {
 
         MarketType marketType = MarketType.valueOf(marketTypeValue);
 
