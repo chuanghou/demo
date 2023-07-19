@@ -10,6 +10,8 @@ import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.client.po.LoginPO;
 import com.stellariver.milky.demo.client.po.UserAddPO;
 import com.stellariver.milky.demo.client.vo.UserVO;
+import com.stellariver.milky.demo.common.Status;
+import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.UserLogin;
 import com.stellariver.milky.demo.infrastructure.database.entity.UserDO;
@@ -62,7 +64,7 @@ public class UserController {
 
 
     @GetMapping("login")
-    public Result<String> update(@RequestBody LoginPO loginPO) {
+    public Result<String> login(@RequestBody LoginPO loginPO) {
         UserLogin userLogin = UserLogin.builder().userId(loginPO.getUserId()).password(loginPO.getPassword()).build();
         Map<Class<? extends Typed<?>>, Object> parameters = new HashMap<>();
         String token = null;

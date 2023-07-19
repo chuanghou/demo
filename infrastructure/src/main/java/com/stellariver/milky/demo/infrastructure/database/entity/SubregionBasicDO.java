@@ -1,7 +1,5 @@
 package com.stellariver.milky.demo.infrastructure.database.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -10,15 +8,10 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("unit_basic")
+@TableName("subregion_basic")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class GeneratorDO {
-
-    @TableId(type = IdType.AUTO)
-    Integer unitId;
-    String unitName;
+public class SubregionBasicDO {
+    Integer subregionId;
+    String subregionName;
     Integer prov;
-    Integer type;
-    Double maxP;
-
 }

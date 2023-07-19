@@ -8,7 +8,7 @@ import lombok.Getter;
 public enum Province {
 
     TRANSFER(1, "送电省"),
-    RECEIVER(1, "受电省");
+    RECEIVER(2, "受电省");
 
     final Integer dbCode;
     final String desc;

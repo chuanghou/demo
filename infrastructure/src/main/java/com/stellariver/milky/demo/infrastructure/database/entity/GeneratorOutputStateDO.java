@@ -10,15 +10,12 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("unit_basic")
+@TableName("unit_output_state_setting")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class GeneratorDO {
+public class GeneratorOutputStateDO {
 
     @TableId(type = IdType.AUTO)
     Integer unitId;
-    String unitName;
-    Integer prov;
-    Integer type;
-    Double maxP;
-
+    Integer prd;
+    Double baseMw;
 }
