@@ -2,12 +2,12 @@ package com.stellariver.milky.demo.adapter.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.stellariver.milky.common.base.BizEx;
+import com.stellariver.milky.common.base.Enumeration;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.AgentConfig;
 import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.Round;
@@ -33,6 +33,12 @@ public class DataController {
 
     final SprMapper sprMapper;
     final TpbfsdMapper tpbfsdMapper;
+
+
+    @GetMapping("systemParameterRelease")
+    public List<Enumeration> listMarketTypes() {
+        return Arrays.stream(MarketType.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
+    }
 
     @GetMapping("systemParameterRelease")
     Map<String, Map<String, List<Double>>> systemParameterRelease(@RequestParam String marketTypeValue) {
