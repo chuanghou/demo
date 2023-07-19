@@ -35,7 +35,7 @@ public class DataController {
     final TpbfsdMapper tpbfsdMapper;
 
 
-    @GetMapping("systemParameterRelease")
+    @GetMapping("listMarketTypes")
     public List<Enumeration> listMarketTypes() {
         return Arrays.stream(MarketType.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
     }
