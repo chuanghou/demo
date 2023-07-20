@@ -8,6 +8,7 @@ import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.AgentConfig;
 import com.stellariver.milky.demo.basic.ErrorEnums;
+import com.stellariver.milky.demo.basic.Label;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.Round;
@@ -40,6 +41,11 @@ public class DataController {
         return Arrays.stream(MarketType.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
     }
 
+    @GetMapping("listLabels")
+    public List<Enumeration> listLabels() {
+        return Arrays.stream(Label.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
+    }
+
     @GetMapping("systemParameterRelease")
     Map<String, Map<String, List<Double>>> systemParameterRelease(@RequestParam String marketTypeValue) {
 
@@ -56,18 +62,18 @@ public class DataController {
 
         Map<String, List<Double>> transferData = new HashMap<>();
 
-        transferData.put("全省火电最小", Collect.transfer(transferSprDOs, SprDO::getMinThermalMw));
-        transferData.put("全省火电可调", Collect.transfer(transferSprDOs, SprDO::getAdjustableThermalMw));
+        transferData.put(Label.min_thermal_mw.name(), Collect.transfer(transferSprDOs, SprDO::getMinThermalMw));
+        transferData.put(Label.adjustable_thermal_mw.name(), Collect.transfer(transferSprDOs, SprDO::getAdjustableThermalMw));
 
         if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
-            transferData.put("全省新能源预测", Collect.transfer(transferSprDOs, SprDO::getAnnualRenewableForecast));
-            transferData.put("全省负荷预测", Collect.transfer(transferSprDOs, SprDO::getAnnualLoadForecast));
+            transferData.put(Label.annual_renewable_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getAnnualRenewableForecast));
+            transferData.put(Label.annual_load_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getAnnualLoadForecast));
         } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
-            transferData.put("全省新能源预测", Collect.transfer(transferSprDOs, SprDO::getDaRenewableForecast));
-            transferData.put("全省负荷预测", Collect.transfer(transferSprDOs, SprDO::getMonthlyLoadForecast));
+            transferData.put(Label.annual_renewable_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getDaRenewableForecast));
+            transferData.put(Label.annual_load_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getMonthlyLoadForecast));
         } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
-            transferData.put("全省新能源预测", Collect.transfer(transferSprDOs, SprDO::getDaRenewableForecast));
-            transferData.put("全省负荷预测", Collect.transfer(transferSprDOs, SprDO::getDaLoadForecast));
+            transferData.put(Label.annual_renewable_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getDaRenewableForecast));
+            transferData.put(Label.annual_load_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getDaLoadForecast));
         } else {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
@@ -80,9 +86,9 @@ public class DataController {
                 .sorted(Comparator.comparing(TpbfsdDO::getPrd))
                 .collect(Collectors.toList());
 
-        transferData.put("全省送电预测", Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
+        transferData.put(Label.annual_receive_forecast_mw.name(), Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
 
-        result.put("送电省96时段供需分析", transferData);
+        result.put(Label.annual_receive_forecast_mw.name(), transferData);
 
 
         List<SprDO> receiveSprDOs = sprDOs.stream()
@@ -91,17 +97,17 @@ public class DataController {
                 .collect(Collectors.toList());
 
         Map<String, List<Double>> receiveData = new HashMap<>();
-        receiveData.put("全省火电最小", Collect.transfer(receiveSprDOs, SprDO::getMinThermalMw));
-        receiveData.put("全省火电可调", Collect.transfer(receiveSprDOs, SprDO::getAdjustableThermalMw));
+        receiveData.put(Label.min_thermal_mw.name(), Collect.transfer(receiveSprDOs, SprDO::getMinThermalMw));
+        receiveData.put(Label.adjustable_thermal_mw.name(), Collect.transfer(receiveSprDOs, SprDO::getAdjustableThermalMw));
         if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
-            receiveData.put("全省新能源预测", Collect.transfer(receiveSprDOs, SprDO::getAnnualRenewableForecast));
-            receiveData.put("全省负荷预测", Collect.transfer(receiveSprDOs, SprDO::getAnnualLoadForecast));
+            receiveData.put(Label.annual_renewable_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getAnnualRenewableForecast));
+            receiveData.put(Label.annual_load_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getAnnualLoadForecast));
         } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
-            receiveData.put("全省新能源预测", Collect.transfer(receiveSprDOs, SprDO::getMonthlyRenewableForecast));
-            receiveData.put("全省负荷预测", Collect.transfer(receiveSprDOs, SprDO::getMonthlyLoadForecast));
+            receiveData.put(Label.annual_renewable_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getMonthlyRenewableForecast));
+            receiveData.put(Label.annual_load_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getMonthlyLoadForecast));
         } else {
-            receiveData.put("全省新能源预测", Collect.transfer(receiveSprDOs, SprDO::getDaRenewableForecast));
-            receiveData.put("全省负荷预测", Collect.transfer(receiveSprDOs, SprDO::getDaLoadForecast));
+            receiveData.put(Label.annual_renewable_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getDaRenewableForecast));
+            receiveData.put(Label.annual_load_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getDaLoadForecast));
         }
 
         queryWrapper = new LambdaQueryWrapper<>();
@@ -112,16 +118,16 @@ public class DataController {
                 .sorted(Comparator.comparing(TpbfsdDO::getPrd))
                 .collect(Collectors.toList());
 
-        transferData.put("全省受电预测", Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
+        transferData.put(Label.annual_receive_forecast_mw.name(), Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
 
-        result.put("受电省96时段供需分析", receiveData);
+        result.put(Label.receiver_96_analysis.name(), receiveData);
 
         Map<String, List<Double>> linkData = new HashMap<>();
-        linkData.put("受电目标上限", Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMaxAnnualReceivingMw));
+        linkData.put(Label.receive_target_lower_limit.name(), Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMaxAnnualReceivingMw));
 
-        linkData.put("受电目标下限", Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMinAnnualReceivingMw));
+        linkData.put(Label.receive_target_upper_limit.name(), Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMinAnnualReceivingMw));
 
-        result.put("省间联络线图", linkData);
+        result.put(Label.inter_provincial_linking.name(), linkData);
 
         return result;
     }
@@ -218,6 +224,9 @@ public class DataController {
 
         return result;
     }
+
+
+
 
     private Pair<String, Map<String, List<Double>>> loadGenerator(Integer generatorId, MarketType marketType) {
         GeneratorDO generatorDO = generatorDOMapper.selectById(generatorId);
