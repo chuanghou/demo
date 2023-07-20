@@ -8,8 +8,6 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.BeanUtil;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.common.tool.wire.StaticWire;
-import com.stellariver.milky.demo.basic.AgentConfig;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.common.enums.Direction;
@@ -18,10 +16,9 @@ import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.domain.event.CompEvent;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
-import com.stellariver.milky.domain.support.base.DomainTunnel;
+import com.stellariver.milky.domain.support.command.ConstructorHandler;
 import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
-import com.stellariver.milky.domain.support.dependency.Milkywired;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
@@ -36,7 +33,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Data
@@ -47,17 +43,17 @@ import java.util.stream.Stream;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Comp extends AggregateRoot {
 
-    Integer compId;
-    Integer roundNum;
+    Long compId;
+    Long roundTotal;
     Status.CompStatus compStatus;
-    Integer roundId;
+    Long roundId;
     MarketType marketType;
     Status.MarketStatus marketStatus;
-
-    Map<MarketType, Duration> durationMap;
-    List<AgentConfig> agentConfigs;
-    Map<TimeFrame, Pair<Double, Double>> limitations;
-    Map<Pair<Integer, MarketType>, Map<TimeFrame, Double>> replenishMap = new HashMap<>();
+    GridLimit priceLimit;
+    Map<MarketType, Map<TimeFrame, GridLimit>> transLimit;
+    List<Map<MarketType, Duration>> durations;
+    List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
+    Long agentTotal;
 
     static Map<BidGroup, RealtimeBidProcessor> realtimeBidProcessors = new ConcurrentHashMap<>();
 
@@ -66,76 +62,34 @@ public class Comp extends AggregateRoot {
         return compId.toString();
     }
 
-    @MethodHandler
-    public void reset(CompCommand.Reset reset, Context context) {
-        compStatus = Status.CompStatus.CLOSE;
-        Tunnel tunnel = BeanUtil.getBean(Tunnel.class);
-        long loadCount = tunnel.loadLoadNumber();
-        long generatorCount = tunnel.loadGeneratorNumber();
-        long count = Math.min(loadCount, generatorCount) / 6 * 6;
-        BizEx.trueThrow(count / 2 < reset.getAgentNumber(),  ErrorEnums.CONFIG_ERROR.message("数据库中机组或者负荷数量太少"));
-
-
-        agentConfigs = new ArrayList<>();
-
-        IntStream.range(1, reset.getAgentNumber() + 1).forEach(agentId -> IntStream.range(1, 4).forEach(roundId -> {
-            Pair<Integer, Integer> allocateIds = allocate(roundId, agentId, reset.getAgentNumber(), (int) count);
-            AgentConfig agentConfig = AgentConfig.builder()
-                    .roundId(roundId)
-                    .agentId(agentId)
-                    .generatorId0(allocateIds.getLeft())
-                    .generatorId1(allocateIds.getRight())
-                    .loadId0(allocateIds.getLeft())
-                    .loadId1(allocateIds.getRight())
-                    .build();
-            agentConfigs.add(agentConfig);
-        }));
-
-
-        context.publish(CompEvent.Reset.builder().compId(compId).build());
+    @ConstructorHandler
+    static public Comp create(CompCommand.Create create, Context context) {
+        Comp comp = new Comp();
+        comp.setCompId(create.getCompId());
+        comp.setRoundTotal(3L);
+        comp.setCompStatus(Status.CompStatus.CLOSE);
+        comp.setRoundId(0L);
+        comp.setMarketType(MarketType.INTER_ANNUAL_PROVINCIAL);
+        comp.setMarketStatus(Status.MarketStatus.CLOSE);
+        comp.setPriceLimit(create.getPriceLimit());
+        comp.setTransLimit(new HashMap<>());
+        comp.setDurations(new ArrayList<>());
+        comp.setReplenishes(new ArrayList<>());
+        comp.setAgentTotal(create.getAgentTotal());
+        context.publish(CompEvent.Created.builder().compId(comp.getCompId()).comp(comp).build());
+        return comp;
     }
 
 
-    static Map<Integer, Pair<Integer, Integer>> roundOneMap = Collect.asMap(
-            1, Pair.of(1, 6),
-            2, Pair.of(2, 4),
-            3, Pair.of(3, 5)
-    );
 
-    static Map<Integer, Pair<Integer, Integer>> roundTwoMap = Collect.asMap(
-            1, Pair.of(2, 4),
-            2, Pair.of(3, 5),
-            3, Pair.of(1, 6)
-    );
 
-    static Map<Integer, Pair<Integer, Integer>> roundThreeMap = Collect.asMap(
-            1, Pair.of(3, 5),
-            2, Pair.of(1, 6),
-            3, Pair.of(2, 4)
-    );
-
-    static Map<Integer, Map<Integer, Pair<Integer, Integer>>> alloacteMap = Collect.asMap(
-            1, roundOneMap,
-            2, roundTwoMap,
-            3, roundThreeMap
-    );
-
-    private static Pair<Integer, Integer> allocate(Integer roundId, Integer userId, Integer userCount, Integer unitCount) {
-        int groupMemberCount =  (userCount / 3) + (((userCount % 3) == 0) ? 0 : 1);
-        Map<Integer, Pair<Integer, Integer>> integerPairMap = alloacteMap.get(roundId);
-        int groupNumber = userId / groupMemberCount + (((userId % groupMemberCount) == 0) ? 0 : 1);
-        Pair<Integer, Integer> pair = integerPairMap.get(groupNumber);
-        int i = ((userId - 1) % groupMemberCount) + 1;
-        int k = unitCount / 6;
-        return Pair.of( (pair.getLeft() - 1) * k + i, (pair.getRight() - 1) * k + i);
-    }
 
     @MethodHandler
     public void start(CompCommand.Start start, Context context) {
         BizEx.trueThrow(compStatus != Status.CompStatus.CLOSE, ErrorEnums.CONFIG_ERROR.message("需要初始化项目"));
         CompEvent.Started.StartedBuilder<?, ?> builder = CompEvent.Started.builder().compId(compId).lastCompStatus(compStatus);
         compStatus = Status.CompStatus.OPEN;
-        roundId = 1;
+        roundId = 1L;
         marketType = MarketType.INTER_ANNUAL_PROVINCIAL;
         marketStatus = Status.MarketStatus.OPEN;
         CompEvent.Started started = builder
@@ -157,13 +111,13 @@ public class Comp extends AggregateRoot {
                 .lastMarketStatus(marketStatus);
 
         BizEx.trueThrow(marketStatus == Status.MarketStatus.OPEN, ErrorEnums.PARAM_FORMAT_WRONG);
-        boolean b = Objects.equals(roundId, roundNum) && marketType == MarketType.INTER_SPOT_PROVINCIAL;
+        boolean b = Objects.equals(roundId, roundTotal) && marketType == MarketType.INTER_SPOT_PROVINCIAL;
         BizEx.trueThrow(b, ErrorEnums.CONFIG_ERROR.message("已经到了最后一轮"));
 
         int nextDbCode = marketType.getDbCode() + 1;
         if (nextDbCode > MarketType.INTER_SPOT_PROVINCIAL.getDbCode()) {
             nextDbCode = MarketType.INTER_ANNUAL_PROVINCIAL.getDbCode();
-            BizEx.trueThrow(Kit.eq(roundId, roundNum), ErrorEnums.CONFIG_ERROR.message("本场比赛已经结束!"));
+            BizEx.trueThrow(Kit.eq(roundId, roundTotal), ErrorEnums.CONFIG_ERROR.message("本场比赛已经结束!"));
             roundId += 1;
         }
 
@@ -226,7 +180,7 @@ public class Comp extends AggregateRoot {
 
         ResolveResult resolveResult = resolveInterPoint(buyBids, sellBids);
         Pair<Double, Double> interPoint = resolveResult.getInterPoint();
-        Pair<Double, Double> limitation = limitations.get(timeFrame);
+        Pair<Double, Double> limitation = transLimit.get(timeFrame);
 
 
         Double minTransfer = limitation.getLeft();

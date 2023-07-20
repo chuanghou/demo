@@ -22,6 +22,12 @@ public class CompDO extends AbstractMpDO implements BaseDataObject<Integer> {
     Integer roundNum;
     Integer roundId;
     Integer marketType;
+
+    Double offerPriceCap;
+    Double offerPriceFloor;
+    Double bidPriceCap;
+    Double bidPriceFloor;
+
     Integer intraprovincialAnnualBidDuration;
     Integer intraprovincialMonthlyBidDuration;
     Integer interprovincialAnnualBidDuration;

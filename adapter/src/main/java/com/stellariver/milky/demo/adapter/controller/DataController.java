@@ -173,8 +173,8 @@ public class DataController {
             }
 
             Map<String, List<Double>> lineChart = new HashMap<>();
-            lineChart.put("该阻塞区负荷预测", loadForecast);
-            lineChart.put("该阻塞区新能源发电预测", renewableForecast);
+            lineChart.put(Label.blockLoadForecast.name(), loadForecast);
+            lineChart.put(Label.blockRenewableForecast.name(), renewableForecast);
 
             blockMap.put(name, Block.builder().histograms(histograms).lineChart(lineChart).build());
         }
@@ -234,31 +234,31 @@ public class DataController {
         List<Double> maxPs = new ArrayList<>();
         IntStream.range(0, 16).forEach(i -> maxPs.add(generatorDO.getMaxP()));
         if (generatorDO.getType() == 1) {
-            map.put("该机组最大发电能力", maxPs);
+            map.put(Label.maxPs.name(), maxPs);
         } else {
             LambdaQueryWrapper<RenewableUnitDO> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(RenewableUnitDO::getUnitId, generatorId);
-            List<Double> values;
+            List<Double> generatorForecast;
             if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
-                values = renewableUnitDOMapper.selectList(queryWrapper).stream().sorted(Comparator.comparing(RenewableUnitDO::getPrd))
+                generatorForecast = renewableUnitDOMapper.selectList(queryWrapper).stream().sorted(Comparator.comparing(RenewableUnitDO::getPrd))
                         .map(RenewableUnitDO::getAnnualForecast).collect(Collectors.toList());
             } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL || marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
-                values = renewableUnitDOMapper.selectList(queryWrapper).stream().sorted(Comparator.comparing(RenewableUnitDO::getPrd))
+                generatorForecast = renewableUnitDOMapper.selectList(queryWrapper).stream().sorted(Comparator.comparing(RenewableUnitDO::getPrd))
                         .map(RenewableUnitDO::getMonthlyForecast).collect(Collectors.toList());
             } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
-                values = renewableUnitDOMapper.selectList(queryWrapper).stream().sorted(Comparator.comparing(RenewableUnitDO::getPrd))
+                generatorForecast = renewableUnitDOMapper.selectList(queryWrapper).stream().sorted(Comparator.comparing(RenewableUnitDO::getPrd))
                         .map(RenewableUnitDO::getDaForecast).collect(Collectors.toList());
             } else {
                 throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
             }
-            map.put("该机组发电预测", values);
+            map.put(Label.generatorForecast.name(), generatorForecast);
         }
         LambdaQueryWrapper<GeneratorOutputStateDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(GeneratorOutputStateDO::getUnitId, generatorId);
-        List<Double> baseMws = generatorOutputStateMapper.selectList(queryWrapper).stream()
+        List<Double> baseContractMws = generatorOutputStateMapper.selectList(queryWrapper).stream()
                 .sorted(Comparator.comparing(GeneratorOutputStateDO::getPrd))
                 .map(GeneratorOutputStateDO::getBaseMw).collect(Collectors.toList());
-        map.put("该机组基数合同电量", baseMws);
+        map.put(Label.baseContractMws.name(), baseContractMws);
         return Pair.of(generatorDO.getUnitName(), map);
     }
 
@@ -271,7 +271,7 @@ public class DataController {
         List<Double> baseMws = loadForecastMapper.selectList(queryWrapper).stream()
                 .sorted(Comparator.comparing(LoadForecastDO::getPrd))
                 .map(LoadForecastDO::getAnnualForecast).collect(Collectors.toList());
-        map.put("该负荷用电预测", baseMws);
+        map.put(Label.loadForecast.name(), baseMws);
         return Pair.of(loadDO.getLoadName(), map);
     }
 

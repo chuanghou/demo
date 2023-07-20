@@ -1,8 +1,8 @@
 package com.stellariver.milky.demo.domain.event;
 
-import com.stellariver.milky.demo.common.Agent;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
+import com.stellariver.milky.demo.domain.Agent;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.DealResult;
 import com.stellariver.milky.domain.support.event.Event;
@@ -13,28 +13,7 @@ import lombok.experimental.SuperBuilder;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class CompEvent {
-
-    @Data
-    @SuperBuilder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @EqualsAndHashCode(callSuper = true)
-    @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class Cleared extends Event {
-
-        Integer compId;
-
-        MarketType marketType;
-
-        List<DealResult> dealResults;
-
-        @Override
-        public String getAggregateId() {
-            return compId.toString();
-        }
-
-    }
+public class AgentEvent {
 
 
     @Data
@@ -44,12 +23,12 @@ public class CompEvent {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Created extends Event {
 
-        Long compId;
-        Comp comp;
+        Long agentId;
+        Agent agent;
 
         @Override
         public String getAggregateId() {
-            return compId.toString();
+            return agentId.toString();
         }
     }
 

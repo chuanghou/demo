@@ -15,4 +15,6 @@ public interface Tunnel {
 
     long loadLoadNumber();
 
+    long loadUnitNumber();
+
 }

@@ -20,7 +20,18 @@ public enum Label {
     annual_receive_forecast_mw("全省受电预测"),
 
     receive_target_lower_limit("受电目标上限"),
-    receive_target_upper_limit("受电目标下限");
+    receive_target_upper_limit("受电目标下限"),
+
+    blockLoadForecast("该阻塞区负荷预测"),
+    blockRenewableForecast("该阻塞区新能源发电预测"),
+
+    maxPs("该机组最大发电能力"),
+
+    generatorForecast("该机组发电预测"),
+
+    baseContractMws("该机组基数合同电量"),
+
+    loadForecast("该负荷用电预测");
 
     final String desc;
 }

@@ -67,8 +67,8 @@ public class Unit extends AggregateRoot {
     }
 
     @ConstructorHandler
-    public static Unit create(UnitCommand.UnitCreate unitCreate, Context context) {
-        return Convertor.INST.to(unitCreate);
+    public static Unit create(UnitCommand.Create create, Context context) {
+        return Convertor.INST.to(create);
     }
 
 
@@ -175,13 +175,13 @@ public class Unit extends AggregateRoot {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
-        Unit to(UnitCommand.UnitCreate unitCreate);
+        Unit to(UnitCommand.Create create);
 
         @AfterMapping
-        default void after(UnitCommand.UnitCreate unitCreate, @MappingTarget Unit unit) {
-            Map<TimeFrame, Double> quantities = unitCreate.getQuantities();
+        default void after(UnitCommand.Create create, @MappingTarget Unit unit) {
+            Map<TimeFrame, Double> quantities = create.getQuantities();
             Map<TimeFrame, Map<Direction, Double>> balanceQuantities = new HashMap<>();
-            Direction direction = unitCreate.getUnitType().generalDirection();
+            Direction direction = create.getUnitType().generalDirection();
             Direction oppositeDirection = direction.opposite();
             quantities.forEach((tf, quantity) -> {
                 Map<Direction, Double> directionMap = new HashMap<>();

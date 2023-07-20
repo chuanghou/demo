@@ -3,18 +3,13 @@ package com.stellariver.milky.demo.adapter.controller;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
-import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.common.tool.util.Json;
-import com.stellariver.milky.demo.basic.AgentConfig;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.TokenUtils;
-import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.CompCommand;
-import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.GeneratorDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.LoadDOMapper;
@@ -23,16 +18,11 @@ import com.stellariver.milky.domain.support.command.CommandBus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,7 +41,7 @@ public class CompController {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
         }
         BizEx.trueThrow(agentNumber > 15, ErrorEnums.PARAM_FORMAT_WRONG.message("不允许超过15个交易员"));
-        CompCommand.Reset command = CompCommand.Reset.builder().compId(1).agentNumber(agentNumber).build();
+        CompCommand.Create command = CompCommand.Create.builder().compId(1).agentTotal(agentNumber).build();
         CommandBus.accept(command, new HashMap<>());
         return Result.success();
     }

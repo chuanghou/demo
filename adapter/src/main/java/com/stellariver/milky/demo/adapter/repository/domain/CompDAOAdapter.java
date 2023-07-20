@@ -50,7 +50,7 @@ public class CompDAOAdapter implements DaoAdapter<Comp> {
         return Comp.builder()
                 .compId(compDO.getMarketSettingId())
                 .roundId(compDO.getRoundId())
-                .roundNum(compDO.getRoundNum())
+                .roundTotal(compDO.getRoundNum())
                 .marketType(Kit.enumOfMightEx(MarketType::getDbCode, compDO.getMarketType()))
                 .agentConfigs(Json.parseList(compDO.getAgentConfig(), AgentConfig.class))
                 .durationMap(marketTypeDuration)

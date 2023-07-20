@@ -1,6 +1,5 @@
 package com.stellariver.milky.demo.adapter.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.tool.common.BeanUtil;
@@ -9,6 +8,7 @@ import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.common.Typed;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
+import com.stellariver.milky.demo.basic.AgentConfig;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.basic.TypedEnums;
@@ -19,18 +19,18 @@ import com.stellariver.milky.demo.client.vo.OrderVO;
 import com.stellariver.milky.demo.client.vo.UnitVO;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Order;
-import com.stellariver.milky.demo.common.enums.Direction;
-import com.stellariver.milky.demo.common.enums.TimeFrame;
+import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
-import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
+import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
+import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UnitDOMapper;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.CommandBus;
 import com.stellariver.milky.spring.partner.UniqueIdBuilder;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapping;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author houchuang
@@ -80,31 +79,54 @@ public class UnitController {
         return Result.success();
     }
 
+    final CompDOMapper compDOMapper;
+    @GetMapping
+    public Result<PriceLimit> getPriceLimit(@RequestParam String marketTypeValue,
+                                           @RequestHeader("token") String token ) {
+        CompDO compDO = compDOMapper.selectById(1);
+        PriceLimit priceLimit = PriceLimit.builder()
+                .generatorHighLimit(compDO.getOfferPriceCap())
+                .generatorLowLimit(compDO.getOfferPriceFloor())
+                .loadHighLimit(compDO.getOfferPriceCap())
+                .loadLowLimit(compDO.getOfferPriceFloor())
+                .build();
+        return Result.success(priceLimit);
+    }
+
+    @Data
+    @lombok.Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    static public class PriceLimit{
+        Double generatorLowLimit;
+        Double generatorHighLimit;
+        Double loadLowLimit;
+        Double loadHighLimit;
+    }
+
+    @GetMapping
+    public Result<Void> getCentralizedUnit(@RequestParam String marketTypeValue,
+                                           @RequestHeader("token") String token ) {
+        String userId = TokenUtils.getUserId(token);
+        Comp comp = domainTunnel.getByAggregateId(Comp.class, "1");
+        AgentConfig agentConfig = comp.getAgentConfigs().stream().filter(ac -> Kit.eq(ac.getAgentId(), userId))
+                .findFirst().orElseThrow(() -> new BizEx(ErrorEnums.CONFIG_ERROR.message("不存在相应用户")));
+        agentConfig.getGeneratorId0()
+    }
+
+    @PostMapping
+    public Result<Void>
+
+
+
 
     @GetMapping("listUnits")
     public Result<List<UnitVO>> listOrders(@RequestHeader("token") String token) {
         String userId = TokenUtils.getUserId(token);
-        LambdaQueryWrapper<UnitDO> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(UnitDO::getUserId, userId);
-        List<UnitDO> unitDOs = unitDOMapper.selectList(wrapper);
-
+        Comp comp = domainTunnel.getByAggregateId(Comp.class, "1");
+        comp.
         List<Unit> units = Collect.transfer(unitDOs, UnitDAOAdapter.Convertor.INST::to);
-
-        List<UnitVO> unitVOs = units.stream().map(unit -> UnitVO.builder()
-                .unitId(unit.getUnitId())
-                .compId(unit.getCompId())
-                .name(unit.getName())
-                .orderVOs(Collect.transfer(unit.getOrders().values(), Convertor.INST::toOrderVO))
-                .peakBids(unit.getCentralizedBids().get(TimeFrame.PEAK))
-                .flatBids(unit.getCentralizedBids().get(TimeFrame.FLAT))
-                .valleyBids(unit.getCentralizedBids().get(TimeFrame.VALLEY))
-                .peakBuyBalance(unit.getBalanceQuantities().get(TimeFrame.PEAK).get(Direction.BUY))
-                .peakSellBalance(unit.getBalanceQuantities().get(TimeFrame.PEAK).get(Direction.SELL))
-                .flatBuyBalance(unit.getBalanceQuantities().get(TimeFrame.FLAT).get(Direction.BUY))
-                .flatSellBalance(unit.getBalanceQuantities().get(TimeFrame.FLAT).get(Direction.SELL))
-                .valleyBuyBalance(unit.getBalanceQuantities().get(TimeFrame.VALLEY).get(Direction.BUY))
-                .valleySellBalance(unit.getBalanceQuantities().get(TimeFrame.VALLEY).get(Direction.SELL))
-                .build()).collect(Collectors.toList());
 
         return Result.success(unitVOs);
     }

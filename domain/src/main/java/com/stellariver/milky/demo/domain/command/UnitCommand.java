@@ -113,20 +113,17 @@ public class UnitCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class UnitCreate extends Command {
+    public static class Create extends Command {
 
-        String unitId;
-        String compId;
-        String metaUnitId;
-        String metaUnitName;
-        Position position;
-        UnitType unitType;
-        String userId;
-        Map<TimeFrame, Double> quantities;
+        Long unitId;
+        Long compId;
+        Long roundId;
+        Long agentId;
+        Long metaUnitId;
 
         @Override
         public String getAggregateId() {
-            return unitId;
+            return unitId.toString();
         }
 
     }
