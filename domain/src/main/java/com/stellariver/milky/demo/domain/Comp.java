@@ -9,6 +9,7 @@ import com.stellariver.milky.common.tool.common.BeanUtil;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.ErrorEnums;
+import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
@@ -44,16 +45,16 @@ import java.util.stream.Stream;
 public class Comp extends AggregateRoot {
 
     Long compId;
-    Long roundTotal;
+    Integer agentTotal;
+    Integer roundTotal;
+    Integer roundId;
     Status.CompStatus compStatus;
-    Long roundId;
     MarketType marketType;
     Status.MarketStatus marketStatus;
-    GridLimit priceLimit;
+    PriceLimit priceLimit;
     Map<MarketType, Map<TimeFrame, GridLimit>> transLimit;
     List<Map<MarketType, Duration>> durations;
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
-    Long agentTotal;
 
     static Map<BidGroup, RealtimeBidProcessor> realtimeBidProcessors = new ConcurrentHashMap<>();
 
@@ -66,9 +67,9 @@ public class Comp extends AggregateRoot {
     static public Comp create(CompCommand.Create create, Context context) {
         Comp comp = new Comp();
         comp.setCompId(create.getCompId());
-        comp.setRoundTotal(3L);
-        comp.setCompStatus(Status.CompStatus.CLOSE);
-        comp.setRoundId(0L);
+        comp.setRoundTotal(3);
+        comp.setCompStatus(Status.CompStatus.END);
+        comp.setRoundId(0);
         comp.setMarketType(MarketType.INTER_ANNUAL_PROVINCIAL);
         comp.setMarketStatus(Status.MarketStatus.CLOSE);
         comp.setPriceLimit(create.getPriceLimit());
@@ -81,48 +82,47 @@ public class Comp extends AggregateRoot {
     }
 
 
-
-
-
     @MethodHandler
     public void start(CompCommand.Start start, Context context) {
-        BizEx.trueThrow(compStatus != Status.CompStatus.CLOSE, ErrorEnums.CONFIG_ERROR.message("需要初始化项目"));
-        CompEvent.Started.StartedBuilder<?, ?> builder = CompEvent.Started.builder().compId(compId).lastCompStatus(compStatus);
+        BizEx.trueThrow(compStatus != Status.CompStatus.END, ErrorEnums.CONFIG_ERROR.message("需要初始化项目"));
         compStatus = Status.CompStatus.OPEN;
-        roundId = 1L;
-        marketType = MarketType.INTER_ANNUAL_PROVINCIAL;
-        marketStatus = Status.MarketStatus.OPEN;
-        CompEvent.Started started = builder
-                .nextCompStatus(compStatus)
-                .roundId(roundId)
-                .marketType(marketType)
-                .marketStatus(marketStatus)
-                .build();
+        CompEvent.Started started = CompEvent.Started.builder().compId(compId).build();
         context.publish(started);
     }
 
     @MethodHandler
     public void handle(CompCommand.Step command, Context context) {
         BizEx.trueThrow(compStatus != Status.CompStatus.OPEN, ErrorEnums.CONFIG_ERROR.message("本场未开放"));
+
         CompEvent.Stepped.SteppedBuilder<?, ?> builder = CompEvent.Stepped.builder()
                 .compId(compId)
                 .lastRoundId(roundId)
                 .lastMarketType(marketType)
                 .lastMarketStatus(marketStatus);
 
-        BizEx.trueThrow(marketStatus == Status.MarketStatus.OPEN, ErrorEnums.PARAM_FORMAT_WRONG);
+        Stage lastStage = Stage.builder().roundId(roundId).marketStatus(marketStatus).marketType(marketType).build();
+
+        Stage targetStage = Stage.builder()
+                .roundId(command.getTargetRoundId())
+                .marketStatus(command.getTargetMarketStatus())
+                .marketType(command.getTargetMarketType())
+                .build();
+
+        if (lastStage.next(roundTotal).equals(targetStage)) {
+            roundId = targetStage.getRoundId();
+            marketType = targetStage.getMarketType();
+            marketStatus = targetStage.getMarketStatus();
+        } else if (lastStage.equals(targetStage)) {
+            return;
+        } else {
+            throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+        }
+
         boolean b = Objects.equals(roundId, roundTotal) && marketType == MarketType.INTER_SPOT_PROVINCIAL;
         BizEx.trueThrow(b, ErrorEnums.CONFIG_ERROR.message("已经到了最后一轮"));
 
-        int nextDbCode = marketType.getDbCode() + 1;
-        if (nextDbCode > MarketType.INTER_SPOT_PROVINCIAL.getDbCode()) {
-            nextDbCode = MarketType.INTER_ANNUAL_PROVINCIAL.getDbCode();
-            BizEx.trueThrow(Kit.eq(roundId, roundTotal), ErrorEnums.CONFIG_ERROR.message("本场比赛已经结束!"));
-            roundId += 1;
-        }
-
-        marketType = Kit.enumOfMightEx(MarketType::getDbCode, nextDbCode);
-        CompEvent.Stepped stepped = builder.nextRoundId(roundId)
+        CompEvent.Stepped stepped = builder
+                .nextRoundId(roundId)
                 .nextMarketType(marketType)
                 .nextMarketStatus(marketStatus)
                 .build();
@@ -133,12 +133,18 @@ public class Comp extends AggregateRoot {
 
     @MethodHandler
     public void handle(CompCommand.Close command, Context context) {
-        BizEx.trueThrow(marketStatus != Status.MarketStatus.OPEN, ErrorEnums.CONFIG_ERROR.message("该市场不处于开放状态"));
-        marketStatus = Status.MarketStatus.CLOSE;
-        CompEvent.Closed closed = CompEvent.Closed.builder().compId(compId).roundId(roundId).marketType(marketType).build();
-        context.publish(closed);
+        compStatus = Status.CompStatus.END;
+        CompEvent.End end = CompEvent.End.builder().compId(compId).build();
+        context.publish(end);
     }
 
+
+    @MethodHandler
+    public void handle(CompCommand.CentralizedBid command, Context context) {
+        compStatus = Status.CompStatus.END;
+        CompEvent.End end = CompEvent.End.builder().compId(compId).build();
+        context.publish(end);
+    }
 
     @MethodHandler
     public void handle(CompCommand.Clear clear, Context context) {
@@ -180,27 +186,21 @@ public class Comp extends AggregateRoot {
 
         ResolveResult resolveResult = resolveInterPoint(buyBids, sellBids);
         Pair<Double, Double> interPoint = resolveResult.getInterPoint();
-        Pair<Double, Double> limitation = transLimit.get(timeFrame);
-
-
-        Double minTransfer = limitation.getLeft();
-        Double maxTransfer = limitation.getLeft();
-
+        GridLimit gridLimit = transLimit.get(marketType).get(timeFrame);
         Triple<Double, Double, Double> triple;
-
         if (interPoint == null) {
             triple = Triple.of(0D, null, null);
-        } else if (interPoint.getLeft() <= minTransfer) {
-            triple = Triple.of(interPoint.getLeft(), interPoint.getRight(), minTransfer - interPoint.getLeft());
-        } else if (interPoint.getLeft() > minTransfer && interPoint.getLeft() <= maxTransfer) {
+        } else if (interPoint.getLeft() <= gridLimit.getLow()) {
+            triple = Triple.of(interPoint.getLeft(), interPoint.getRight(), gridLimit.getLow() - interPoint.getLeft());
+        } else if (interPoint.getLeft() > gridLimit.getLow() && interPoint.getLeft() <= gridLimit.getHigh()) {
             triple =  Triple.of(interPoint.getLeft(), interPoint.getRight(), null);
-        } else if (interPoint.getLeft() > maxTransfer) {
-            Range<Double> buyRange = resolveResult.getBuyFunction().apply(maxTransfer);
-            Range<Double> sellRange = resolveResult.getSellFunction().apply(maxTransfer);
+        } else if (interPoint.getLeft() > gridLimit.getHigh()) {
+            Range<Double> buyRange = resolveResult.getBuyFunction().apply(gridLimit.getHigh());
+            Range<Double> sellRange = resolveResult.getSellFunction().apply(gridLimit.getHigh());
             double buyPrice = (buyRange.lowerEndpoint()  + buyRange.upperEndpoint()) / 2;
             double sellPrice = (sellRange.lowerEndpoint()  + sellRange.upperEndpoint()) / 2;
             double price = (buyPrice + sellPrice) / 2;
-            triple = Triple.of(maxTransfer, price, null);
+            triple = Triple.of(gridLimit.getHigh(), price, null);
         } else {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
@@ -385,7 +385,7 @@ public class Comp extends AggregateRoot {
     @MethodHandler
     public void handle(CompCommand.RealtimeBid command, Context context) {
         Bid bid = command.getBid();
-        TimeFrame timeFrame = bid.getTxGroup().getTimeFrame();
+        TimeFrame timeFrame = bid.getTimeFrame();
         BidGroup bidGroup = BidGroup.builder().compId(compId).timeFrame(timeFrame).build();
         RealtimeBidProcessor realtimeBidProcessor = realtimeBidProcessors.computeIfAbsent(bidGroup, bG -> new RealtimeBidProcessor());
         realtimeBidProcessor.post(bid);

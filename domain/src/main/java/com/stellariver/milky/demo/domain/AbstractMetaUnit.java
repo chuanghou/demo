@@ -1,6 +1,8 @@
 package com.stellariver.milky.demo.domain;
 
 import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -12,11 +14,13 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class MetaUnit {
+public class AbstractMetaUnit {
 
-    String id;
+    String metaUnitId;
     String name;
+    Province province;
     UnitType unitType;
-    Map<TimeFrame, Double> quantities;
+    Long sourceId;
+    Map<TimeFrame, Map<Direction, Double>> capacity;
 
 }

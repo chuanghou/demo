@@ -4,6 +4,7 @@ import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.common.tool.util.StreamMap;
 import com.stellariver.milky.demo.basic.AgentConfig;
+import com.stellariver.milky.demo.basic.BasicConvertor;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.Comp;
@@ -14,6 +15,8 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.mapstruct.*;
+import org.mapstruct.factory.Mappers;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -78,5 +81,21 @@ public class CompDAOAdapter implements DaoAdapter<Comp> {
     public DataObjectInfo dataObjectInfo(String aggregateId) {
         return DataObjectInfo.builder().clazz(CompDO.class).primaryId(Integer.parseInt(aggregateId)).build();
     }
+
+
+    @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
+            nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    public interface Convertor extends BasicConvertor {
+
+        Convertor INST = Mappers.getMapper(Convertor.class);
+
+        @BeanMapping(builder = @Builder(disableBuilder = true))
+        Comp to(CompDO compDO);
+
+        @BeanMapping(builder = @Builder(disableBuilder = true))
+        CompDO to(Comp comp);
+
+    }
+
 
 }

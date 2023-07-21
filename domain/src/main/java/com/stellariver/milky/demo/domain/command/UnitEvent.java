@@ -2,8 +2,9 @@ package com.stellariver.milky.demo.domain.command;
 
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
+import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Order;
-import com.stellariver.milky.demo.common.TxGroup;
+import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.domain.support.event.Event;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -37,12 +38,14 @@ public class UnitEvent {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class CentralizedTriggered extends Event {
 
-        String unitId;
+        Long unitId;
+        Long compId;
+        MarketType marketType;
         List<Bid> bids;
 
         @Override
         public String getAggregateId() {
-            return unitId;
+            return unitId.toString();
         }
 
     }
@@ -54,13 +57,13 @@ public class UnitEvent {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class RealtimeBidden extends Event {
 
-        String unitId;
-        String compId;
+        Long unitId;
+        Long compId;
         Bid bid;
 
         @Override
         public String getAggregateId() {
-            return unitId;
+            return unitId.toString();
         }
 
     }
@@ -78,6 +81,24 @@ public class UnitEvent {
         @Override
         public String getAggregateId() {
             return unitId;
+        }
+
+    }
+
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class Created extends Event {
+
+        Long unitId;
+        Unit unit;
+
+        @Override
+        public String getAggregateId() {
+            return unitId.toString();
         }
 
     }
@@ -106,15 +127,15 @@ public class UnitEvent {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class DealReported extends Event {
+    public static class RealtimeDealReported extends Event {
 
-        String bidId;
-        TxGroup txGroup;
+        Long unitId;
+        Long bidId;
         Deal deal;
 
         @Override
         public String getAggregateId() {
-            return txGroup.getUnitId();
+            return unitId.toString();
         }
 
     }

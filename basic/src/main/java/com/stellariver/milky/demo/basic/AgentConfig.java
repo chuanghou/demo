@@ -2,7 +2,6 @@ package com.stellariver.milky.demo.basic;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.apache.commons.lang3.tuple.Pair;
 
 @Data
 @Builder

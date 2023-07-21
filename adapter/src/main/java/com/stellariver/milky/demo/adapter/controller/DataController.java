@@ -6,9 +6,7 @@ import com.stellariver.milky.common.base.Enumeration;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.basic.AgentConfig;
-import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.basic.Label;
+import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.Round;
@@ -22,6 +20,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -197,29 +197,41 @@ public class DataController {
     final LoadDOMapper loadDOMapper;
     final DomainTunnel domainTunnel;
     final RenewableUnitDOMapper renewableUnitDOMapper;
+    final UnitDOMapper unitDOMapper;
     @GetMapping("listAgentInventory")
-    public Map<String, Map<String, List<Double>>> listAgentInventory(@RequestParam String marketTypeValue) {
+    public Map<String, Map<String, List<Double>>> listAgentInventory(@RequestParam @NotBlank String marketTypeValue,
+                                                                     @RequestParam @NotNull Long compId,
+                                                                     @RequestHeader @NotBlank String token) {
         MarketType marketType = MarketType.valueOf(marketTypeValue);
-        String userId = "1";
-        Comp comp = domainTunnel.getByAggregateId(Comp.class, "1");
+        Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
 
-        AgentConfig config = comp.getAgentConfigs().stream()
-                .filter(agentConfig -> Objects.equals(agentConfig.getAgentId(), Integer.parseInt(userId)))
-                .findFirst().orElseThrow(() -> new BizEx(ErrorEnums.PARAM_FORMAT_WRONG.message("该用户不在此次竞赛中")));
+        LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UnitDO::getCompId, compId);
+        queryWrapper.eq(UnitDO::getUserId, userId);
+
+
+        List<UnitDO> unitDOS = unitDOMapper.selectList(queryWrapper);
+        SysEx.trueThrow(unitDOS.size() == 4, ErrorEnums.SYS_EX);
 
         Map<String, Map<String, List<Double>>> result = new HashMap<>();
+        Pair<String, Map<String, List<Double>>> mapPair;
 
-        Pair<String, Map<String, List<Double>>> mapPair = loadGenerator(config.getGeneratorId0(), marketType);
+        List<UnitDO> generatorUnitDOs = unitDOS.stream()
+                .filter(unitDO -> Kit.eq(unitDO.getUnitType(), UnitType.GENERATOR.name())).collect(Collectors.toList());
+        mapPair = loadGenerator(generatorUnitDOs.get(0).getSourceId(), marketType);
         result.put(mapPair.getKey(), mapPair.getValue());
 
-        mapPair = loadGenerator(config.getGeneratorId1(), marketType);
+        mapPair = loadGenerator(generatorUnitDOs.get(1).getSourceId(), marketType);
         result.put(mapPair.getKey(), mapPair.getValue());
 
-        mapPair = loadLoad(config.getLoadId0());
+        List<UnitDO> loadUnitDOs = unitDOS.stream()
+                .filter(unitDO -> Kit.eq(unitDO.getUnitType(), UnitType.LOAD.name())).collect(Collectors.toList());
+
+        mapPair = loadLoad(loadUnitDOs.get(0).getSourceId());
         result.put(mapPair.getKey(), mapPair.getValue());
 
 
-        mapPair = loadLoad(config.getLoadId1());
+        mapPair = loadLoad(loadUnitDOs.get(0).getSourceId());
         result.put(mapPair.getKey(), mapPair.getValue());
 
         return result;

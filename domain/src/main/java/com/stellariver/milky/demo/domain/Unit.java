@@ -1,16 +1,19 @@
 package com.stellariver.milky.demo.domain;
 
+import com.google.common.collect.Multimap;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.SysEx;
+import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.wire.StaticWire;
 import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.basic.Position;
 import com.stellariver.milky.demo.basic.TypedEnums;
 import com.stellariver.milky.demo.basic.UnitType;
 import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Order;
 import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.demo.domain.command.UnitEvent;
@@ -18,7 +21,6 @@ import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.command.ConstructorHandler;
 import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
-import com.stellariver.milky.domain.support.dependency.Nulliable;
 import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -42,104 +44,124 @@ import static com.stellariver.milky.common.base.ErrorEnumsBase.PARAM_FORMAT_WRON
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Unit extends AggregateRoot {
 
-    String unitId;
-    String compId;
-    String name;
-    Position position;
-    UnitType unitType;
+    Long unitId;
     String userId;
+    Long compId;
+    Integer roundId;
+    Province province;
+    UnitType unitType;
+    AbstractMetaUnit metaUnit;
 
-    Map<TimeFrame, Map<Direction, Double>> balanceQuantities;
-    @lombok.Builder.Default
+    Map<TimeFrame, Direction> stageFourDirections = new HashMap<>();
+    Map<TimeFrame, Map<Direction, Double>> balances = new HashMap<>();
     Map<MarketType, List<Bid>> centralizedBids = new HashMap<>();
-    @lombok.Builder.Default
-    Map<String, Order> orders = new HashMap<>();
-
-    @Nulliable(replacerSupplier = NullSupplier.class)
-    Direction stageFourDirection;
+    Map<Long, Bid> realtimeBids = new HashMap<>();
 
     @StaticWire
     static private UniqueIdBuilder uniqueIdBuilder;
 
     @Override
     public String getAggregateId() {
-        return unitId;
+        return unitId.toString();
     }
 
     @ConstructorHandler
     public static Unit create(UnitCommand.Create create, Context context) {
-        return Convertor.INST.to(create);
+        Unit unit = new Unit();
+        unit.setUnitId(create.getUnitId());
+        unit.setCompId(create.getCompId());
+        unit.setRoundId(create.getRoundId());
+        unit.setMetaUnit(create.getMetaUnit());
+        unit.setBalances(create.getMetaUnit().getCapacity());
+        unit.setUnitType(create.getMetaUnit().getUnitType());
+        unit.setProvince(create.getMetaUnit().getProvince());
+        context.publish(UnitEvent.Created.builder().unitId(unit.getUnitId()).unit(unit).build());
+        return unit;
     }
 
 
     @MethodHandler
     public void handle(UnitCommand.CentralizedBid command, Context context) {
         MarketType marketType = context.getMetaData(TypedEnums.STAGE.class);
+
         if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
-            Direction direction = position.interProvincial();
-            boolean b = unitType.generalDirection() == direction;
+            boolean b = unitType.generalDirection() == province.interDirection();
             BizEx.falseThrow(b, PARAM_FORMAT_WRONG.message("省间交易只能是送电省的机组和受电省的负荷"));
         } else {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
+
         Direction direction = unitType.generalDirection();
         List<Bid> bids = command.getBids();
         bids.forEach(bid -> BizEx.trueThrow(bid.getDirection() != direction, PARAM_FORMAT_WRONG.message("买卖方向错误")));
-        Double bidQuantity = bids.stream().map(Bid::getQuantity).reduce(0D, Double::sum);
-        Double balanceQuantity = balanceQuantities.get(command.getTxGroup().getTimeFrame()).get(direction);
-        BizEx.trueThrow(balanceQuantity > bidQuantity, PARAM_FORMAT_WRONG.message("余额不足"));
+
+        Multimap<TimeFrame, Bid> groupBids = bids.stream().collect(Collect.listMultiMap(Bid::getTimeFrame));
+        groupBids.keySet().forEach(timeFrame -> {
+            Double balanceQuantity = balances.get(timeFrame).get(direction);
+            Double totalBidQuantity = groupBids.get(timeFrame).stream().map(Bid::getQuantity).reduce(0D, Double::sum);
+            BizEx.trueThrow(totalBidQuantity > balanceQuantity, PARAM_FORMAT_WRONG.message("余额不足"));
+        });
+
         centralizedBids.put(marketType, command.getBids());
-        UnitCommand.CentralizedBidden event = UnitCommand.CentralizedBidden.builder().unitId(unitId).build();
+        UnitCommand.CentralizedBidden event = UnitCommand.CentralizedBidden.builder().unitId(unitId).bids(bids).build();
+        context.publish(event);
+
+    }
+
+    @MethodHandler
+    public void handle(UnitCommand.CentralizedTrigger command, Context context) {
+        List<Bid> bids = centralizedBids.get(command.getMarketType());
+        UnitEvent.CentralizedTriggered event = UnitEvent.CentralizedTriggered.builder()
+                .unitId(unitId).marketType(command.getMarketType()).compId(compId).bids(bids).build();
         context.publish(event);
     }
+
 
     @MethodHandler
     public void handle(UnitCommand.RealtimeBid command, Context context) {
 
         MarketType marketType = context.getMetaData(TypedEnums.STAGE.class);
+        Bid bid = command.getBid();
         if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
-            if (stageFourDirection == null) {
-                stageFourDirection = command.getBid().getDirection();
-                if (stageFourDirection.opposite() == unitType.generalDirection()){
-                    Double balance = balanceQuantities.get(command.getTxGroup().getTimeFrame()).get(stageFourDirection.opposite());
-                    balanceQuantities.get(command.getTxGroup().getTimeFrame()).put(stageFourDirection, balance);
-                } else {
-                    throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+            if (stageFourDirections.get(bid.getTimeFrame()) == null) {
+                Direction direction = command.getBid().getDirection();
+                if (direction.opposite() == unitType.generalDirection()){
+                    Double balance = getBalances().get(bid.getTimeFrame()).get(unitType.generalDirection());
+                    Double originalBalance = balances.get(bid.getTimeFrame()).remove(unitType.generalDirection());
+                    balances.get(bid.getTimeFrame()).put(direction, originalBalance);
                 }
-            } else {
-                boolean b = stageFourDirection != command.getBid().getDirection();
-                BizEx.trueThrow(b, PARAM_FORMAT_WRONG.message("第四阶段只能发布同向的报价"));
             }
+            Direction stageFourDirection = stageFourDirections.get(bid.getTimeFrame());
+            boolean b = stageFourDirection != command.getBid().getDirection();
+            BizEx.trueThrow(b, PARAM_FORMAT_WRONG.message("第四阶段只能发布同向的报价"));
         } else {
             BizEx.trueThrow(unitType.generalDirection() != command.getBid().getDirection(), PARAM_FORMAT_WRONG.message("买卖方向错误"));
         }
 
-        Order order = Order.builder().bid(command.getBid()).build();
-        deduct(order);
-        UnitEvent.RealtimeBidden event = UnitEvent.RealtimeBidden.builder()
-                .unitId(unitId)
-                .compId(compId)
-                .bid(order.getBid())
-                .build();
+        Double balance = balances.get(bid.getTimeFrame()).get(bid.getDirection());
+        BizEx.trueThrow(balance < bid.getQuantity(), PARAM_FORMAT_WRONG.message("超过余额"));
+        realtimeBids.put(bid.getUnitId(), bid);
+        UnitEvent.RealtimeBidden event = UnitEvent.RealtimeBidden.builder().unitId(unitId).bid(bid).build();
         context.publish(event);
     }
 
-    private void deduct(Order order) {
-        orders.put(order.getId(), order);
-        TimeFrame timeFrame = order.getTxGroup().getTimeFrame();
-        Direction direction = order.getBid().getDirection();
-        Double balance = balanceQuantities.get(timeFrame).get(direction);
-        double newBalance = balance - order.getBid().getQuantity();
-        BizEx.trueThrow(newBalance < 0, PARAM_FORMAT_WRONG.message("超过余额"));
-        balanceQuantities.get(timeFrame).put(direction, newBalance);
+    @MethodHandler
+    public void handle(UnitCommand.CentralizedDealReport command, Context context) {
+        Map<Long, Deal> deals = command.getDeals();
+        deals.forEach((bidId, deal) -> {
+
+        });
+        context.publish(event);
     }
 
 
     @MethodHandler
-    public void handle(UnitCommand.DealReport command, Context context) {
-        Order order = orders.get(command.getBidId());
-        order.getDeals().add(command.getDeal());
-        UnitEvent.DealReported event = UnitEvent.DealReported.builder()
+    public void handle(UnitCommand.RealtimeDealReport command, Context context) {
+        Long bidId = command.getBidId();
+        Bid bid = realtimeBids.get(bidId);
+        bid.getDeals().add(command.getDeal());
+        UnitEvent.RealtimeDealReported event = UnitEvent.RealtimeDealReported.builder()
+                .unitId(unitId)
                 .bidId(command.getBidId())
                 .deal(command.getDeal())
                 .build();

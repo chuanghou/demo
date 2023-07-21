@@ -6,6 +6,8 @@ import lombok.experimental.FieldDefaults;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
 @Data
@@ -15,10 +17,10 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CentralizedBidPO {
 
-    @Valid
-    TxGroup txGroup;
+    @NotNull @Positive
+    Long unitId;
 
     @NotEmpty
-    List<BidPO> bidPOs;
+    List<BidPO> bids;
 
 }

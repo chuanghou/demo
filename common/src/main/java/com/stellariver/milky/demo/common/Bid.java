@@ -1,6 +1,7 @@
 package com.stellariver.milky.demo.common;
 
 import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.TimeFrame;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +10,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @SuperBuilder
@@ -17,12 +19,14 @@ import java.util.Date;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Bid {
 
-    String id;
-    TxGroup txGroup;
+    Long id;
+    Long unitId;
+    TimeFrame timeFrame;
+    MarketType marketType;
     Direction direction;
     Double quantity;
     Double price;
     Date date;
-    MarketType marketType;
+    List<Deal> deals;
 
 }

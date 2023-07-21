@@ -25,7 +25,8 @@ public class UnitDO extends AbstractMpDO implements BaseDataObject<String> {
 
     @TableId(type = IdType.INPUT)
     String unitId;
-    String compId;
+    Long compId;
+    Long roundId;
     String position;
     String unitType;
     String userId;
@@ -33,6 +34,8 @@ public class UnitDO extends AbstractMpDO implements BaseDataObject<String> {
     String centralizedBids;
     String orders;
     String stageFourDirection;
+
+    Integer sourceId;
 
     @TableField(exist = false)
     Object unit;

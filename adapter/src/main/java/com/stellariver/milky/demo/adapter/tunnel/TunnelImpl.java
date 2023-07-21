@@ -3,7 +3,7 @@ package com.stellariver.milky.demo.adapter.tunnel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
-import com.stellariver.milky.demo.domain.MetaUnit;
+import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
@@ -35,8 +35,8 @@ public class TunnelImpl implements Tunnel {
     }
 
     @Override
-    public MetaUnit getByMetaUnitId(String metaUnitId) {
-        return new MetaUnit();
+    public AbstractMetaUnit getByMetaUnitId(String metaUnitId) {
+        return new AbstractMetaUnit();
     }
 
     @Override

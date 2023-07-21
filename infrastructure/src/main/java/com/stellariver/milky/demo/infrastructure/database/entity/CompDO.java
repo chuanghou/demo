@@ -5,41 +5,39 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.stellariver.milky.domain.support.base.BaseDataObject;
 import com.stellariver.milky.infrastructure.base.database.AbstractMpDO;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("market_setting")
+@TableName("demo_comp")
 @SuperBuilder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CompDO extends AbstractMpDO implements BaseDataObject<Integer> {
+public class CompDO extends AbstractMpDO implements BaseDataObject<Long> {
 
     @TableId(type = IdType.INPUT)
-    Integer marketSettingId;
-    Integer roundNum;
+    Long compId;
+
+    Integer agentTotal;
+    Integer roundTotal;
     Integer roundId;
-    Integer marketType;
-
-    Double offerPriceCap;
-    Double offerPriceFloor;
-    Double bidPriceCap;
-    Double bidPriceFloor;
-
-    Integer intraprovincialAnnualBidDuration;
-    Integer intraprovincialMonthlyBidDuration;
-    Integer interprovincialAnnualBidDuration;
-    Integer interprovincialMonthlyBidDuration;
-    Integer interprovincialSpotBidDuration;
-    Integer intraprovincialSpotBidDuration;
-    String agentConfig;
-    String marketStatus;
     String compStatus;
+    String marketType;
+    String marketStatus;
+    String priceLimit;
+    String transLimit;
+    String durations;
+    String replenishes;
+
+
     @Override
-    public Integer getPrimaryId() {
-        return marketSettingId;
+    public Long getPrimaryId() {
+        return compId;
     }
 
 

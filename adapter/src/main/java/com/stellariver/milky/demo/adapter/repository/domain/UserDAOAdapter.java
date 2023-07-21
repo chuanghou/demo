@@ -2,7 +2,6 @@ package com.stellariver.milky.demo.adapter.repository.domain;
 
 import com.stellariver.milky.demo.basic.BasicConvertor;
 import com.stellariver.milky.demo.domain.User;
-import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.UserDO;
 import com.stellariver.milky.domain.support.dependency.DaoAdapter;
 import com.stellariver.milky.domain.support.dependency.DataObjectInfo;

@@ -1,17 +1,19 @@
-package com.stellariver.milky.demo.common;
+package com.stellariver.milky.demo.client.po;
 
-import com.stellariver.milky.demo.common.enums.TimeFrame;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BidGroup {
+public class CompEditPO {
 
     Long compId;
-    TimeFrame timeFrame;
+    List<Map<String, Long>> durations;
 
 }

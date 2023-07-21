@@ -3,29 +3,26 @@ package com.stellariver.milky.demo.infrastructure.database.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.stellariver.milky.domain.support.base.BaseDataObject;
-import com.stellariver.milky.infrastructure.base.database.AbstractMpDO;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("user_do")
+@TableName("market_setting")
 @SuperBuilder(toBuilder = true)
-@EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserDO extends AbstractMpDO implements BaseDataObject<String> {
+public class MarketSettingDO {
 
     @TableId(type = IdType.INPUT)
-    Integer userId;
-    String role;
-    String name;
-    String password;
+    Integer marketSettingId;
+    Double offerPriceCap;
+    Double offerPriceFloor;
+    Double bidPriceCap;
+    Double bidPriceFloor;
 
-    @Override
-    public String getPrimaryId() {
-        return userId.toString();
-    }
 }

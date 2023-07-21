@@ -28,18 +28,6 @@ public enum Direction {
             return value > base;
         }
 
-    }, UNKNOWN {
-
-        @Override
-        public Direction opposite() {
-            throw new SysEx(ErrorEnumsBase.UNREACHABLE_CODE);
-        }
-
-        @Override
-        public boolean across(double value, double base) {
-            throw new SysEx(ErrorEnumsBase.UNREACHABLE_CODE);
-        }
-
     };
 
     public abstract Direction opposite();

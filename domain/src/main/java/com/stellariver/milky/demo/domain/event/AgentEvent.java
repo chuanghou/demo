@@ -3,15 +3,15 @@ package com.stellariver.milky.demo.domain.event;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.Agent;
-import com.stellariver.milky.demo.domain.Comp;
-import com.stellariver.milky.demo.domain.DealResult;
 import com.stellariver.milky.domain.support.event.Event;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class AgentEvent {
 

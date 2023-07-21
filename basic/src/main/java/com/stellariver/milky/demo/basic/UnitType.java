@@ -20,7 +20,6 @@ public enum UnitType {
         }
     };
 
-
     final String desc;
 
     abstract public Direction generalDirection();

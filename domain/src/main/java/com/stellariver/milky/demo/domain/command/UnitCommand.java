@@ -1,11 +1,9 @@
 package com.stellariver.milky.demo.domain.command;
 
-import com.stellariver.milky.demo.basic.Position;
-import com.stellariver.milky.demo.basic.UnitType;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
-import com.stellariver.milky.demo.common.TxGroup;
-import com.stellariver.milky.demo.common.enums.TimeFrame;
+import com.stellariver.milky.demo.common.MarketType;
+import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.domain.support.command.Command;
 import com.stellariver.milky.domain.support.event.Event;
 import lombok.*;
@@ -23,18 +21,37 @@ public class UnitCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class DealReport extends Command {
+    public static class RealtimeDealReport extends Command {
 
-        String bidId;
-        TxGroup txGroup;
+        Long unitId;
+        Long bidId;
         Deal deal;
 
         @Override
         public String getAggregateId() {
-            return txGroup.getUnitId();
+            return unitId.toString();
         }
 
     }
+
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class CentralizedDealReport extends Command {
+
+        Long unitId;
+        Map<Long, Deal> deals;
+
+        @Override
+        public String getAggregateId() {
+            return unitId.toString();
+        }
+
+    }
+
 
     /**
      * Yearly Exterior Provincial
@@ -48,12 +65,13 @@ public class UnitCommand {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class RealtimeBid extends Command {
 
-        TxGroup txGroup;
+        Long unitId;
+
         Bid bid;
 
         @Override
         public String getAggregateId() {
-            return txGroup.getUnitId();
+            return unitId.toString();
         }
 
     }
@@ -70,16 +88,15 @@ public class UnitCommand {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class CentralizedBid extends Command {
 
+        Long unitId;
+
         List<Bid> bids;
 
         @Override
         public String getAggregateId() {
-            return getTxGroup().getUnitId();
+            return unitId.toString();
         }
 
-        public TxGroup getTxGroup() {
-            return bids.get(0).getTxGroup();
-        }
 
     }
 
@@ -95,11 +112,13 @@ public class UnitCommand {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class CentralizedTrigger extends Command {
 
-        String unitId;
+        Long unitId;
+
+        MarketType marketType;
 
         @Override
         public String getAggregateId() {
-            return unitId;
+            return unitId.toString();
         }
 
     }
@@ -117,9 +136,10 @@ public class UnitCommand {
 
         Long unitId;
         Long compId;
-        Long roundId;
+        Integer roundId;
         Long agentId;
-        Long metaUnitId;
+        AbstractMetaUnit metaUnit;
+
 
         @Override
         public String getAggregateId() {
@@ -135,11 +155,13 @@ public class UnitCommand {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class CentralizedBidden extends Event {
 
-        String unitId;
+        Long unitId;
+
+        List<Bid> bids;
 
         @Override
         public String getAggregateId() {
-            return unitId;
+            return unitId.toString();
         }
     }
 
@@ -151,12 +173,12 @@ public class UnitCommand {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Cancel extends Command {
 
-        String orderId;
-        TxGroup txGroup;
+        Long unitId;
+        Long bidId;
 
         @Override
         public String getAggregateId() {
-            return txGroup.getUnitId();
+            return unitId.toString();
         }
     }
 
@@ -168,13 +190,13 @@ public class UnitCommand {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class CancelReport extends Command {
 
-        String orderId;
-        TxGroup txGroup;
-        Double quantity;
+        Long unitId;
+        Long bidId;
+        Double remainder;
 
         @Override
         public String getAggregateId() {
-            return txGroup.getUnitId();
+            return unitId.toString();
         }
     }
 }

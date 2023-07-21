@@ -2,9 +2,11 @@ package com.stellariver.milky.demo.client.po;
 
 import com.stellariver.milky.common.base.OfEnum;
 import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.TimeFrame;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
@@ -15,10 +17,10 @@ import javax.validation.constraints.Positive;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BidPO {
 
-    TxGroupPO txGroupPO;
+    @NotNull @OfEnum(enumType = TimeFrame.class)
+    String timeFrame;
 
-    @NotNull
-    @OfEnum(enumType = Direction.class)
+    @NotNull @OfEnum(enumType = Direction.class)
     String direction;
 
     @NotNull

@@ -7,7 +7,7 @@ import com.stellariver.milky.domain.support.command.ConstructorHandler;
 import com.stellariver.milky.domain.support.context.Context;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 public class Agent extends AggregateRoot {
@@ -15,7 +15,7 @@ public class Agent extends AggregateRoot {
     Long roundId;
     Long compId;
     Long userId;
-    List<Long> metaUnitIds;
+    Set<Long> metaUnitIds;
     @ConstructorHandler
     static public Agent create(AgentCommand.Create create, Context context) {
         Agent agent = new Agent();

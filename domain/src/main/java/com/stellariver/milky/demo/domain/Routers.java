@@ -1,7 +1,13 @@
 package com.stellariver.milky.demo.domain;
 
+import com.stellariver.milky.common.base.BizEx;
+import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.demo.basic.ErrorEnums;
+import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.MarketType;
+import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.command.AgentCommand;
 import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
@@ -18,10 +24,10 @@ import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +49,7 @@ public class Routers implements EventRouters {
         Long agentTotal = event.getComp().getAgentTotal();
         LongStream.range(0L, agentTotal).forEach(agentIndex -> {
             Long userId = agentIndex;
-            List<Long> metaUnitIds = allocate(event.getComp().getRoundId(), userId);
+            Set<Long> metaUnitIds = allocate(event.getComp().getRoundId(), userId);
             Long agentId = uniqueIdBuilder.get();
             AgentCommand.Create command = AgentCommand.Create.builder()
                     .agentId(agentId)
@@ -60,40 +66,90 @@ public class Routers implements EventRouters {
     @EventRouter
     public void route(AgentEvent.Created event, Context context) {
         Agent agent = event.getAgent();
+        Set<Long> metaUnitIds = agent.getMetaUnitIds();
+        BizEx.trueThrow(metaUnitIds.size() != 4, ErrorEnums.SYS_EX.message("应该分配是个机组"));
+        Map<Long, AbstractMetaUnit> metaUnits = tunnel.getMetaUnitsByIds(new HashSet<>(metaUnitIds));
+        long size = metaUnits.values().stream()
+                .map(metaUnit -> Pair.of(metaUnit.getProvince(), metaUnit.getUnitType())).distinct().count();
+        BizEx.trueThrow(Kit.notEq(size, 4L), ErrorEnums.CONFIG_ERROR.message("单元分配问题"));
         agent.getMetaUnitIds().forEach(metaUnitId -> {
             UnitCommand.Create command = UnitCommand.Create.builder()
                     .unitId(uniqueIdBuilder.get())
                     .agentId(agent.getAgentId())
                     .compId(agent.getCompId())
                     .roundId(agent.getRoundId())
-                    .metaUnitId(metaUnitId)
+                    .metaUnit(metaUnits.get(metaUnitId))
                     .build();
             CommandBus.driveByEvent(command, event);
         });
     }
 
-    private List<Long> allocate(Long roundId, Long userId) {
+    private Set<Long> allocate(Long roundId, Long userId) {
         //TODO
-        return Collect.asList(0L, 1L, 2L, 3L);
+        return Collect.asSet(0L, 1L, 2L, 3L);
+    }
+
+    @EventRouter
+    public void route(CompEvent.Started started, Context context) {
+        Comp comp = context.getByAggregateId(Comp.class, started.getAggregateId());
+        Duration duration = comp.getDurations().get(0).get(MarketType.INTER_ANNUAL_PROVINCIAL);
+        scheduledExecutorService.schedule(() -> {
+            CompCommand.Step command = CompCommand.Step.builder().compId(started.getCompId()).build();
+            CommandBus.accept(command, new HashMap<>());
+        }, duration.getSeconds(), TimeUnit.SECONDS);
     }
 
 
     @EventRouter
     public void route(CompEvent.Stepped stepped, Context context) {
+
         Comp comp = context.getByAggregateId(Comp.class, stepped.getAggregateId());
-        Duration duration = comp.getDurationMap().get(stepped.getNextMarketType());
+        Duration duration = comp.getDurations().get(stepped.getNextRoundId()).get(stepped.getNextMarketType());
         scheduledExecutorService.schedule(() -> {
-            CompCommand.Close command = CompCommand.Close.builder().compId(1).build();
+            Stage nexStage = Stage.builder()
+                    .roundId(stepped.getNextRoundId())
+                    .marketType(stepped.getNextMarketType())
+                    .marketStatus(stepped.getNextMarketStatus())
+                    .build();
+            CompCommand.Step command = CompCommand.Step
+                    .builder()
+                    .compId(stepped.getCompId())
+                    .targetRoundId(nexStage.getRoundId())
+                    .targetMarketType(nexStage.getMarketType())
+                    .targetMarketStatus(nexStage.getMarketStatus())
+                    .build();
             CommandBus.accept(command, new HashMap<>());
         }, duration.getSeconds(), TimeUnit.SECONDS);
+
+        boolean b0 = stepped.getLastMarketType() == MarketType.INTER_ANNUAL_PROVINCIAL;
+        boolean b1 = stepped.getLastMarketType() == MarketType.INTER_MONTHLY_PROVINCIAL;
+        boolean b2 = stepped.getLastMarketStatus() == Status.MarketStatus.OPEN;
+        if ((b0 || b1) && b2) {
+            List<Unit> units = tunnel.listUnitsByCompId(stepped.getCompId());
+            units.forEach(unit -> {
+                UnitCommand.CentralizedTrigger command = UnitCommand.CentralizedTrigger.builder()
+                        .unitId(unit.getUnitId()).marketType(stepped.getLastMarketType()).build();
+                CommandBus.driveByEvent(command, stepped);
+            });
+            CompCommand.Clear clear = CompCommand.Clear.builder()
+                    .compId(comp.getCompId()).marketType(stepped.getLastMarketType()).build();
+            CommandBus.driveByEvent(clear, stepped);
+        }
+
+    }
+
+    @EventRouter
+    public void route(UnitEvent.CentralizedTriggered event, Context context) {
+        CompCommand.CentralizedBid command = CompCommand.CentralizedBid.builder()
+                .unitId(event.getUnitId()).compId(event.getCompId()).marketType(event.getMarketType()).bids(event.getBids()).build();
+        CommandBus.driveByEvent(command, event);
     }
 
     @EventRouter
     public void route(UnitEvent.RealtimeBidden event, Context context) {
-
-        Bid bid = event.getBid();
-        String compId = event.getCompId();
-
+        CompCommand.RealtimeBid command = CompCommand.RealtimeBid.builder()
+                .unitId(event.getUnitId()).compId(event.getCompId()).bid(event.getBid()).build();
+        CommandBus.driveByEvent(command, event);
     }
 
 

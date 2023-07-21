@@ -1,6 +1,5 @@
 package com.stellariver.milky.demo.client.po;
 
-import com.stellariver.milky.demo.common.TxGroup;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -15,7 +14,7 @@ import javax.validation.constraints.NotEmpty;
 public class RealtimeBidPO {
 
     @Valid
-    TxGroup txGroup;
+    Long unitId;
 
     @NotEmpty
     BidPO bidPO;

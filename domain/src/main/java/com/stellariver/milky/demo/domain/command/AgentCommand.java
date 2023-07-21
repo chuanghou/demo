@@ -1,12 +1,11 @@
 package com.stellariver.milky.demo.domain.command;
 
-import com.stellariver.milky.demo.domain.MetaUnitIds;
 import com.stellariver.milky.domain.support.command.Command;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-import java.util.List;
+import java.util.Set;
 
 public class AgentCommand {
 
@@ -22,7 +21,7 @@ public class AgentCommand {
         Long compId;
         Long roundId;
         Long userId;
-        List<Long> metaUnitIds;
+        Set<Long> metaUnitIds;
 
         @Override
         public String getAggregateId() {

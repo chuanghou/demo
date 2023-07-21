@@ -1,6 +1,5 @@
 package com.stellariver.milky.demo.domain.event;
 
-import com.stellariver.milky.demo.common.Agent;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.Comp;
@@ -10,7 +9,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class CompEvent {
@@ -23,7 +21,7 @@ public class CompEvent {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Cleared extends Event {
 
-        Integer compId;
+        Long compId;
 
         MarketType marketType;
 
@@ -61,11 +59,6 @@ public class CompEvent {
     public static class Started extends Event {
 
         Long compId;
-        Status.CompStatus lastCompStatus;
-        Status.CompStatus nextCompStatus;
-        Long roundId;
-        MarketType marketType;
-        Status.MarketStatus marketStatus;
 
         @Override
         public String getAggregateId() {
@@ -80,15 +73,11 @@ public class CompEvent {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Stepped extends Event {
 
-        Integer compId;
+        Long compId;
 
-        @Nullable
         Integer lastRoundId;
-        @Nullable
         MarketType lastMarketType;
-        @Nullable
         Status.MarketStatus lastMarketStatus;
-
         Integer nextRoundId;
         MarketType nextMarketType;
         Status.MarketStatus nextMarketStatus;
@@ -104,11 +93,9 @@ public class CompEvent {
     @NoArgsConstructor
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class Closed extends Event {
+    public static class End extends Event {
 
-        Integer compId;
-        Integer roundId;
-        MarketType marketType;
+        Long compId;
 
         @Override
         public String getAggregateId() {

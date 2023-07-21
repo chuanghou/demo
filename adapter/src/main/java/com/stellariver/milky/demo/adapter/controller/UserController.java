@@ -10,8 +10,6 @@ import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.client.po.LoginPO;
 import com.stellariver.milky.demo.client.po.UserAddPO;
 import com.stellariver.milky.demo.client.vo.UserVO;
-import com.stellariver.milky.demo.common.Status;
-import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.UserLogin;
 import com.stellariver.milky.demo.infrastructure.database.entity.UserDO;
