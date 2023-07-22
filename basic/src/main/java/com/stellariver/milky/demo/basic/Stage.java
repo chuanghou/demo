@@ -1,5 +1,6 @@
 package com.stellariver.milky.demo.basic;
 
+import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
@@ -34,6 +35,28 @@ public class Stage {
                 .marketType(nextMarketType)
                 .marketStatus(nextMarketStatus)
                 .build();
+    }
+
+    public boolean laterThan(Stage stage) {
+
+        if (roundId > stage.getRoundId()) {
+            return true;
+        } else if (roundId < stage.getRoundId()) {
+            return false;
+        }
+
+        if (marketType.getDbCode() > stage.getMarketType().getDbCode()) {
+            return true;
+        } else if (marketType.getDbCode() < stage.getMarketType().getDbCode()) {
+            return false;
+        }
+
+        if (marketStatus == stage.getMarketStatus()) {
+            return false;
+        } else {
+            return marketStatus != Status.MarketStatus.OPEN || stage.getMarketStatus() != Status.MarketStatus.CLOSE;
+        }
+
     }
 
 }

@@ -12,6 +12,7 @@ import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Order;
+import com.stellariver.milky.demo.common.enums.BidStatus;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
@@ -25,14 +26,12 @@ import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import org.mapstruct.Builder;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import static com.stellariver.milky.common.base.ErrorEnumsBase.PARAM_FORMAT_WRONG;
 
@@ -51,11 +50,12 @@ public class Unit extends AggregateRoot {
     Province province;
     UnitType unitType;
     AbstractMetaUnit metaUnit;
+    Map<Long, Bid> bids = new HashMap<>();
+
 
     Map<TimeFrame, Direction> stageFourDirections = new HashMap<>();
     Map<TimeFrame, Map<Direction, Double>> balances = new HashMap<>();
     Map<MarketType, List<Bid>> centralizedBids = new HashMap<>();
-    Map<Long, Bid> realtimeBids = new HashMap<>();
 
     @StaticWire
     static private UniqueIdBuilder uniqueIdBuilder;
@@ -110,15 +110,30 @@ public class Unit extends AggregateRoot {
 
     @MethodHandler
     public void handle(UnitCommand.CentralizedTrigger command, Context context) {
-        List<Bid> bids = centralizedBids.get(command.getMarketType());
+        List<Bid> marketTypeBids = centralizedBids.get(command.getMarketType());
+        marketTypeBids.forEach(bid -> bids.put(bid.getId(), bid));
         UnitEvent.CentralizedTriggered event = UnitEvent.CentralizedTriggered.builder()
-                .unitId(unitId).marketType(command.getMarketType()).compId(compId).bids(bids).build();
+                .unitId(unitId).marketType(command.getMarketType()).compId(compId).bids(marketTypeBids).build();
         context.publish(event);
     }
 
 
+
+
     @MethodHandler
-    public void handle(UnitCommand.RealtimeBid command, Context context) {
+    public void handle(UnitCommand.DealReport command, Context context) {
+        List<Deal> deals = command.getDeals();
+        deals.forEach(deal -> {
+            Bid bid = bids.get(deal.getBidId());
+            bid.getDeals().add(deal);
+            Double sumQuantity = bid.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum);
+            bid.setBidStatus(sumQuantity < bid.getQuantity() ? BidStatus.PART_DEAL : BidStatus.COMPLETE_DEAL);
+        });
+        context.publishPlaceHolderEvent(getAggregateId());
+    }
+
+    @MethodHandler
+    public void handle(UnitCommand.RtNewBidDeclare command, Context context) {
 
         MarketType marketType = context.getMetaData(TypedEnums.STAGE.class);
         Bid bid = command.getBid();
@@ -140,53 +155,32 @@ public class Unit extends AggregateRoot {
 
         Double balance = balances.get(bid.getTimeFrame()).get(bid.getDirection());
         BizEx.trueThrow(balance < bid.getQuantity(), PARAM_FORMAT_WRONG.message("超过余额"));
-        realtimeBids.put(bid.getUnitId(), bid);
-        UnitEvent.RealtimeBidden event = UnitEvent.RealtimeBidden.builder().unitId(unitId).bid(bid).build();
+        bid.setBidStatus(BidStatus.NEW_DECELERATED);
+        bids.put(bid.getUnitId(), bid);
+        UnitEvent.RtBidDeclared event = UnitEvent.RtBidDeclared.builder().unitId(unitId).bid(bid).build();
         context.publish(event);
     }
 
     @MethodHandler
-    public void handle(UnitCommand.CentralizedDealReport command, Context context) {
-        Map<Long, Deal> deals = command.getDeals();
-        deals.forEach((bidId, deal) -> {
-
-        });
-        context.publish(event);
-    }
-
-
-    @MethodHandler
-    public void handle(UnitCommand.RealtimeDealReport command, Context context) {
+    public void handle(UnitCommand.RtCancelBidDeclare command, Context context) {
         Long bidId = command.getBidId();
-        Bid bid = realtimeBids.get(bidId);
-        bid.getDeals().add(command.getDeal());
-        UnitEvent.RealtimeDealReported event = UnitEvent.RealtimeDealReported.builder()
-                .unitId(unitId)
-                .bidId(command.getBidId())
-                .deal(command.getDeal())
-                .build();
+        Bid bid = bids.get(bidId);
+        BizEx.trueThrow(BidStatus.COMPLETE_DEAL == bid.getBidStatus(), PARAM_FORMAT_WRONG.message("已经成交不可撤单！"));
+        BizEx.trueThrow(BidStatus.CANCEL_DECELERATED == bid.getBidStatus(), PARAM_FORMAT_WRONG.message("撤单指令已报，请不要重复操作！"));
+        BizEx.trueThrow(BidStatus.CANCELLED == bid.getBidStatus(), PARAM_FORMAT_WRONG.message("撤单指令已经完成"));
+        bid.setBidStatus(BidStatus.CANCEL_DECELERATED);
+        UnitEvent.RtCancelBiDeclared event = UnitEvent.RtCancelBiDeclared.builder().unitId(unitId).bid(bid).build();
         context.publish(event);
     }
 
     @MethodHandler
-    public void handle(UnitCommand.Cancel command, Context context) {
-        String orderId = command.getOrderId();
-        Order order = orders.get(orderId);
-        UnitEvent.Cancelled event = UnitEvent.Cancelled.builder().unitId(unitId).order(order).build();
-        context.publish(event);
-    }
-
-    @MethodHandler
-    public void handle(UnitCommand.CancelReport command, Context context) {
-        Order order = orders.get(command.getOrderId());
-        order.setCancelled(command.getQuantity());
-        TimeFrame timeFrame = command.getTxGroup().getTimeFrame();
-        Direction direction = order.getBid().getDirection();
-        Double balanceQuantity = balanceQuantities.get(timeFrame).get(direction);
-        balanceQuantity += command.getQuantity();
-        balanceQuantities.get(timeFrame).put(direction, balanceQuantity);
-        UnitEvent.CancelledReported cancelled = UnitEvent.CancelledReported.builder().unitId(unitId).order(order).build();
-        context.publish(cancelled);
+    public void handle(UnitCommand.RtBidCancelled command, Context context) {
+        Bid bid = bids.get(command.getBidId());
+        bid.setBidStatus(BidStatus.CANCELLED);
+        Map<Direction, Double> timeFrameBalance = balances.get(bid.getTimeFrame());
+        Double balance = timeFrameBalance.get(bid.getDirection());
+        timeFrameBalance.put(bid.getDirection(), balance + command.getRemainder());
+        context.publishPlaceHolderEvent(getAggregateId());
     }
 
 
@@ -196,32 +190,8 @@ public class Unit extends AggregateRoot {
 
         Convertor INST = Mappers.getMapper(Convertor.class);
 
-        @BeanMapping(builder = @Builder(disableBuilder = true))
-        Unit to(UnitCommand.Create create);
-
-        @AfterMapping
-        default void after(UnitCommand.Create create, @MappingTarget Unit unit) {
-            Map<TimeFrame, Double> quantities = create.getQuantities();
-            Map<TimeFrame, Map<Direction, Double>> balanceQuantities = new HashMap<>();
-            Direction direction = create.getUnitType().generalDirection();
-            Direction oppositeDirection = direction.opposite();
-            quantities.forEach((tf, quantity) -> {
-                Map<Direction, Double> directionMap = new HashMap<>();
-                directionMap.put(direction, quantities.get(tf));
-                directionMap.put(oppositeDirection, 0D);
-                balanceQuantities.put(tf, directionMap);
-            });
-            unit.setBalanceQuantities(balanceQuantities);
-        }
-
 
     }
 
-    static class NullSupplier implements Supplier<Object> {
-        @Override
-        public Direction get() {
-            return Direction.UNKNOWN;
-        }
-    }
 
 }

@@ -11,7 +11,6 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
-import java.util.Map;
 
 public class UnitCommand {
 
@@ -21,7 +20,7 @@ public class UnitCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class RealtimeDealReport extends Command {
+    public static class RealtimeDeal extends Command {
 
         Long unitId;
         Long bidId;
@@ -40,10 +39,10 @@ public class UnitCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class CentralizedDealReport extends Command {
+    public static class DealReport extends Command {
 
         Long unitId;
-        Map<Long, Deal> deals;
+        List<Deal> deals;
 
         @Override
         public String getAggregateId() {
@@ -63,7 +62,7 @@ public class UnitCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class RealtimeBid extends Command {
+    public static class RtNewBidDeclare extends Command {
 
         Long unitId;
 
@@ -137,7 +136,6 @@ public class UnitCommand {
         Long unitId;
         Long compId;
         Integer roundId;
-        Long agentId;
         AbstractMetaUnit metaUnit;
 
 
@@ -171,7 +169,7 @@ public class UnitCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class Cancel extends Command {
+    public static class RtCancelBidDeclare extends Command {
 
         Long unitId;
         Long bidId;
@@ -188,7 +186,7 @@ public class UnitCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class CancelReport extends Command {
+    public static class RtBidCancelled extends Command {
 
         Long unitId;
         Long bidId;

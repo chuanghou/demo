@@ -15,8 +15,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PointLine {
 
-    String bidId;
-    TxGroup txGroup;
+    Long bidId;
+    Long unitId;
     Direction direction;
     Double quantity;
     Double price;

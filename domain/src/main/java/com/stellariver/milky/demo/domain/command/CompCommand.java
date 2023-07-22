@@ -45,8 +45,6 @@ public class CompCommand {
 
         Long compId;
 
-        MarketType marketType;
-
         @Override
         public String getAggregateId() {
             return compId.toString();
@@ -135,11 +133,30 @@ public class CompCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class RealtimeBid extends Command {
+    public static class RtNewBidDeclare extends Command {
 
         Long compId;
         Long unitId;
         Bid bid;
+
+        @Override
+        public String getAggregateId() {
+            return compId.toString();
+        }
+
+    }
+
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class RtCancelBidDeclare extends Command {
+
+        Long compId;
+        Long unitId;
+        Long bidId;
 
         @Override
         public String getAggregateId() {

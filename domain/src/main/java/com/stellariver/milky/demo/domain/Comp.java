@@ -12,10 +12,10 @@ import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.domain.event.CompEvent;
-import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.command.ConstructorHandler;
 import com.stellariver.milky.domain.support.command.MethodHandler;
@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Data
@@ -55,8 +56,10 @@ public class Comp extends AggregateRoot {
     Map<MarketType, Map<TimeFrame, GridLimit>> transLimit;
     List<Map<MarketType, Duration>> durations;
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
+    List<Map<MarketType, List<Bid>>> centralizedBids = new ArrayList<>();
+    Map<Long, Bid> bids = new ConcurrentHashMap<>();
 
-    static Map<BidGroup, RealtimeBidProcessor> realtimeBidProcessors = new ConcurrentHashMap<>();
+    static Map<Pair<Province, TimeFrame>, RealtimeBidProcessor> realtimeBidProcessors = new ConcurrentHashMap<>();
 
     @Override
     public String getAggregateId() {
@@ -77,6 +80,10 @@ public class Comp extends AggregateRoot {
         comp.setDurations(new ArrayList<>());
         comp.setReplenishes(new ArrayList<>());
         comp.setAgentTotal(create.getAgentTotal());
+
+        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getReplenishes().add(new HashMap<>()));
+        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getCentralizedBids().add(new HashMap<>()));
+
         context.publish(CompEvent.Created.builder().compId(comp.getCompId()).comp(comp).build());
         return comp;
     }
@@ -108,12 +115,12 @@ public class Comp extends AggregateRoot {
                 .marketType(command.getTargetMarketType())
                 .build();
 
-        if (lastStage.next(roundTotal).equals(targetStage)) {
+        if (lastStage.laterThan(targetStage) || lastStage.equals(targetStage)) {
+            return;
+        }  else if (lastStage.next(roundTotal).equals(targetStage)){
             roundId = targetStage.getRoundId();
             marketType = targetStage.getMarketType();
             marketStatus = targetStage.getMarketStatus();
-        } else if (lastStage.equals(targetStage)) {
-            return;
         } else {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
@@ -141,29 +148,30 @@ public class Comp extends AggregateRoot {
 
     @MethodHandler
     public void handle(CompCommand.CentralizedBid command, Context context) {
-        compStatus = Status.CompStatus.END;
-        CompEvent.End end = CompEvent.End.builder().compId(compId).build();
-        context.publish(end);
+        centralizedBids.get(roundId)
+                .computeIfAbsent(command.getMarketType(), k -> new ArrayList<>()).addAll(command.getBids());
+        CompEvent.CentralizedBidAccept event = CompEvent.CentralizedBidAccept.builder()
+                .compId(compId)
+                .roundId(roundId)
+                .marketType(command.getMarketType())
+                .bids(command.getBids())
+                .build();
+        context.publish(event);
     }
 
     @MethodHandler
     public void handle(CompCommand.Clear clear, Context context) {
-        Tunnel tunnel = BeanUtil.getBean(Tunnel.class);
-        List<Bid> bids = tunnel.getByCompId(compId).stream()
-                .map(unit -> unit.getCentralizedBids().get(clear.getMarketType()))
-                .flatMap(Collection::stream).collect(Collectors.toList());
+
+        SysEx.trueThrow(Status.MarketStatus.CLOSE != marketStatus, ErrorEnums.SYS_EX);
+        List<Bid> bids = centralizedBids.get(roundId).get(marketType);
 
         List<Bid> buyBids = bids.stream().filter(bid -> bid.getDirection() == Direction.BUY).collect(Collectors.toList());
         List<Bid> sellBids = bids.stream().filter(bid -> bid.getDirection() == Direction.SELL).collect(Collectors.toList());
-
-
-        List<DealResult> dealResults0 = resolveDealResults(buyBids, sellBids, TimeFrame.PEAK);
-        List<DealResult> dealResults1 = resolveDealResults(buyBids, sellBids, TimeFrame.FLAT);
-        List<DealResult> dealResults2 = resolveDealResults(buyBids, sellBids, TimeFrame.VALLEY);
-
-        List<DealResult> dealResults = Stream.of(dealResults0, dealResults1, dealResults2).flatMap(Collection::stream).collect(Collectors.toList());
-        CompEvent.Cleared event = CompEvent.Cleared.builder().compId(compId).marketType(clear.getMarketType()).dealResults(dealResults).build();
+        List<Deal> deals = Arrays.stream(TimeFrame.values())
+                .map(timeFrame -> clear(buyBids, sellBids, timeFrame)).flatMap(Collection::stream).collect(Collectors.toList());
+        CompEvent.Cleared event = CompEvent.Cleared.builder().compId(compId).marketType(marketType).deals(deals).build();
         context.publish(event);
+
     }
 
 
@@ -178,11 +186,10 @@ public class Comp extends AggregateRoot {
      * |------------------------------------------------
      * |
      */
-    public List<DealResult> resolveDealResults(List<Bid> buyBids, List<Bid> sellBids, TimeFrame timeFrame) {
+    public List<Deal> clear(List<Bid> buyBids, List<Bid> sellBids, TimeFrame timeFrame) {
 
-
-        buyBids = buyBids.stream().filter(bid -> bid.getTxGroup().getTimeFrame() == timeFrame).collect(Collectors.toList());
-        sellBids = sellBids.stream().filter(bid -> bid.getTxGroup().getTimeFrame() == timeFrame).collect(Collectors.toList());
+        buyBids = buyBids.stream().filter(bid -> bid.getTimeFrame() == timeFrame).collect(Collectors.toList());
+        sellBids = sellBids.stream().filter(bid -> bid.getTimeFrame() == timeFrame).collect(Collectors.toList());
 
         ResolveResult resolveResult = resolveInterPoint(buyBids, sellBids);
         Pair<Double, Double> interPoint = resolveResult.getInterPoint();
@@ -208,7 +215,7 @@ public class Comp extends AggregateRoot {
         Double dealPrice;
         Double dealQuantity;
 
-        List<DealResult> dealResults = new ArrayList<>();
+        List<Deal> deals = new ArrayList<>();
 
         for (PointLine pointLine : resolveResult.getBuyPointLines()) {
             if (pointLine.getLeftX() + pointLine.getQuantity() < triple.getLeft()) {
@@ -221,16 +228,9 @@ public class Comp extends AggregateRoot {
                 break;
             }
 
-            Deal deal = Deal.builder()
-                    .quantity(dealQuantity)
-                    .price(dealPrice)
-                    .build();
-
-            DealResult dealResult = DealResult.builder()
-                    .bidId(pointLine.getBidId())
-                    .deal(deal)
-                    .build();
-            dealResults.add(dealResult);
+            Long bidId = pointLine.getBidId();
+            Long unitId = pointLine.getUnitId();
+            Deal deal = Deal.builder().bidId(bidId).unitId(unitId).quantity(dealQuantity).price(dealPrice).build();
         }
 
 
@@ -245,21 +245,13 @@ public class Comp extends AggregateRoot {
                 break;
             }
 
-            Deal deal = Deal.builder()
-                    .quantity(dealQuantity)
-                    .price(dealPrice)
-                    .build();
-
-            DealResult dealResult = DealResult.builder()
-                    .bidId(pointLine.getBidId())
-                    .deal(deal)
-                    .build();
-            dealResults.add(dealResult);
+            Long bidId = pointLine.getBidId();
+            Long unitId = pointLine.getUnitId();
+            Deal deal = Deal.builder().bidId(bidId).unitId(unitId).quantity(dealQuantity).price(dealPrice).build();
+            deals.add(deal);
         }
 
-//        replenishMap.put(timeFrame, triple.getRight());
-
-        return dealResults;
+        return deals;
 
     }
 
@@ -366,10 +358,10 @@ public class Comp extends AggregateRoot {
         Double cumulateQuantity = 0D;
         for (Bid bid : bids) {
             PointLine pointLine = PointLine.builder()
+                    .unitId(bid.getUnitId())
                     .direction(bid.getDirection())
                     .price(bid.getPrice())
                     .quantity(bid.getQuantity())
-                    .txGroup(bid.getTxGroup())
                     .leftX(cumulateQuantity)
                     .rightX(cumulateQuantity + bid.getQuantity())
                     .width(bid.getQuantity())
@@ -383,10 +375,20 @@ public class Comp extends AggregateRoot {
 
 
     @MethodHandler
-    public void handle(CompCommand.RealtimeBid command, Context context) {
+    public void handle(CompCommand.RtNewBidDeclare command, Context context) {
         Bid bid = command.getBid();
+        bids.put(bid.getId(), bid);
         TimeFrame timeFrame = bid.getTimeFrame();
         BidGroup bidGroup = BidGroup.builder().compId(compId).timeFrame(timeFrame).build();
+        RealtimeBidProcessor realtimeBidProcessor = realtimeBidProcessors.computeIfAbsent(bidGroup, bG -> new RealtimeBidProcessor());
+        realtimeBidProcessor.post(bid);
+    }
+
+    @MethodHandler
+    public void handle(CompCommand.RtCancelBidDeclare command, Context context) {
+        Long bidId = command.getBidId();
+        Bid bid = bids.get(bidId);
+        TimeFrame timeFrame = bid.getTimeFrame();
         RealtimeBidProcessor realtimeBidProcessor = realtimeBidProcessors.computeIfAbsent(bidGroup, bG -> new RealtimeBidProcessor());
         realtimeBidProcessor.post(bid);
     }

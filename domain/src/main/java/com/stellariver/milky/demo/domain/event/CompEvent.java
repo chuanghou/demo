@@ -1,7 +1,6 @@
 package com.stellariver.milky.demo.domain.event;
 
-import com.stellariver.milky.demo.common.MarketType;
-import com.stellariver.milky.demo.common.Status;
+import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.DealResult;
 import com.stellariver.milky.domain.support.event.Event;
@@ -10,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
+import java.util.Map;
 
 public class CompEvent {
 
@@ -22,10 +22,8 @@ public class CompEvent {
     public static class Cleared extends Event {
 
         Long compId;
-
         MarketType marketType;
-
-        List<DealResult> dealResults;
+        List<Deal> deals;
 
         @Override
         public String getAggregateId() {
@@ -81,6 +79,24 @@ public class CompEvent {
         Integer nextRoundId;
         MarketType nextMarketType;
         Status.MarketStatus nextMarketStatus;
+
+        @Override
+        public String getAggregateId() {
+            return compId.toString();
+        }
+    }
+
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class CentralizedBidAccept extends Event {
+
+        Long compId;
+        Integer roundId;
+        MarketType marketType;
+        List<Bid> bids;
 
         @Override
         public String getAggregateId() {

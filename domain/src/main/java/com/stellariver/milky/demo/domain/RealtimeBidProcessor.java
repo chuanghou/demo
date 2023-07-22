@@ -3,19 +3,15 @@ package com.stellariver.milky.demo.domain;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.util.DaemonThreadFactory;
-import com.stellariver.milky.common.tool.common.Typed;
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.basic.TypedEnums;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
-import com.stellariver.milky.demo.common.TxGroup;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.domain.support.command.CommandBus;
 
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 
@@ -72,6 +68,8 @@ public class RealtimeBidProcessor implements EventHandler<RealtimeBidContainer> 
         disruptor.publishEvent((realtimeBidContainer, sequence) -> realtimeBidContainer.setBid(bid));
     }
 
+
+
     @Override
     public void onEvent(RealtimeBidContainer event, long sequence, boolean endOfBatch) throws Exception {
         Bid bid = event.getBid();
@@ -113,16 +111,16 @@ public class RealtimeBidProcessor implements EventHandler<RealtimeBidContainer> 
         } else {
             sellBid.setQuantity(sellBalance);
         }
-
-        UnitCommand.RealtimeDealReport buyBidRealtimeDealReport = UnitCommand.RealtimeDealReport.builder()
-                .bidId(buyBid.getId())
-                .deal(Deal.builder().quantity(dealQuantity).price(dealPrice).build())
-                .build();
-        CompletableFuture.runAsync(() -> CommandBus.accept(buyBidRealtimeDealReport, new HashMap<>()));
-        UnitCommand.RealtimeDealReport sellBidRealtimeDealReport = UnitCommand.RealtimeDealReport.builder()
-                .bidId(sellBid.getId())
-                .deal(Deal.builder().quantity(dealQuantity).price(dealPrice).build())
-                .build();
-        CompletableFuture.runAsync(() -> CommandBus.accept(sellBidRealtimeDealReport, new HashMap<>()));
+        report(buyBid, dealPrice, dealQuantity);
+        report(sellBid, dealPrice, dealQuantity);
     }
+
+    private void report(Bid bid, Double dealPrice, double dealQuantity) {
+        Deal deal = Deal.builder().bidId(bid.getId())
+                .unitId(bid.getUnitId()).quantity(dealQuantity).price(dealPrice).build();
+        UnitCommand.DealReport dealReport = UnitCommand.DealReport.builder()
+                .unitId(bid.getUnitId()).deals(Collect.asList(deal)).build();
+        CompletableFuture.runAsync(() -> CommandBus.accept(dealReport, new HashMap<>()));
+    }
+
 }

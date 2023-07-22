@@ -55,7 +55,7 @@ public class UnitEvent {
     @NoArgsConstructor
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class RealtimeBidden extends Event {
+    public static class RtBidDeclared extends Event {
 
         Long unitId;
         Long compId;
@@ -73,14 +73,14 @@ public class UnitEvent {
     @NoArgsConstructor
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class Cancelled extends Event {
+    public static class RtCancelBiDeclared extends Event {
 
-        String unitId;
-        Order order;
+        Long unitId;
+        Bid bid;
 
         @Override
         public String getAggregateId() {
-            return unitId;
+            return unitId.toString();
         }
 
     }

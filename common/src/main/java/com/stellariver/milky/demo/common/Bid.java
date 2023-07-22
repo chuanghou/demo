@@ -1,5 +1,6 @@
 package com.stellariver.milky.demo.common;
 
+import com.stellariver.milky.demo.common.enums.BidStatus;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import lombok.AccessLevel;
@@ -28,5 +29,7 @@ public class Bid {
     Double price;
     Date date;
     List<Deal> deals;
+
+    BidStatus bidStatus;
 
 }

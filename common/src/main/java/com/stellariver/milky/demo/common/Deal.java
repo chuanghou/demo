@@ -14,6 +14,8 @@ import lombok.experimental.SuperBuilder;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Deal {
 
+    Long bidId;
+    Long unitId;
     Double quantity;
     Double price;
 
