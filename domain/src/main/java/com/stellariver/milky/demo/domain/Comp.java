@@ -5,7 +5,6 @@ import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.SysEx;
-import com.stellariver.milky.common.tool.common.BeanUtil;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.ErrorEnums;
@@ -57,9 +56,8 @@ public class Comp extends AggregateRoot {
     List<Map<MarketType, Duration>> durations;
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
     List<Map<MarketType, List<Bid>>> centralizedBids = new ArrayList<>();
-    Map<Long, Bid> bids = new ConcurrentHashMap<>();
 
-    static Map<Pair<Province, TimeFrame>, RealtimeBidProcessor> realtimeBidProcessors = new ConcurrentHashMap<>();
+    static Map<Pair<Province, TimeFrame>, RealtimeBidProcessor> rtBidProcessors = new ConcurrentHashMap<>();
 
     @Override
     public String getAggregateId() {
@@ -377,20 +375,16 @@ public class Comp extends AggregateRoot {
     @MethodHandler
     public void handle(CompCommand.RtNewBidDeclare command, Context context) {
         Bid bid = command.getBid();
-        bids.put(bid.getId(), bid);
-        TimeFrame timeFrame = bid.getTimeFrame();
-        BidGroup bidGroup = BidGroup.builder().compId(compId).timeFrame(timeFrame).build();
-        RealtimeBidProcessor realtimeBidProcessor = realtimeBidProcessors.computeIfAbsent(bidGroup, bG -> new RealtimeBidProcessor());
+        Pair<Province, TimeFrame> processorKey = Pair.of(bid.getProvince(), bid.getTimeFrame());
+        RealtimeBidProcessor realtimeBidProcessor = rtBidProcessors.computeIfAbsent(processorKey, bG -> new RealtimeBidProcessor());
         realtimeBidProcessor.post(bid);
     }
 
     @MethodHandler
     public void handle(CompCommand.RtCancelBidDeclare command, Context context) {
-        Long bidId = command.getBidId();
-        Bid bid = bids.get(bidId);
-        TimeFrame timeFrame = bid.getTimeFrame();
-        RealtimeBidProcessor realtimeBidProcessor = realtimeBidProcessors.computeIfAbsent(bidGroup, bG -> new RealtimeBidProcessor());
-        realtimeBidProcessor.post(bid);
+        Pair<Province, TimeFrame> processorKey = Pair.of(command.getProvince(), command.getTimeFrame());
+        RealtimeBidProcessor realtimeBidProcessor = rtBidProcessors.computeIfAbsent(processorKey, bG -> new RealtimeBidProcessor());
+        realtimeBidProcessor.cancel(command.getBidId());
     }
 
 

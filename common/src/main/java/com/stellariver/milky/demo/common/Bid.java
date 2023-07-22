@@ -2,6 +2,7 @@ package com.stellariver.milky.demo.common;
 
 import com.stellariver.milky.demo.common.enums.BidStatus;
 import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ public class Bid {
 
     Long id;
     Long unitId;
+    Province province;
     TimeFrame timeFrame;
     MarketType marketType;
     Direction direction;

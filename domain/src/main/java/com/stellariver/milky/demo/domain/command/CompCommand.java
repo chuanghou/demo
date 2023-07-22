@@ -4,6 +4,8 @@ import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.PriceLimit;
 import com.stellariver.milky.demo.common.Status;
+import com.stellariver.milky.demo.common.enums.Province;
+import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.domain.support.command.Command;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -157,6 +159,8 @@ public class CompCommand {
         Long compId;
         Long unitId;
         Long bidId;
+        Province province;
+        TimeFrame timeFrame;
 
         @Override
         public String getAggregateId() {

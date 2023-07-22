@@ -148,6 +148,19 @@ public class Routers implements EventRouters {
     }
 
     @EventRouter
+    public void route(UnitEvent.RtCancelBidDeclared event, Context context) {
+
+        CompCommand.RtCancelBidDeclare command = CompCommand.RtCancelBidDeclare.builder()
+                .compId(event.getCompId())
+                .bidId(event.getBid().getId())
+                .province(event.getBid().getProvince())
+                .unitId(event.getUnitId())
+                .build();
+        CommandBus.driveByEvent(command, event);
+    }
+
+
+    @EventRouter
     public void route(UnitEvent.RtBidDeclared event, Context context) {
         CompCommand.RtNewBidDeclare command = CompCommand.RtNewBidDeclare.builder()
                 .unitId(event.getUnitId()).compId(event.getCompId()).bid(event.getBid()).build();

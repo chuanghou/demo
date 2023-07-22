@@ -51,6 +51,24 @@ public class UnitCommand {
 
     }
 
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class CancelReport extends Command {
+
+        Long unitId;
+        List<Deal> deals;
+
+        @Override
+        public String getAggregateId() {
+            return unitId.toString();
+        }
+
+    }
+
 
     /**
      * Yearly Exterior Provincial

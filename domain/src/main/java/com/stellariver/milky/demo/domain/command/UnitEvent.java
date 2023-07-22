@@ -73,9 +73,10 @@ public class UnitEvent {
     @NoArgsConstructor
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class RtCancelBiDeclared extends Event {
+    public static class RtCancelBidDeclared extends Event {
 
         Long unitId;
+        Long compId;
         Bid bid;
 
         @Override

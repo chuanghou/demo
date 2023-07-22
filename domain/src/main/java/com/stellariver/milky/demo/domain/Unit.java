@@ -11,7 +11,6 @@ import com.stellariver.milky.demo.basic.UnitType;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
-import com.stellariver.milky.demo.common.Order;
 import com.stellariver.milky.demo.common.enums.BidStatus;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.Province;
@@ -169,7 +168,7 @@ public class Unit extends AggregateRoot {
         BizEx.trueThrow(BidStatus.CANCEL_DECELERATED == bid.getBidStatus(), PARAM_FORMAT_WRONG.message("撤单指令已报，请不要重复操作！"));
         BizEx.trueThrow(BidStatus.CANCELLED == bid.getBidStatus(), PARAM_FORMAT_WRONG.message("撤单指令已经完成"));
         bid.setBidStatus(BidStatus.CANCEL_DECELERATED);
-        UnitEvent.RtCancelBiDeclared event = UnitEvent.RtCancelBiDeclared.builder().unitId(unitId).bid(bid).build();
+        UnitEvent.RtCancelBidDeclared event = UnitEvent.RtCancelBidDeclared.builder().unitId(unitId).compId(compId).bid(bid).build();
         context.publish(event);
     }
 

@@ -9,8 +9,9 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RealtimeBidContainer {
+public class RtBidContainer {
 
-    Bid bid;
+    Long cancelBidId;
+    Bid newBid;
 
 }

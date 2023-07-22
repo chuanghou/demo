@@ -3,7 +3,10 @@ package com.stellariver.milky.demo.domain;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.util.DaemonThreadFactory;
+import com.stellariver.milky.common.base.SysEx;
+import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.enums.Direction;
@@ -12,13 +15,14 @@ import com.stellariver.milky.domain.support.command.CommandBus;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 
-public class RealtimeBidProcessor implements EventHandler<RealtimeBidContainer> {
+public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
 
 
-    private final Disruptor<RealtimeBidContainer> disruptor = new Disruptor<>(RealtimeBidContainer::new, 1024, DaemonThreadFactory.INSTANCE);
+    private final Disruptor<RtBidContainer> disruptor = new Disruptor<>(RtBidContainer::new, 1024, DaemonThreadFactory.INSTANCE);
 
 
     public RealtimeBidProcessor() {
@@ -65,14 +69,48 @@ public class RealtimeBidProcessor implements EventHandler<RealtimeBidContainer> 
 
 
     public void post(Bid bid) {
-        disruptor.publishEvent((realtimeBidContainer, sequence) -> realtimeBidContainer.setBid(bid));
+        disruptor.publishEvent((rtBidContainer, sequence) -> {
+            rtBidContainer.setCancelBidId(null);
+            rtBidContainer.setNewBid(bid);
+        });
     }
 
-
+    public void cancel(Long bidId) {
+        disruptor.publishEvent((rtBidContainer, sequence) -> {
+            rtBidContainer.setCancelBidId(bidId);
+            rtBidContainer.setNewBid(null);
+        });
+    }
 
     @Override
-    public void onEvent(RealtimeBidContainer event, long sequence, boolean endOfBatch) throws Exception {
-        Bid bid = event.getBid();
+    public void onEvent(RtBidContainer event, long sequence, boolean endOfBatch) throws Exception {
+        Bid bid = event.getNewBid();
+        Long cancelBidId = event.getCancelBidId();
+        if (cancelBidId == null) {
+            doProcessNewBid(event.getNewBid());
+        } else {
+            doProcessCancel(event.getCancelBidId());
+        }
+    }
+
+    private void doProcessCancel(Long cancelBidId) {
+        Optional<Bid> bidOptional = buyPriorityQueue.stream().filter(bid -> Kit.eq(bid.getId(), cancelBidId)).findFirst();
+        Bid cancelBid;
+        if (bidOptional.isPresent()) {
+            cancelBid = bidOptional.get();
+            buyPriorityQueue.remove(cancelBid);
+        } else {
+            cancelBid = sellPriorityQueue.stream().filter(bid -> Kit.eq(bid.getId(), cancelBidId))
+                    .findFirst().orElseThrow(() -> new SysEx(ErrorEnums.UNREACHABLE_CODE));
+            sellPriorityQueue.remove(cancelBid);
+        }
+
+        UnitCommand.RtBidCancelled command = UnitCommand.RtBidCancelled.builder()
+                .bidId(cancelBidId).unitId(cancelBid.getUnitId()).remainder(cancelBid.getQuantity()).build();
+        CommandBus.accept(command, new HashMap<>());
+    }
+
+    public void doProcessNewBid(Bid bid) {
         if (bid.getDirection() == Direction.BUY) {
             buyPriorityQueue.add(bid);
         } else if (bid.getDirection() == Direction.SELL) {
@@ -122,5 +160,8 @@ public class RealtimeBidProcessor implements EventHandler<RealtimeBidContainer> 
                 .unitId(bid.getUnitId()).deals(Collect.asList(deal)).build();
         CompletableFuture.runAsync(() -> CommandBus.accept(dealReport, new HashMap<>()));
     }
+
+
+
 
 }
