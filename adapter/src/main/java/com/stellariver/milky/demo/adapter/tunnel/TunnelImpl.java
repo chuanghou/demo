@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.domain.AbstractMetaUnit;
+import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
@@ -16,37 +17,52 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TunnelImpl implements Tunnel {
 
-    final UnitDOMapper unitDOMapper;
-    final GeneratorDOMapper generatorDOMapper;
-    final LoadDOMapper loadDOMapper;
 
     @Override
-    public List<Unit> getByCompId(Integer compId) {
-        LambdaQueryWrapper<UnitDO> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(UnitDO::getCompId, compId);
-        List<UnitDO> unitDOs = unitDOMapper.selectList(lambdaQueryWrapper);
-        return Collect.transfer(unitDOs, UnitDAOAdapter.Convertor.INST::to);
+    public List<Unit> getByCompId(Long compId) {
+        return null;
+    }
+
+    @Override
+    public List<Unit> listUnitsByCompId(Long compId) {
+        return null;
     }
 
     @Override
     public AbstractMetaUnit getByMetaUnitId(String metaUnitId) {
-        return new AbstractMetaUnit();
+        return null;
     }
 
     @Override
     public long loadGeneratorNumber() {
-        return generatorDOMapper.selectCount(null);
+        return 0;
     }
 
     @Override
     public long loadLoadNumber() {
-        return loadDOMapper.selectCount(null);
+        return 0;
     }
 
+    @Override
+    public long loadUnitNumber() {
+        return 0;
+    }
+
+    @Override
+    public Map<Long, AbstractMetaUnit> getMetaUnitsByIds(Set<Long> metaUnitIds) {
+        return null;
+    }
+
+    @Override
+    public Comp currentComp() {
+        return null;
+    }
 }

@@ -16,6 +16,7 @@ import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.domain.event.CompEvent;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
+import com.stellariver.milky.domain.support.base.BaseDataObject;
 import com.stellariver.milky.domain.support.command.ConstructorHandler;
 import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
@@ -42,7 +43,7 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Comp extends AggregateRoot {
+public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     Long compId;
     Integer agentTotal;
@@ -54,10 +55,11 @@ public class Comp extends AggregateRoot {
     PriceLimit priceLimit;
     Map<MarketType, Map<TimeFrame, GridLimit>> transLimit;
     List<Map<MarketType, Duration>> durations;
+
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
     List<Map<MarketType, List<Bid>>> centralizedBids = new ArrayList<>();
 
-    static Map<Pair<Province, TimeFrame>, RealtimeBidProcessor> rtBidProcessors = new ConcurrentHashMap<>();
+    Map<Pair<Province, TimeFrame>, RealtimeBidProcessor> rtBidProcessors = new ConcurrentHashMap<>();
 
     @Override
     public String getAggregateId() {
@@ -311,6 +313,11 @@ public class Comp extends AggregateRoot {
                 .sellPointLines(sellPointLines)
                 .interPoint(interPoint)
                 .build();
+    }
+
+    @Override
+    public Long getPrimaryId() {
+        return compId;
     }
 
     @Data
