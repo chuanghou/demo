@@ -17,6 +17,7 @@ import org.mapstruct.factory.Mappers;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author houchuang
@@ -40,7 +41,7 @@ public class UserDODAOWrapper implements DAOWrapper<UserDO, Integer> {
 
     @Override
     public Map<Integer, UserDO> batchGetByPrimaryIds(@NonNull Set<Integer> ids) {
-        List<UserDO> userDOs = userDOMapper.selectBatchIds(ids);
+        List<UserDO> userDOs = ids.stream().map(userDOMapper::selectById).collect(Collectors.toList());
         return Collect.toMap(userDOs, UserDO::getUserId);
     }
 

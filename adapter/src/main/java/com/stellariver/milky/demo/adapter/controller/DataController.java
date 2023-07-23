@@ -92,7 +92,7 @@ public class DataController {
 
         transferData.put(Label.annual_receive_forecast_mw.name(), Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
 
-        result.put(Label.annual_receive_forecast_mw.name(), transferData);
+        result.put(Label.transfer_96_analysis.name(), transferData);
 
 
         List<SprDO> receiveSprDOs = sprDOs.stream()
@@ -151,11 +151,12 @@ public class DataController {
 
             LambdaQueryWrapper<ThermalUnitCostDO> queryWrapper0 = new LambdaQueryWrapper<>();
             queryWrapper0.eq(ThermalUnitCostDO::getSubregionId, subregionBasicDO.getSubregionId());
+            queryWrapper0.last("limit 10");
             List<ThermalUnitCostDO> thermalUnitCostDOs = thermalUnitCostMapper.selectList(queryWrapper0)
                     .stream().sorted(Comparator.comparing(ThermalUnitCostDO::getPrd)).collect(Collectors.toList());
 
             List<Triple<Double, Double, Double>> histograms = thermalUnitCostDOs.stream()
-                    .map(tDO -> Triple.of(tDO.getCostLeftInterval(), tDO.getCostRightInterval(), tDO.getThermalMw()))
+                    .map(tDO -> Triple.of(tDO.getCostLeftInterval(), tDO.getThermalMw(), tDO.getCostRightInterval()))
                     .collect(Collectors.toList());
             LambdaQueryWrapper<SubregionParameterDO> queryWrapper1 = new LambdaQueryWrapper<>();
             queryWrapper1.eq(SubregionParameterDO::getSubregionId, subregionBasicDO.getSubregionId());
@@ -209,35 +210,42 @@ public class DataController {
         MarketType marketType = MarketType.valueOf(marketTypeValue);
         Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
 
-        LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UnitDO::getCompId, compId);
-        queryWrapper.eq(UnitDO::getUserId, userId);
-
-
-        List<UnitDO> unitDOS = unitDOMapper.selectList(queryWrapper);
-        SysEx.trueThrow(unitDOS.size() == 4, ErrorEnums.SYS_EX);
+//        LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
+//        queryWrapper.eq(UnitDO::getCompId, compId);
+//        queryWrapper.eq(UnitDO::getUserId, userId);
+//
+//
+//        List<UnitDO> unitDOS = unitDOMapper.selectList(queryWrapper);
+//        SysEx.trueThrow(unitDOS.size() == 4, ErrorEnums.SYS_EX);
 
         Map<String, Map<String, List<Double>>> result = new HashMap<>();
         Pair<String, Map<String, List<Double>>> mapPair;
 
-        List<UnitDO> generatorUnitDOs = unitDOS.stream()
-                .filter(unitDO -> Kit.eq(unitDO.getUnitType(), UnitType.GENERATOR.name())).collect(Collectors.toList());
-        List<Unit> units = Collect.transfer(unitDOS, UnitDAOAdapter.Convertor.INST::to);
-        List<List<AbstractMetaUnit>> metaUnits = units.stream().map(Unit::getMetaUnit).collect(Collect.select(
-                u -> Kit.eq(u.getUnitType(), UnitType.GENERATOR),
-                u -> Kit.eq(u.getUnitType(), UnitType.LOAD)
-        ));
-        mapPair = loadGenerator(metaUnits.get(0).get(0).getSourceId(), marketType);
+//        List<Unit> units = Collect.transfer(unitDOS, UnitDAOAdapter.Convertor.INST::to);
+//        List<List<AbstractMetaUnit>> metaUnits = units.stream().map(Unit::getMetaUnit).collect(Collect.select(
+//                u -> Kit.eq(u.getUnitType(), UnitType.GENERATOR),
+//                u -> Kit.eq(u.getUnitType(), UnitType.LOAD)
+//        ));
+//
+//        Integer sourceId = metaUnits.get(0).get(0).getSourceId();
+        Integer sourceId = 1;
+        mapPair = loadGenerator(sourceId, marketType);
         result.put(mapPair.getKey(), mapPair.getValue());
 
-        mapPair = loadGenerator(metaUnits.get(0).get(1).getSourceId(), marketType);
+//        sourceId = metaUnits.get(0).get(1).getSourceId();
+        sourceId = 11;
+
+        mapPair = loadGenerator(sourceId, marketType);
         result.put(mapPair.getKey(), mapPair.getValue());
 
-        mapPair = loadLoad(metaUnits.get(1).get(0).getSourceId());
+//        sourceId = metaUnits.get(1).get(0).getSourceId();
+        sourceId = 1;
+        mapPair = loadLoad(sourceId);
         result.put(mapPair.getKey(), mapPair.getValue());
 
-
-        mapPair = loadLoad(metaUnits.get(1).get(1).getSourceId());
+//        sourceId = metaUnits.get(1).get(1).getSourceId();
+        sourceId = 11;
+        mapPair = loadLoad(sourceId);
         result.put(mapPair.getKey(), mapPair.getValue());
 
         return result;
@@ -250,7 +258,7 @@ public class DataController {
         GeneratorDO generatorDO = generatorDOMapper.selectById(generatorId);
         Map<String, List<Double>> map = new HashMap<>();
         List<Double> maxPs = new ArrayList<>();
-        IntStream.range(0, 16).forEach(i -> maxPs.add(generatorDO.getMaxP()));
+        IntStream.range(0, 96).forEach(i -> maxPs.add(generatorDO.getMaxP()));
         if (generatorDO.getType() == 1) {
             map.put(Label.maxPs.name(), maxPs);
         } else {

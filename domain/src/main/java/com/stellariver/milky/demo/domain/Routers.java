@@ -4,6 +4,7 @@ import com.google.common.collect.ListMultimap;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.demo.basic.Allocate;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.common.Deal;
@@ -31,6 +32,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 
@@ -50,10 +52,12 @@ public class Routers implements EventRouters {
     }
 
     public void buildUnits(Event event, Comp comp) {
-        LongStream.range(0L, comp.getAgentTotal()).forEach(userId -> {
-            Set<Long> metaUnitIds = allocate(comp.getRoundId(), userId);
+
+        IntStream.range(0, comp.getUserTotal()).forEach(userId -> {
+            Set<Integer> metaUnitSourceIds = allocateSourceId(comp.getRoundId(), comp.getUserTotal(), userId);
+            Set<Integer> metaUnitIds = tunnel.getMetaUnitIdBySourceIds(metaUnitSourceIds);
             BizEx.trueThrow(metaUnitIds.size() != 4, ErrorEnums.SYS_EX.message("应该分配是个4个机组负荷"));
-            Map<Long, AbstractMetaUnit> metaUnits = tunnel.getMetaUnitsByIds(new HashSet<>(metaUnitIds));
+            Map<Integer, AbstractMetaUnit> metaUnits = tunnel.getMetaUnitsByIds(new HashSet<>(metaUnitIds));
             long size = metaUnits.values().stream().map(metaUnit -> Pair.of(metaUnit.getProvince(), metaUnit.getUnitType())).distinct().count();
             BizEx.trueThrow(Kit.notEq(size, 4L), ErrorEnums.CONFIG_ERROR.message("单元分配问题"));
             metaUnitIds.forEach(metaUnitId -> {
@@ -68,9 +72,15 @@ public class Routers implements EventRouters {
         });
     }
 
-    private Set<Long> allocate(Integer roundId, Long userId) {
-        //TODO
-        return Collect.asSet(0L, 1L, 2L, 3L);
+    public static void main(String[] args) {
+
+    }
+
+
+    //TODO 如果机组及负荷数量变化，这里的值需要改
+    private Set<Integer> allocateSourceId(Integer roundId, Integer userIdTotal, Integer userId) {
+        List<Integer> integers = Allocate.allocateSourceId(roundId, userIdTotal, 30, userId);
+        return new HashSet<>(integers);
     }
 
     @EventRouter

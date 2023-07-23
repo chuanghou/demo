@@ -22,7 +22,9 @@ public interface Tunnel {
 
     long loadUnitNumber();
 
-    Map<Long, AbstractMetaUnit> getMetaUnitsByIds(Set<Long> metaUnitIds);
+    Map<Integer, AbstractMetaUnit> getMetaUnitsByIds(Set<Integer> metaUnitIds);
+
+    Set<Integer> getMetaUnitIdBySourceIds(Set<Integer> metaUnitSourceIds);
 
 
     Comp currentComp();

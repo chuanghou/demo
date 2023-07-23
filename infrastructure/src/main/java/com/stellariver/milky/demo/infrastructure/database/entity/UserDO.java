@@ -12,11 +12,11 @@ import lombok.experimental.SuperBuilder;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("user_do")
+@TableName("demo_user")
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserDO extends AbstractMpDO implements BaseDataObject<String> {
+public class UserDO extends AbstractMpDO implements BaseDataObject<Integer> {
 
     @TableId(type = IdType.INPUT)
     Integer userId;
@@ -25,7 +25,7 @@ public class UserDO extends AbstractMpDO implements BaseDataObject<String> {
     String password;
 
     @Override
-    public String getPrimaryId() {
-        return userId.toString();
+    public Integer getPrimaryId() {
+        return userId;
     }
 }

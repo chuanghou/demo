@@ -34,6 +34,7 @@ public class User extends AggregateRoot {
     public String login(UserLogin command, Context context) {
         BizEx.trueThrow(Kit.notEq(command.getPassword(), password),
                 ErrorEnums.PARAM_FORMAT_WRONG.message("登陆密码错误!"));
+        context.publishPlaceHolderEvent(getAggregateId());
         return TokenUtils.sign(userId.toString());
     }
 

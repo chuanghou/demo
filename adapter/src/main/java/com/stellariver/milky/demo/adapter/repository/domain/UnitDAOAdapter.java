@@ -5,6 +5,7 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.demo.basic.BasicConvertor;
 import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.GeneratorMetaUnit;
 import com.stellariver.milky.demo.domain.LoadMetaUnit;
 import com.stellariver.milky.demo.domain.Unit;
@@ -56,11 +57,14 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
         @AfterMapping
         default void after(UnitDO unitDO, @MappingTarget Unit unit) {
             MetaUnitDOMapper metaUnitDOMapper = BeanUtil.getBean(MetaUnitDOMapper.class);
-            MetaUnitDO metaUnitDO = metaUnitDOMapper.selectById(unitDO.getMeatUnitId());
+            MetaUnitDO metaUnitDO = metaUnitDOMapper.selectById(unitDO.getMetaUnitId());
             SysEx.nullThrow(metaUnitDO.getUnitType());
-            boolean b = Kit.eq(metaUnitDO.getUnitType(), UnitType.GENERATOR);
-            unit.setMetaUnit(b ? Convertor.INST.toGeneratorMetaUnit(metaUnitDO) : Convertor.INST.toLoadMetaUnit(metaUnitDO));
+            unit.setMetaUnit(to(metaUnitDO));
+        }
 
+        default AbstractMetaUnit to(MetaUnitDO metaUnitDO) {
+            boolean b = Kit.eq(metaUnitDO.getUnitType(), UnitType.GENERATOR);
+            return b ? Convertor.INST.toGeneratorMetaUnit(metaUnitDO) : Convertor.INST.toLoadMetaUnit(metaUnitDO);
         }
 
         @BeanMapping(builder = @Builder(disableBuilder = true))

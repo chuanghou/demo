@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @CustomLog
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UnitDODAOWrapper implements DAOWrapper<UnitDO, String> {
+public class UnitDODAOWrapper implements DAOWrapper<UnitDO, Long> {
 
     final UnitDOMapper unitDOMapper;
 
@@ -44,7 +44,7 @@ public class UnitDODAOWrapper implements DAOWrapper<UnitDO, String> {
     }
 
     @Override
-    public Map<String, UnitDO> batchGetByPrimaryIds(@NonNull Set<String> ids) {
+    public Map<Long, UnitDO> batchGetByPrimaryIds(@NonNull Set<Long> ids) {
         return Collect.toMap(unitDOMapper.selectBatchIds(ids), UnitDO::getUnitId);
     }
 

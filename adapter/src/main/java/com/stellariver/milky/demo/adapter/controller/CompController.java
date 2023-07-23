@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("comp")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CompController {
 
@@ -53,12 +54,17 @@ public class CompController {
 
     @GetMapping("runningComp")
     public Result<Comp> runningComp() {
-        LambdaQueryWrapper<CompDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.ne(CompDO::getCompStatus, Status.CompStatus.END);
-        List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
-        BizEx.trueThrow(compDOs.size() > 1, ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛，请联系管理员"));
-        Comp comp = domainTunnel.getByAggregateId(Comp.class, compDOs.get(0).getCompId().toString());
-        return Result.success(comp);
+
+        Comp build = Comp.builder().compId(1L).compStatus(Status.CompStatus.OPEN).marketStatus(Status.MarketStatus.OPEN)
+                .marketType(MarketType.INTER_ANNUAL_PROVINCIAL)
+                .build();
+        return Result.success(build);
+//        LambdaQueryWrapper<CompDO> queryWrapper = new LambdaQueryWrapper<>();
+//        queryWrapper.ne(CompDO::getCompStatus, Status.CompStatus.END);
+//        List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
+//        BizEx.trueThrow(compDOs.size() > 1, ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛，请联系管理员"));
+//        Comp comp = domainTunnel.getByAggregateId(Comp.class, compDOs.get(0).getCompId().toString());
+//        return Result.success(comp);
     }
 
     @GetMapping("listComps")

@@ -12,7 +12,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @EnableStaticWire
 @SpringBootApplication
 public class MilkyDemoApplication {
-
     public static void main(final String[] args) {
         SpringApplication.run(MilkyDemoApplication.class, args);
     }
