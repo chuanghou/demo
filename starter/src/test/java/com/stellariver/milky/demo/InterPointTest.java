@@ -14,7 +14,7 @@ public class InterPointTest {
     public void testInterPoint() {
         Comp comp = new Comp();
         Bid bid0 = Bid.builder()
-                .id("1")
+                .bidId("1")
                 .price(120D)
                 .direction(Direction.BUY)
                 .quantity(100D)
@@ -22,7 +22,7 @@ public class InterPointTest {
 
 
         Bid bid1 = Bid.builder()
-                .id("1")
+                .bidId("1")
                 .price(220D)
                 .direction(Direction.SELL)
                 .quantity(100D)
@@ -33,7 +33,7 @@ public class InterPointTest {
 
 
         bid0 = Bid.builder()
-                .id("1")
+                .bidId("1")
                 .price(120D)
                 .direction(Direction.BUY)
                 .quantity(100D)
@@ -41,7 +41,7 @@ public class InterPointTest {
 
 
         bid1 = Bid.builder()
-                .id("1")
+                .bidId("1")
                 .price(120D)
                 .direction(Direction.SELL)
                 .quantity(200D)
@@ -55,7 +55,7 @@ public class InterPointTest {
 
 
         bid0 = Bid.builder()
-                .id("1")
+                .bidId("1")
                 .price(120D)
                 .direction(Direction.BUY)
                 .quantity(100D)
@@ -63,7 +63,7 @@ public class InterPointTest {
 
 
         bid1 = Bid.builder()
-                .id("1")
+                .bidId("1")
                 .price(100D)
                 .direction(Direction.SELL)
                 .quantity(200D)
@@ -77,7 +77,7 @@ public class InterPointTest {
         Assertions.assertEquals(interPoint.getRight(), 100D);
 
         bid0 = Bid.builder()
-                .id("1")
+                .bidId("1")
                 .price(140D)
                 .direction(Direction.BUY)
                 .quantity(100D)
@@ -85,14 +85,14 @@ public class InterPointTest {
 
 
         bid1 = Bid.builder()
-                .id("1")
+                .bidId("1")
                 .price(120D)
                 .direction(Direction.SELL)
                 .quantity(50D)
                 .build();
 
         Bid bid2 = Bid.builder()
-                .id("1")
+                .bidId("1")
                 .price(320D)
                 .direction(Direction.SELL)
                 .quantity(200D)

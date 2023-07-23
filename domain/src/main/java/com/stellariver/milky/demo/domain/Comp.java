@@ -79,7 +79,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         comp.setAgentTotal(create.getAgentTotal());
 
         IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getReplenishes().add(new HashMap<>()));
-        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getCentralizedBids().add(new HashMap<>()));
+        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getCentralizedBids().add(new ConcurrentHashMap<>()));
 
         context.publish(CompEvent.Created.builder().compId(comp.getCompId()).comp(comp).build());
         return comp;

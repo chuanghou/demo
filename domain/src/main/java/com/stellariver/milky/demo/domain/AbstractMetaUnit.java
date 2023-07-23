@@ -6,21 +6,22 @@ import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 
 import java.util.Map;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AbstractMetaUnit {
 
-    String metaUnitId;
+    Integer metaUnitId;
     String name;
     Province province;
     UnitType unitType;
-    Long sourceId;
+    Integer sourceId;
     Map<TimeFrame, Map<Direction, Double>> capacity;
 
 }

@@ -25,20 +25,17 @@ public class UnitDO extends AbstractMpDO implements BaseDataObject<String> {
 
     @TableId(type = IdType.INPUT)
     String unitId;
+    Integer userId;
     Long compId;
-    Long roundId;
-    String position;
-    String unitType;
-    String userId;
-    String balanceQuantities;
+    Integer roundId;
+
+    Integer meatUnitId;
+    String province;    // for query
+    String unitType;    // for query
+
     String centralizedBids;
-    String orders;
     String stageFourDirection;
-
-    Integer sourceId;
-
-    @TableField(exist = false)
-    Object unit;
+    String balances;
 
     @Override
     public String getPrimaryId() {

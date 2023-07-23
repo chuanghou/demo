@@ -94,13 +94,13 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
     }
 
     private void doProcessCancel(Long cancelBidId) {
-        Optional<Bid> bidOptional = buyPriorityQueue.stream().filter(bid -> Kit.eq(bid.getId(), cancelBidId)).findFirst();
+        Optional<Bid> bidOptional = buyPriorityQueue.stream().filter(bid -> Kit.eq(bid.getBidId(), cancelBidId)).findFirst();
         Bid cancelBid;
         if (bidOptional.isPresent()) {
             cancelBid = bidOptional.get();
             buyPriorityQueue.remove(cancelBid);
         } else {
-            cancelBid = sellPriorityQueue.stream().filter(bid -> Kit.eq(bid.getId(), cancelBidId))
+            cancelBid = sellPriorityQueue.stream().filter(bid -> Kit.eq(bid.getBidId(), cancelBidId))
                     .findFirst().orElseThrow(() -> new SysEx(ErrorEnums.UNREACHABLE_CODE));
             sellPriorityQueue.remove(cancelBid);
         }
@@ -135,8 +135,8 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
         Double dealPrice = buyBid.getDate().after(sellBid.getDate()) ? sellBid.getPrice() : buyBid.getPrice();
         double dealQuantity = Math.min(buyBid.getQuantity(), sellBid.getQuantity());
 
-        System.out.println(buyBid.getId() +" buy deal " + dealQuantity);
-        System.out.println(sellBid.getId() + " sell deal " + dealQuantity);
+        System.out.println(buyBid.getBidId() +" buy deal " + dealQuantity);
+        System.out.println(sellBid.getBidId() + " sell deal " + dealQuantity);
         double buyBalance = buyBid.getQuantity() - dealQuantity;
         if (buyBalance == 0L) {
             buyPriorityQueue.remove();
@@ -154,7 +154,7 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
     }
 
     private void report(Bid bid, Double dealPrice, double dealQuantity) {
-        Deal deal = Deal.builder().bidId(bid.getId())
+        Deal deal = Deal.builder().bidId(bid.getBidId())
                 .unitId(bid.getUnitId()).quantity(dealQuantity).price(dealPrice).build();
         UnitCommand.DealReport dealReport = UnitCommand.DealReport.builder()
                 .unitId(bid.getUnitId()).deals(Collect.asList(deal)).build();

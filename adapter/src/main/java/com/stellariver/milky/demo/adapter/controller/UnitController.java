@@ -62,7 +62,7 @@ public class UnitController {
 
     @PostMapping("centralizedBid")
     public Result<Void> centralizedBid(@RequestBody CentralizedBidPO centralizedBidPO, @RequestHeader("token") String token) {
-        String userId = TokenUtils.getUserId(token);
+        Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
         Unit unit = domainTunnel.getByAggregateId(Unit.class, centralizedBidPO.getUnitId().toString());
         Comp comp = tunnel.currentComp();
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
@@ -76,7 +76,7 @@ public class UnitController {
 
     @PostMapping("realtimeBid")
     public Result<Void> realtimeBid(@RequestBody RealtimeBidPO realtimeBidPO, @RequestHeader("token") String token) {
-        String userId = TokenUtils.getUserId(token);
+        Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
         Unit unit = domainTunnel.getByAggregateId(Unit.class, realtimeBidPO.getUnitId().toString());
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
         Bid bid = Convertor.INST.to(realtimeBidPO.getBidPO());
@@ -104,7 +104,7 @@ public class UnitController {
         @AfterMapping
         @SuppressWarnings("unused")
         default void after(BidPO bidPO, @MappingTarget Bid bid) {
-            bid.setId(BeanUtil.getBean(UniqueIdBuilder.class).get());
+            bid.setBidId(BeanUtil.getBean(UniqueIdBuilder.class).get());
             bid.setDate(Clock.now());
             bid.setMarketType(BeanUtil.getBean(Tunnel.class).currentComp().getMarketType());
         }

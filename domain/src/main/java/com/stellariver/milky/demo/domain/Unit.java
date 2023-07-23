@@ -41,18 +41,18 @@ import static com.stellariver.milky.common.base.ErrorEnumsBase.PARAM_FORMAT_WRON
 public class Unit extends AggregateRoot {
 
     Long unitId;
-    String userId;
+    Integer userId;
     Long compId;
     Integer roundId;
-    Province province;
-    UnitType unitType;
+
     AbstractMetaUnit metaUnit;
+
     Map<Long, Bid> bids = new HashMap<>();
 
+    Map<MarketType, List<Bid>> centralizedBids = new HashMap<>();
 
     Map<TimeFrame, Direction> stageFourDirections = new HashMap<>();
     Map<TimeFrame, Map<Direction, Double>> balances = new HashMap<>();
-    Map<MarketType, List<Bid>> centralizedBids = new HashMap<>();
 
     @StaticWire
     static private UniqueIdBuilder uniqueIdBuilder;
@@ -70,8 +70,6 @@ public class Unit extends AggregateRoot {
         unit.setRoundId(create.getRoundId());
         unit.setMetaUnit(create.getMetaUnit());
         unit.setBalances(create.getMetaUnit().getCapacity());
-        unit.setUnitType(create.getMetaUnit().getUnitType());
-        unit.setProvince(create.getMetaUnit().getProvince());
         context.publish(UnitEvent.Created.builder().unitId(unit.getUnitId()).unit(unit).build());
         return unit;
     }
@@ -82,12 +80,14 @@ public class Unit extends AggregateRoot {
         MarketType marketType = context.getMetaData(TypedEnums.STAGE.class);
 
         if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
+            UnitType unitType = metaUnit.getUnitType();
+            Province province = metaUnit.getProvince();
             boolean b = unitType.generalDirection() == province.interDirection();
             BizEx.falseThrow(b, PARAM_FORMAT_WRONG.message("省间交易只能是送电省的机组和受电省的负荷"));
         } else {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
-
+        UnitType unitType = metaUnit.getUnitType();
         Direction direction = unitType.generalDirection();
         List<Bid> bids = command.getBids();
         bids.forEach(bid -> BizEx.trueThrow(bid.getDirection() != direction, PARAM_FORMAT_WRONG.message("买卖方向错误")));
@@ -108,7 +108,7 @@ public class Unit extends AggregateRoot {
     @MethodHandler
     public void handle(UnitCommand.CentralizedTrigger command, Context context) {
         List<Bid> marketTypeBids = centralizedBids.get(command.getMarketType());
-        marketTypeBids.forEach(bid -> bids.put(bid.getId(), bid));
+        marketTypeBids.forEach(bid -> bids.put(bid.getBidId(), bid));
         UnitEvent.CentralizedTriggered event = UnitEvent.CentralizedTriggered.builder()
                 .unitId(unitId).marketType(command.getMarketType()).compId(compId).bids(marketTypeBids).build();
         context.publish(event);
@@ -137,6 +137,7 @@ public class Unit extends AggregateRoot {
         if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
             if (stageFourDirections.get(bid.getTimeFrame()) == null) {
                 Direction direction = command.getBid().getDirection();
+                UnitType unitType = metaUnit.getUnitType();
                 if (direction.opposite() == unitType.generalDirection()){
                     Double balance = getBalances().get(bid.getTimeFrame()).get(unitType.generalDirection());
                     Double originalBalance = balances.get(bid.getTimeFrame()).remove(unitType.generalDirection());
@@ -147,6 +148,7 @@ public class Unit extends AggregateRoot {
             boolean b = stageFourDirection != command.getBid().getDirection();
             BizEx.trueThrow(b, PARAM_FORMAT_WRONG.message("第四阶段只能发布同向的报价"));
         } else {
+            UnitType unitType = metaUnit.getUnitType();
             BizEx.trueThrow(unitType.generalDirection() != command.getBid().getDirection(), PARAM_FORMAT_WRONG.message("买卖方向错误"));
         }
 

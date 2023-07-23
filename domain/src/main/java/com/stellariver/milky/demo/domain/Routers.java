@@ -152,7 +152,7 @@ public class Routers implements EventRouters {
 
         CompCommand.RtCancelBidDeclare command = CompCommand.RtCancelBidDeclare.builder()
                 .compId(event.getCompId())
-                .bidId(event.getBid().getId())
+                .bidId(event.getBid().getBidId())
                 .province(event.getBid().getProvince())
                 .unitId(event.getUnitId())
                 .build();

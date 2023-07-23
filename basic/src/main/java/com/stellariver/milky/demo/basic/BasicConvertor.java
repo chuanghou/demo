@@ -29,15 +29,6 @@ public interface BasicConvertor {
         return Json.parse(balanceQuantities, typeReference);
     }
 
-    default String toCentralizedBids(Map<TimeFrame, List<Bid>> centralizedBids) {
-        return Json.toJson(centralizedBids);
-    }
-
-    default Map<TimeFrame, List<Bid>> toCentralizedBids(String centralizedBids) {
-        TypeReference<Map<TimeFrame, List<Bid>>> typeReference = new TypeReference<Map<TimeFrame, List<Bid>>>() {};
-        return Json.parse(centralizedBids, typeReference);
-    }
-
     default String fromBids(Map<MarketType, List<Bid>> bids) {
         return Json.toJson(bids);
     }
@@ -55,27 +46,36 @@ public interface BasicConvertor {
         return Json.parse(value, PriceLimit.class);
     }
 
-    default Map<MarketType, Map<TimeFrame, GridLimit>> toLimit(String value) {
+    default Map<MarketType, Map<TimeFrame, GridLimit>> toTransLimit(String value) {
         return Json.parse(value, new TypeReference<Map<MarketType, Map<TimeFrame, GridLimit>>>() {});
     }
 
-    default String fromLimit(Map<MarketType, Map<TimeFrame, GridLimit>> durations) {
+    default String fromTransLimit(Map<MarketType, Map<TimeFrame, GridLimit>> durations) {
         return Json.toJson(durations);
     }
 
-    default List<Map<MarketType, Duration>> toDuration(String value) {
+    default List<Map<MarketType, Duration>> toDurations(String value) {
         return Json.parse(value, new TypeReference<List<Map<MarketType, Duration>> >() {});
     }
 
-    default String fromDuration(List<Map<MarketType, Duration>>  durations) {
+    default String fromDurations(List<Map<MarketType, Duration>>  durations) {
         return Json.toJson(durations);
     }
 
-    default List<Map<MarketType,Map<TimeFrame,Double>>> toReplenishes(String value) {
-        return Json.parse(value, new TypeReference<List<Map<MarketType,Map<TimeFrame,Double>>>>() {});
+    default List<Map<MarketType,Map<TimeFrame, Double>>> toReplenishes(String value) {
+        return Json.parse(value, new TypeReference<List<Map<MarketType,Map<TimeFrame, Double>>>>() {});
     }
 
     default String fromReplenishes(List<Map<MarketType, Map<TimeFrame, Double>>> replenishes) {
         return Json.toJson(replenishes);
     }
+
+    default List<Map<MarketType, List<Bid>>> toCentralizedBids(String value) {
+        return Json.parse(value, new TypeReference<List<Map<MarketType, List<Bid>>>>() {});
+    }
+
+    default String fromCentralizedBids(List<Map<MarketType, List<Bid>>> centralizedBids) {
+        return Json.toJson(centralizedBids);
+    }
+
 }

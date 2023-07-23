@@ -1,4 +1,4 @@
-package com.stellariver.milky.demo.common;
+package com.stellariver.milky.demo.domain;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -7,20 +7,10 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-import java.util.Date;
-
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Deal {
-
-    Long dealId;
-    Long bidId;
-    Long unitId;
-    Double quantity;
-    Double price;
-    Date date;
-
+public class LoadMetaUnit extends AbstractMetaUnit{
 }

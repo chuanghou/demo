@@ -1,8 +1,16 @@
 package com.stellariver.milky.demo.adapter.repository.domain;
 
+import com.stellariver.milky.common.base.BeanUtil;
+import com.stellariver.milky.common.base.SysEx;
+import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.demo.basic.BasicConvertor;
+import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.domain.GeneratorMetaUnit;
+import com.stellariver.milky.demo.domain.LoadMetaUnit;
 import com.stellariver.milky.demo.domain.Unit;
+import com.stellariver.milky.demo.infrastructure.database.entity.MetaUnitDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
+import com.stellariver.milky.demo.infrastructure.database.mapper.MetaUnitDOMapper;
 import com.stellariver.milky.domain.support.dependency.DaoAdapter;
 import com.stellariver.milky.domain.support.dependency.DataObjectInfo;
 import lombok.AccessLevel;
@@ -19,16 +27,16 @@ import org.mapstruct.factory.Mappers;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UnitDAOAdapter implements DaoAdapter<Unit> {
 
+    final MetaUnitDOMapper metaUnitDOMapper;
+
     @Override
     public Unit toAggregate(@NonNull Object dataObject) {
-        return (Unit) ((UnitDO) dataObject).getUnit();
+        return Convertor.INST.to((UnitDO) dataObject);
     }
 
     @Override
     public Object toDataObject(Unit unit, DataObjectInfo dataObjectInfo) {
-        UnitDO unitDO = Convertor.INST.to(unit);
-        unitDO.setUnit(unit);
-        return unitDO;
+        return Convertor.INST.to(unit);
     }
 
     @Override
@@ -45,9 +53,29 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
         @BeanMapping(builder = @Builder(disableBuilder = true))
         Unit to(UnitDO unitDO);
 
+        @AfterMapping
+        default void after(UnitDO unitDO, @MappingTarget Unit unit) {
+            MetaUnitDOMapper metaUnitDOMapper = BeanUtil.getBean(MetaUnitDOMapper.class);
+            MetaUnitDO metaUnitDO = metaUnitDOMapper.selectById(unitDO.getMeatUnitId());
+            SysEx.nullThrow(metaUnitDO.getUnitType());
+            boolean b = Kit.eq(metaUnitDO.getUnitType(), UnitType.GENERATOR);
+            unit.setMetaUnit(b ? Convertor.INST.toGeneratorMetaUnit(metaUnitDO) : Convertor.INST.toLoadMetaUnit(metaUnitDO));
+
+
+
+        }
+
         @BeanMapping(builder = @Builder(disableBuilder = true))
         UnitDO to(Unit unit);
 
+        @BeanMapping(builder = @Builder(disableBuilder = true))
+        GeneratorMetaUnit toGeneratorMetaUnit(MetaUnitDO metaUnitDO);
+
+
+        @BeanMapping(builder = @Builder(disableBuilder = true))
+        LoadMetaUnit toLoadMetaUnit(MetaUnitDO metaUnitDO);
 
     }
+
+
 }

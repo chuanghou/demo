@@ -30,38 +30,22 @@ public class UnitDODAOWrapper implements DAOWrapper<UnitDO, String> {
 
     final UnitDOMapper unitDOMapper;
 
-    final Executor executor;
 
-    Map<String, UnitDO> unitDOMap = new ConcurrentHashMap<>();
 
     @Override
     public int batchSave(@NonNull List<UnitDO> unitDOs) {
-        CompletableFuture.runAsync(() -> {
-            Integer reduce = unitDOs.stream().map(unitDOMapper::insert).reduce(0, Integer::sum);
-            if (reduce != unitDOs.size()) {
-                log.error("ERROR" + unitDOs);
-            }
-        });
-        unitDOs.forEach(unitDO -> unitDOMap.put(unitDO.getUnitId(), unitDO));
-        return unitDOs.size();
+        return unitDOs.stream().map(unitDOMapper::insert).reduce(0, Integer::sum);
     }
 
     @Override
     public int batchUpdate(@NonNull List<UnitDO> unitDOs) {
-        CompletableFuture.runAsync(() -> {
-            Integer reduce = unitDOs.stream().map(unitDOMapper::updateById).reduce(0, Integer::sum);
-            if (reduce != unitDOs.size()) {
-                log.error("ERROR" + unitDOs);
-            }
-        });
-        unitDOs.forEach(unitDO -> unitDOMap.put(unitDO.getUnitId(), unitDO));
-        return unitDOs.size();
+        return unitDOs.stream().map(unitDOMapper::updateById).reduce(0, Integer::sum);
+
     }
 
     @Override
     public Map<String, UnitDO> batchGetByPrimaryIds(@NonNull Set<String> ids) {
-        List<UnitDO> unitDOS = ids.stream().map(unitDOMap::get).collect(Collectors.toList());
-        return Collect.toMap(unitDOS, UnitDO::getUnitId);
+        return Collect.toMap(unitDOMapper.selectBatchIds(ids), UnitDO::getUnitId);
     }
 
     @Override

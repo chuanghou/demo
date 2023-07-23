@@ -1,20 +1,17 @@
-package com.stellariver.milky.demo.common;
+package com.stellariver.milky.demo.infrastructure.database.entity;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Date;
 
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Deal {
+public class DealDO {
 
     Long dealId;
     Long bidId;
