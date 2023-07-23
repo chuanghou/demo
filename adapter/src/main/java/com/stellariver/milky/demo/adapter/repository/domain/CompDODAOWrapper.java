@@ -1,13 +1,11 @@
 package com.stellariver.milky.demo.adapter.repository.domain;
 
-import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.ConcurrentTool;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.BasicConvertor;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
-import com.stellariver.milky.domain.support.ErrorEnums;
 import com.stellariver.milky.domain.support.dependency.DAOWrapper;
 import com.stellariver.milky.domain.support.util.ThreadLocalTransferableExecutor;
 import lombok.AccessLevel;
@@ -19,9 +17,7 @@ import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * @author houchuang

@@ -2,13 +2,11 @@ package com.stellariver.milky.demo.basic;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.stellariver.milky.common.tool.util.Json;
-import com.stellariver.milky.demo.common.Agent;
-import com.stellariver.milky.demo.common.Bid;
-import com.stellariver.milky.demo.common.MarketType;
-import com.stellariver.milky.demo.common.Order;
+import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -40,15 +38,6 @@ public interface BasicConvertor {
         return Json.parse(centralizedBids, typeReference);
     }
 
-    default String fromOrders(Map<String, Order> orders) {
-        return Json.toJson(orders);
-    }
-
-    default Map<String, Order> toOrders(String orders) {
-        TypeReference<Map<String, Order>> typeReference = new TypeReference<Map<String, Order>>() {};
-        return Json.parse(orders, typeReference);
-    }
-
     default String fromBids(Map<MarketType, List<Bid>> bids) {
         return Json.toJson(bids);
     }
@@ -58,4 +47,35 @@ public interface BasicConvertor {
         return Json.parse(bids, typeReference);
     }
 
+    default String fromPriceLimit(PriceLimit priceLimit) {
+        return Json.toJson(priceLimit);
+    }
+
+    default PriceLimit toPriceLimit(String value) {
+        return Json.parse(value, PriceLimit.class);
+    }
+
+    default Map<MarketType, Map<TimeFrame, GridLimit>> toLimit(String value) {
+        return Json.parse(value, new TypeReference<Map<MarketType, Map<TimeFrame, GridLimit>>>() {});
+    }
+
+    default String fromLimit(Map<MarketType, Map<TimeFrame, GridLimit>> durations) {
+        return Json.toJson(durations);
+    }
+
+    default List<Map<MarketType, Duration>> toDuration(String value) {
+        return Json.parse(value, new TypeReference<List<Map<MarketType, Duration>> >() {});
+    }
+
+    default String fromDuration(List<Map<MarketType, Duration>>  durations) {
+        return Json.toJson(durations);
+    }
+
+    default List<Map<MarketType,Map<TimeFrame,Double>>> toReplenishes(String value) {
+        return Json.parse(value, new TypeReference<List<Map<MarketType,Map<TimeFrame,Double>>>>() {});
+    }
+
+    default String fromReplenishes(List<Map<MarketType, Map<TimeFrame, Double>>> replenishes) {
+        return Json.toJson(replenishes);
+    }
 }

@@ -25,8 +25,6 @@ import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
 
 import java.util.HashMap;
 import java.util.List;
@@ -180,16 +178,6 @@ public class Unit extends AggregateRoot {
         Double balance = timeFrameBalance.get(bid.getDirection());
         timeFrameBalance.put(bid.getDirection(), balance + command.getRemainder());
         context.publishPlaceHolderEvent(getAggregateId());
-    }
-
-
-    @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
-            nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    public interface Convertor {
-
-        Convertor INST = Mappers.getMapper(Convertor.class);
-
-
     }
 
 

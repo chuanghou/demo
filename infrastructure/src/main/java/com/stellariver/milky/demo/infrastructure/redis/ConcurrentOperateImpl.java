@@ -3,7 +3,6 @@ package com.stellariver.milky.demo.infrastructure.redis;
 import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.base.SysEx;
-import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.domain.support.dependency.ConcurrentOperate;
 import lombok.AccessLevel;
@@ -20,8 +19,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author houchuang
@@ -34,7 +31,7 @@ public class ConcurrentOperateImpl extends ConcurrentOperate {
 
     private final Map<String, ReentrantLock> lockMap = new ConcurrentHashMap<>();
 
-    static final String compClassName = "com.stellariver.milky.demo.domain.Comp"
+    static private final String compClassName = "com.stellariver.milky.demo.domain.Comp";
 
     @Override
     @SneakyThrows

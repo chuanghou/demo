@@ -25,9 +25,6 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.mapstruct.Builder;
-import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
 
 import java.time.Duration;
 import java.util.*;
@@ -394,17 +391,6 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         realtimeBidProcessor.cancel(command.getBidId());
     }
 
-
-    @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
-            nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    public interface Convertor {
-
-        Convertor INST = Mappers.getMapper(Convertor.class);
-
-        @BeanMapping(builder = @Builder(disableBuilder = true))
-        CompEvent.Created to(Comp comp);
-
-    }
 
 
 }

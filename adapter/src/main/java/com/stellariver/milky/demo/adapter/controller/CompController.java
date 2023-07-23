@@ -6,7 +6,7 @@ import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.adapter.repository.domain.CompDAOAdapter;
+import com.stellariver.milky.demo.adapter.repository.domain.CompDODAOWrapper;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.Stage;
@@ -64,7 +64,7 @@ public class CompController {
     @GetMapping("listComps")
     public Result<List<Comp>> listComps() {
         List<CompDO> compDOs= compDOMapper.selectList(null);
-        List<Comp> comps = Collect.transfer(compDOs, CompDAOAdapter.Convertor.INST::to);
+        List<Comp> comps = Collect.transfer(compDOs, CompDODAOWrapper.Convertor.INST::to);
         return Result.success(comps);
     }
 

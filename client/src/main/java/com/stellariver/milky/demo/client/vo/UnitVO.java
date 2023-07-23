@@ -36,6 +36,4 @@ public class UnitVO {
     List<Bid> valleyBids;
     List<Bid> flatBids;
 
-    List<OrderVO> orderVOs;
-
 }

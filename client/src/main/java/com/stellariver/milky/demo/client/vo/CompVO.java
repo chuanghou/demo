@@ -4,8 +4,6 @@ package com.stellariver.milky.demo.client.vo;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -17,6 +15,5 @@ public class CompVO {
     String date;
     String name;
     String stage;
-    List<AgentVO> agentVOs;
 
 }

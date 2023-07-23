@@ -7,9 +7,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum GeneratorType {
 
-    CLASSIC("传统"), RENEWABLE("新能源")；
+    CLASSIC("传统"), RENEWABLE("新能源");
 
-    final Integer dbCode;
     final String desc;
 
 }

@@ -1,14 +1,11 @@
 package com.stellariver.milky.demo.domain.command;
 
 import com.stellariver.milky.demo.common.Bid;
-import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
-import com.stellariver.milky.demo.common.Order;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.domain.support.event.Event;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
@@ -96,43 +93,6 @@ public class UnitEvent {
 
         Long unitId;
         Unit unit;
-
-        @Override
-        public String getAggregateId() {
-            return unitId.toString();
-        }
-
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class CancelledReported extends Event {
-
-        String unitId;
-        Order order;
-
-        @Override
-        public String getAggregateId() {
-            return unitId;
-        }
-
-    }
-
-
-    @Data
-    @SuperBuilder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @EqualsAndHashCode(callSuper = true)
-    @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class RealtimeDealReported extends Event {
-
-        Long unitId;
-        Long bidId;
-        Deal deal;
 
         @Override
         public String getAggregateId() {

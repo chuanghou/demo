@@ -1,15 +1,16 @@
 package com.stellariver.milky.demo.domain.event;
 
-import com.stellariver.milky.demo.common.*;
+import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.Deal;
+import com.stellariver.milky.demo.common.MarketType;
+import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.Comp;
-import com.stellariver.milky.demo.domain.DealResult;
 import com.stellariver.milky.domain.support.event.Event;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
-import java.util.Map;
 
 public class CompEvent {
 

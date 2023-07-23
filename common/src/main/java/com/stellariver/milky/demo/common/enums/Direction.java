@@ -1,8 +1,5 @@
 package com.stellariver.milky.demo.common.enums;
 
-import com.stellariver.milky.common.base.ErrorEnumsBase;
-import com.stellariver.milky.common.base.SysEx;
-
 public enum Direction {
     BUY {
 
