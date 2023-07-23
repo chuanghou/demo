@@ -5,6 +5,7 @@ import com.stellariver.milky.common.base.Enumeration;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Label;
 import com.stellariver.milky.demo.basic.TokenUtils;
@@ -12,6 +13,8 @@ import com.stellariver.milky.demo.basic.UnitType;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.Round;
+import com.stellariver.milky.demo.domain.AbstractMetaUnit;
+import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.infrastructure.database.entity.*;
 import com.stellariver.milky.demo.infrastructure.database.mapper.*;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
@@ -219,20 +222,22 @@ public class DataController {
 
         List<UnitDO> generatorUnitDOs = unitDOS.stream()
                 .filter(unitDO -> Kit.eq(unitDO.getUnitType(), UnitType.GENERATOR.name())).collect(Collectors.toList());
-        mapPair = loadGenerator(generatorUnitDOs.get(0).getSourceId(), marketType);
+        List<Unit> units = Collect.transfer(unitDOS, UnitDAOAdapter.Convertor.INST::to);
+        List<List<AbstractMetaUnit>> metaUnits = units.stream().map(Unit::getMetaUnit).collect(Collect.select(
+                u -> Kit.eq(u.getUnitType(), UnitType.GENERATOR),
+                u -> Kit.eq(u.getUnitType(), UnitType.LOAD)
+        ));
+        mapPair = loadGenerator(metaUnits.get(0).get(0).getSourceId(), marketType);
         result.put(mapPair.getKey(), mapPair.getValue());
 
-        mapPair = loadGenerator(generatorUnitDOs.get(1).getSourceId(), marketType);
+        mapPair = loadGenerator(metaUnits.get(0).get(1).getSourceId(), marketType);
         result.put(mapPair.getKey(), mapPair.getValue());
 
-        List<UnitDO> loadUnitDOs = unitDOS.stream()
-                .filter(unitDO -> Kit.eq(unitDO.getUnitType(), UnitType.LOAD.name())).collect(Collectors.toList());
-
-        mapPair = loadLoad(loadUnitDOs.get(0).getSourceId());
+        mapPair = loadLoad(metaUnits.get(1).get(0).getSourceId());
         result.put(mapPair.getKey(), mapPair.getValue());
 
 
-        mapPair = loadLoad(loadUnitDOs.get(0).getSourceId());
+        mapPair = loadLoad(metaUnits.get(1).get(1).getSourceId());
         result.put(mapPair.getKey(), mapPair.getValue());
 
         return result;

@@ -61,8 +61,6 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
             boolean b = Kit.eq(metaUnitDO.getUnitType(), UnitType.GENERATOR);
             unit.setMetaUnit(b ? Convertor.INST.toGeneratorMetaUnit(metaUnitDO) : Convertor.INST.toLoadMetaUnit(metaUnitDO));
 
-
-
         }
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
