@@ -17,19 +17,19 @@ import lombok.experimental.SuperBuilder;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("unit_do")
+@TableName("demo_unit")
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UnitDO extends AbstractMpDO implements BaseDataObject<String> {
+public class UnitDO extends AbstractMpDO implements BaseDataObject<Long> {
 
     @TableId(type = IdType.INPUT)
-    String unitId;
+    Long unitId;
     Integer userId;
     Long compId;
     Integer roundId;
 
-    Integer meatUnitId;
+    Integer metaUnitId;
     String province;    // for query
     String unitType;    // for query
 
@@ -38,7 +38,7 @@ public class UnitDO extends AbstractMpDO implements BaseDataObject<String> {
     String balances;
 
     @Override
-    public String getPrimaryId() {
+    public Long getPrimaryId() {
         return unitId;
     }
 
