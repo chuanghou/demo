@@ -63,6 +63,7 @@ public class Routers implements EventRouters {
             metaUnitIds.forEach(metaUnitId -> {
                 UnitCommand.Create command = UnitCommand.Create.builder()
                         .unitId(uniqueIdBuilder.get())
+                        .userId(userId)
                         .compId(comp.getCompId())
                         .roundId(comp.getRoundId())
                         .metaUnit(metaUnits.get(metaUnitId))

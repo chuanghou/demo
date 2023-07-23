@@ -70,6 +70,13 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
         @BeanMapping(builder = @Builder(disableBuilder = true))
         UnitDO to(Unit unit);
 
+        @AfterMapping
+        default void after(Unit unit, @MappingTarget UnitDO unitDO) {
+            unitDO.setMetaUnitId(unit.getMetaUnit().getMetaUnitId());
+            unitDO.setProvince(unit.getMetaUnit().getProvince().name());
+            unitDO.setUnitType(unit.getMetaUnit().getUnitType().name());
+        }
+
         @BeanMapping(builder = @Builder(disableBuilder = true))
         GeneratorMetaUnit toGeneratorMetaUnit(MetaUnitDO metaUnitDO);
 

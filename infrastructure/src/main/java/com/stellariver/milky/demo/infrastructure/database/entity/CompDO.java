@@ -23,7 +23,7 @@ public class CompDO extends AbstractMpDO implements BaseDataObject<Long> {
     @TableId(type = IdType.INPUT)
     Long compId;
 
-    Integer agentTotal;
+    Integer userTotal;
     Integer roundTotal;
     Integer roundId;
     String compStatus;

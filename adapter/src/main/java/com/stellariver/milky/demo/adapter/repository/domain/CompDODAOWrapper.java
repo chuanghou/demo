@@ -36,7 +36,9 @@ public class CompDODAOWrapper implements DAOWrapper<Comp, Long> {
     @Override
     public int batchSave(@NonNull List<Comp> comps) {
         comps.forEach(comp -> compMap.put(comp.getCompId(), comp));
-        ConcurrentTool.batchCallFuture(comps, c -> compDOMapper.insert(Convertor.INST.to(c)), executor);
+//        ConcurrentTool.batchCallFuture(comps, c -> compDOMapper.insert(Convertor.INST.to(c)), executor);
+//        ConcurrentTool.batchCallFuture(comps, c -> compDOMapper.insert(Convertor.INST.to(c)), executor);
+        comps.forEach(comp -> compDOMapper.insert(Convertor.INST.to(comp)));
         return comps.size();
     }
 

@@ -152,6 +152,7 @@ public class UnitCommand {
     public static class Create extends Command {
 
         Long unitId;
+        Integer userId;
         Long compId;
         Integer roundId;
         AbstractMetaUnit metaUnit;

@@ -78,4 +78,12 @@ public interface BasicConvertor {
         return Json.toJson(centralizedBids);
     }
 
+    default Map<TimeFrame, Direction> toDirections(String value) {
+        return Json.parse(value, new TypeReference<Map<TimeFrame, Direction>>() {});
+    }
+
+    default String fromDirections(Map<TimeFrame, Direction> directions) {
+        return Json.toJson(directions);
+    }
+
 }

@@ -66,6 +66,7 @@ public class Unit extends AggregateRoot {
     public static Unit create(UnitCommand.Create create, Context context) {
         Unit unit = new Unit();
         unit.setUnitId(create.getUnitId());
+        unit.setUserId(create.getUserId());
         unit.setCompId(create.getCompId());
         unit.setRoundId(create.getRoundId());
         unit.setMetaUnit(create.getMetaUnit());

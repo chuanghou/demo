@@ -33,7 +33,7 @@ public class MetaUnitDO {
     String province;
     String unitType;
     Integer sourceId;
-    Map<TimeFrame, Map<Direction, Double>> capacity;
+    String capacity;
     String generatorType; // only uniType is generator, this field is not null
 
 }
