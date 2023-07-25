@@ -8,16 +8,15 @@ import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
 import com.stellariver.milky.domain.support.dependency.DAOWrapper;
 import com.stellariver.milky.domain.support.util.ThreadLocalTransferableExecutor;
-import lombok.AccessLevel;
-import lombok.CustomLog;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.mapstruct.*;
+import org.mapstruct.Builder;
 import org.mapstruct.factory.Mappers;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 /**
  * @author houchuang
@@ -34,11 +33,10 @@ public class CompDODAOWrapper implements DAOWrapper<Comp, Long> {
     final ThreadLocalTransferableExecutor executor;
 
     @Override
+    @SneakyThrows
     public int batchSave(@NonNull List<Comp> comps) {
         comps.forEach(comp -> compMap.put(comp.getCompId(), comp));
-//        ConcurrentTool.batchCallFuture(comps, c -> compDOMapper.insert(Convertor.INST.to(c)), executor);
-//        ConcurrentTool.batchCallFuture(comps, c -> compDOMapper.insert(Convertor.INST.to(c)), executor);
-        comps.forEach(comp -> compDOMapper.insert(Convertor.INST.to(comp)));
+        ConcurrentTool.batchCallFuture(comps, c -> compDOMapper.insert(Convertor.INST.to(c)), executor);
         return comps.size();
     }
 

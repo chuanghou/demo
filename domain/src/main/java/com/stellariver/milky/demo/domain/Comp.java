@@ -68,13 +68,13 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         Comp comp = new Comp();
         comp.setCompId(create.getCompId());
         comp.setRoundTotal(3);
-        comp.setCompStatus(Status.CompStatus.END);
+        comp.setCompStatus(Status.CompStatus.INIT);
         comp.setRoundId(0);
         comp.setMarketType(MarketType.INTER_ANNUAL_PROVINCIAL);
         comp.setMarketStatus(Status.MarketStatus.CLOSE);
         comp.setPriceLimit(create.getPriceLimit());
         comp.setTransLimit(new HashMap<>());
-        comp.setDurations(new ArrayList<>());
+        comp.setDurations(create.getDurations());
         comp.setReplenishes(new ArrayList<>());
         comp.setUserTotal(create.getAgentTotal());
 
@@ -88,8 +88,9 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     @MethodHandler
     public void start(CompCommand.Start start, Context context) {
-        BizEx.trueThrow(compStatus != Status.CompStatus.END, ErrorEnums.CONFIG_ERROR.message("需要初始化项目"));
+        BizEx.trueThrow(compStatus != Status.CompStatus.INIT, ErrorEnums.CONFIG_ERROR.message("需要初始化项目"));
         compStatus = Status.CompStatus.OPEN;
+        marketStatus = Status.MarketStatus.OPEN;
         CompEvent.Started started = CompEvent.Started.builder().compId(compId).build();
         context.publish(started);
     }

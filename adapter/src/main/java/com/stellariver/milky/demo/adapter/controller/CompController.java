@@ -6,6 +6,7 @@ import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.common.tool.util.StreamMap;
 import com.stellariver.milky.demo.adapter.repository.domain.CompDODAOWrapper;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Role;
@@ -16,6 +17,7 @@ import com.stellariver.milky.demo.common.GridLimit;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.PriceLimit;
 import com.stellariver.milky.demo.common.Status;
+import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.CompCommand;
@@ -35,6 +37,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,17 +57,12 @@ public class CompController {
 
     @GetMapping("runningComp")
     public Result<Comp> runningComp() {
-
-        Comp build = Comp.builder().compId(1L).compStatus(Status.CompStatus.OPEN).marketStatus(Status.MarketStatus.OPEN)
-                .marketType(MarketType.INTER_ANNUAL_PROVINCIAL)
-                .build();
-        return Result.success(build);
-//        LambdaQueryWrapper<CompDO> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.ne(CompDO::getCompStatus, Status.CompStatus.END);
-//        List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
-//        BizEx.trueThrow(compDOs.size() > 1, ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛，请联系管理员"));
-//        Comp comp = domainTunnel.getByAggregateId(Comp.class, compDOs.get(0).getCompId().toString());
-//        return Result.success(comp);
+        LambdaQueryWrapper<CompDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.ne(CompDO::getCompStatus, Status.CompStatus.END);
+        List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
+        BizEx.trueThrow(compDOs.size() > 1, ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛，请联系管理员"));
+        Comp comp = domainTunnel.getByAggregateId(Comp.class, compDOs.get(0).getCompId().toString());
+        return Result.success(comp);
     }
 
     @GetMapping("listComps")
@@ -87,16 +85,27 @@ public class CompController {
         queryWrapper.ne(CompDO::getCompStatus, Status.CompStatus.END);
         List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
         BizEx.trueThrow(compDOs.size() == 1, ErrorEnums.PARAM_FORMAT_WRONG.message("存在一个非关闭状态竞赛, 请关闭后再创建新的"));
-        SysEx.trueThrow(compDOs.size() >= 1, ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛, 请联系系统管理员"));
+        SysEx.trueThrow(compDOs.size() > 1, ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛, 请联系系统管理员"));
         Long compId = uniqueIdBuilder.get();
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);
         GridLimit generatorPriceLimit = GridLimit.builder().low(marketSettingDO.getOfferPriceFloor()).high(marketSettingDO.getOfferPriceCap()).build();
         GridLimit loadPriceLimit = GridLimit.builder().low(marketSettingDO.getBidPriceFloor()).high(marketSettingDO.getBidPriceCap()).build();
         PriceLimit priceLimit = PriceLimit.builder().generatorPriceLimit(generatorPriceLimit).loadPriceLimit(loadPriceLimit).build();
+
+        //TODO add real trans limit
+        GridLimit gridLimit = GridLimit.builder().low(50D).high(100D).build();
+        Map<TimeFrame, GridLimit> map = Collect.asMap(TimeFrame.PEAK, gridLimit, TimeFrame.FLAT, gridLimit, TimeFrame.VALLEY, gridLimit);
+        Map<MarketType, Map<TimeFrame, GridLimit>> transLimit =
+                Collect.asMap(MarketType.INTER_ANNUAL_PROVINCIAL, map, MarketType.INTER_MONTHLY_PROVINCIAL, map, MarketType.INTER_SPOT_PROVINCIAL, map);
+
+        Map<MarketType, Duration> durations = new HashMap<>();
+        Arrays.stream(MarketType.values()).forEach(marketType -> durations.put(marketType, Duration.of(1, ChronoUnit.SECONDS)));
         CompCommand.Create command = CompCommand.Create.builder()
                 .compId(compId)
                 .agentTotal(agentNumber)
                 .priceLimit(priceLimit)
+                .transLimit(transLimit)
+                .durations(Arrays.asList(durations, durations, durations))
                 .build();
         CommandBus.accept(command, new HashMap<>());
         return Result.success();
