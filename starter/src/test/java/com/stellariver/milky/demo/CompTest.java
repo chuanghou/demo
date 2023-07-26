@@ -4,6 +4,7 @@ import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.demo.adapter.controller.CompController;
 import com.stellariver.milky.demo.adapter.controller.UserController;
 import com.stellariver.milky.demo.client.po.LoginPO;
+import com.stellariver.milky.demo.client.vo.LogInVO;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.Comp;
@@ -37,10 +38,10 @@ public class CompTest {
     public void testComp() throws InterruptedException {
         compDOMapper.selectList(null).forEach(compDO -> compDOMapper.deleteById(compDO.getCompId()));
         LoginPO loginPO = LoginPO.builder().userId("1000").password("admin").build();
-        Result<String> loginResult = userController.login(loginPO);
-        Assertions.assertNotNull(loginResult);
-        Assertions.assertTrue(loginResult.getSuccess());
-        String token = loginResult.getData();
+        Result<LogInVO> logInVO = userController.login(loginPO);
+        Assertions.assertNotNull(logInVO);
+        Assertions.assertTrue(logInVO.getSuccess());
+        String token = logInVO.getData().getToken();
         compController.create(token, 5);
         Thread.sleep(1000);
 

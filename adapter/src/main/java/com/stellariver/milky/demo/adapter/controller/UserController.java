@@ -1,14 +1,13 @@
 package com.stellariver.milky.demo.adapter.controller;
 
-import com.stellariver.milky.common.base.BaseEx;
-import com.stellariver.milky.common.base.ExceptionType;
-import com.stellariver.milky.common.base.PageResult;
-import com.stellariver.milky.common.base.Result;
+import com.stellariver.milky.common.base.*;
 import com.stellariver.milky.common.tool.common.Typed;
+import com.stellariver.milky.demo.basic.LogIn;
 import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.client.po.LoginPO;
 import com.stellariver.milky.demo.client.po.UserAddPO;
+import com.stellariver.milky.demo.client.vo.LogInVO;
 import com.stellariver.milky.demo.client.vo.UserVO;
 import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.UserLogin;
@@ -62,18 +61,21 @@ public class UserController {
 
 
     @GetMapping("login")
-    public Result<String> login(@RequestBody LoginPO loginPO) {
+    public Result<LogInVO> login(@RequestBody LoginPO loginPO) {
         UserLogin userLogin = UserLogin.builder().userId(loginPO.getUserId()).password(loginPO.getPassword()).build();
         Map<Class<? extends Typed<?>>, Object> parameters = new HashMap<>();
-        String token = null;
+        LogIn logIn;
         try {
-            token = (String) CommandBus.accept(userLogin, parameters);
+            logIn = (LogIn) CommandBus.accept(userLogin, parameters);
         } catch (BaseEx baseEx) {
             if (baseEx.getFirstError().getCode().equals(ErrorEnums.AGGREGATE_NOT_EXISTED.getCode())) {
                 return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("账户不存在"), ExceptionType.BIZ);
+            } else {
+                throw new SysEx(ErrorEnums.SYS_EX);
             }
         }
-        return Result.success(token);
+        LogInVO logInVO = LogInVO.builder().token(logIn.getToken()).role(logIn.getRole().name()).build();
+        return Result.success(logInVO);
     }
 
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
