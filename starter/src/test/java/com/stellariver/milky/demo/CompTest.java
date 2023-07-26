@@ -55,7 +55,69 @@ public class CompTest {
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
+        Thread.sleep(1100);
+
+        runningComp = compController.runningComp().getData();
+        Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
+
+        Thread.sleep(1100);
+
+        Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_ANNUAL_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
+
+        Thread.sleep(1100);
+
+        Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_ANNUAL_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
+
+        compController.step(token, runningComp.getCompId());
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_MONTHLY_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
+
+        compController.step(token, runningComp.getCompId());
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_MONTHLY_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
+
+        compController.step(token, runningComp.getCompId());
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_MONTHLY_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
+
+        compController.step(token, runningComp.getCompId());
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_MONTHLY_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
+
+        compController.step(token, runningComp.getCompId());
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_SPOT_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
+
+        compController.step(token, runningComp.getCompId());
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_SPOT_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
+
+        compController.step(token, runningComp.getCompId());
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_SPOT_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
+
+        compController.step(token, runningComp.getCompId());
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_SPOT_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
+
+        compController.step(token, runningComp.getCompId());
+
+        Assertions.assertSame(runningComp.getRoundId(), 1);
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
+
+        compController.step(token, runningComp.getCompId());
+        Assertions.assertSame(runningComp.getRoundId(), 1);
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
 
     }
+
 
 }

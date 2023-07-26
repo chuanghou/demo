@@ -73,7 +73,7 @@ public class CompController {
     }
 
 
-    @GetMapping("create")
+    @PostMapping("create")
     public Result<Void> create(@RequestHeader("token") String token,
                                @RequestParam @NotNull @Positive Integer agentNumber) {
         User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
@@ -154,9 +154,7 @@ public class CompController {
                 .marketType(comp.getMarketType()).marketStatus(comp.getMarketStatus()).build().next(comp.getRoundTotal());
         CompCommand.Step command = CompCommand.Step.builder()
                 .compId(compId)
-                .targetRoundId(nextStage.getRoundId())
-                .targetMarketType(nextStage.getMarketType())
-                .targetMarketStatus(nextStage.getMarketStatus())
+                .nextStage(nextStage)
                 .build();
         CommandBus.accept(command, new HashMap<>());
         return Result.success();

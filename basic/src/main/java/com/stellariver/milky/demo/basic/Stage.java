@@ -24,10 +24,14 @@ public class Stage {
         Status.MarketStatus nextMarketStatus = this.marketStatus.opposite();
         Integer nextRoundId = this.roundId;
         MarketType nextMarketType = this.marketType;
+
+
         if (nextMarketStatus == Status.MarketStatus.OPEN) {
-            nextRoundId = (nextRoundId + 1) % roundIdTotal;
             int nextDbCode = marketType.getDbCode() + 1;
             nextMarketType = Kit.enumOfMightEx(MarketType::getDbCode, nextDbCode);
+            if (nextMarketType == MarketType.INTER_ANNUAL_PROVINCIAL) {
+                nextRoundId = nextRoundId + 1;
+            }
         }
         return Stage.builder()
                 .roundId(nextRoundId)

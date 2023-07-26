@@ -8,7 +8,9 @@ import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.MetaUnitDO;
+import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.MetaUnitDOMapper;
+import com.stellariver.milky.demo.infrastructure.database.mapper.UnitDOMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -26,16 +28,14 @@ import java.util.stream.Collectors;
 public class TunnelImpl implements Tunnel {
 
     final MetaUnitDOMapper metaUnitDOMapper;
-
-
-    @Override
-    public List<Unit> getByCompId(Long compId) {
-        return null;
-    }
+    final UnitDOMapper unitDOMapper;
 
     @Override
     public List<Unit> listUnitsByCompId(Long compId) {
-        return null;
+        LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UnitDO::getCompId, compId);
+        List<UnitDO> unitDOs = unitDOMapper.selectList(queryWrapper);
+        return Collect.transfer(unitDOs, UnitDAOAdapter.Convertor.INST::to);
     }
 
     @Override

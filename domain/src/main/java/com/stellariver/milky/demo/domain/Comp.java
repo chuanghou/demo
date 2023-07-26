@@ -107,18 +107,12 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
         Stage lastStage = Stage.builder().roundId(roundId).marketStatus(marketStatus).marketType(marketType).build();
 
-        Stage targetStage = Stage.builder()
-                .roundId(command.getTargetRoundId())
-                .marketStatus(command.getTargetMarketStatus())
-                .marketType(command.getTargetMarketType())
-                .build();
-
-        if (lastStage.laterThan(targetStage) || lastStage.equals(targetStage)) {
+        if (lastStage.laterThan(command.getNextStage()) || lastStage.equals(command.getNextStage())) {
             return;
-        }  else if (lastStage.next(roundTotal).equals(targetStage)){
-            roundId = targetStage.getRoundId();
-            marketType = targetStage.getMarketType();
-            marketStatus = targetStage.getMarketStatus();
+        }  else if (lastStage.next(roundTotal).equals(command.getNextStage())){
+            roundId = command.getNextStage().getRoundId();
+            marketType = command.getNextStage().getMarketType();
+            marketStatus = command.getNextStage().getMarketStatus();
         } else {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }

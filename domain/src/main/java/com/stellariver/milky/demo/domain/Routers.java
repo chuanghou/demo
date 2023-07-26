@@ -33,7 +33,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 
 
 @RequiredArgsConstructor
@@ -73,10 +72,6 @@ public class Routers implements EventRouters {
         });
     }
 
-    public static void main(String[] args) {
-
-    }
-
 
     //TODO 如果机组及负荷数量变化，这里的值需要改
     private Set<Integer> allocateSourceId(Integer roundId, Integer userIdTotal, Integer userId) {
@@ -88,8 +83,15 @@ public class Routers implements EventRouters {
     public void route(CompEvent.Started started, Context context) {
         Comp comp = context.getByAggregateId(Comp.class, started.getAggregateId());
         Duration duration = comp.getDurations().get(0).get(MarketType.INTER_ANNUAL_PROVINCIAL);
+        Stage next = Stage.builder()
+                .roundId(comp.getRoundId())
+                .marketType(comp.getMarketType())
+                .marketStatus(comp.getMarketStatus())
+                .build()
+                .next(comp.getRoundTotal());
         scheduledExecutorService.schedule(() -> {
-            CompCommand.Step command = CompCommand.Step.builder().compId(started.getCompId()).build();
+
+            CompCommand.Step command = CompCommand.Step.builder().compId(started.getCompId()).nextStage(next).build();
             CommandBus.accept(command, new HashMap<>());
         }, duration.getSeconds(), TimeUnit.SECONDS);
     }
@@ -105,13 +107,10 @@ public class Routers implements EventRouters {
                     .roundId(stepped.getNextRoundId())
                     .marketType(stepped.getNextMarketType())
                     .marketStatus(stepped.getNextMarketStatus())
-                    .build();
-            CompCommand.Step command = CompCommand.Step
-                    .builder()
+                    .build().next(comp.getRoundTotal());
+            CompCommand.Step command = CompCommand.Step.builder()
                     .compId(stepped.getCompId())
-                    .targetRoundId(nexStage.getRoundId())
-                    .targetMarketType(nexStage.getMarketType())
-                    .targetMarketStatus(nexStage.getMarketStatus())
+                    .nextStage(nexStage)
                     .build();
             CommandBus.accept(command, new HashMap<>());
         }, duration.getSeconds(), TimeUnit.SECONDS);

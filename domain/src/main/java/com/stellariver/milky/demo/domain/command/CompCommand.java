@@ -1,5 +1,6 @@
 package com.stellariver.milky.demo.domain.command;
 
+import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
@@ -116,9 +117,7 @@ public class CompCommand {
     public static class Step extends Command {
 
         Long compId;
-        Integer targetRoundId;
-        MarketType targetMarketType;
-        Status.MarketStatus targetMarketStatus;
+        Stage nextStage;
 
         @Override
         public String getAggregateId() {

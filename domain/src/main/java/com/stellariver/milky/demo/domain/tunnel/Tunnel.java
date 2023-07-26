@@ -10,8 +10,6 @@ import java.util.Set;
 
 public interface Tunnel {
 
-    List<Unit> getByCompId(Long compId);
-
     List<Unit> listUnitsByCompId(Long compId);
 
     AbstractMetaUnit getByMetaUnitId(String metaUnitId);
