@@ -1,5 +1,6 @@
 package com.stellariver.milky.demo.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -52,10 +53,12 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     PriceLimit priceLimit;
     Map<MarketType, Map<TimeFrame, GridLimit>> transLimit;
     List<Map<MarketType, Duration>> durations;
-
+    @JsonIgnore
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
+    @JsonIgnore
     List<Map<MarketType, List<Bid>>> centralizedBids = new ArrayList<>();
 
+    @JsonIgnore
     Map<Pair<Province, TimeFrame>, RealtimeBidProcessor> rtBidProcessors = new ConcurrentHashMap<>();
 
     @Override
