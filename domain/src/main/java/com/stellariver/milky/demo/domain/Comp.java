@@ -120,7 +120,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
 
-        boolean b = Objects.equals(roundId, roundTotal) && marketType == MarketType.INTER_SPOT_PROVINCIAL;
+        boolean b = Objects.equals(roundId, roundTotal);
         BizEx.trueThrow(b, ErrorEnums.CONFIG_ERROR.message("已经到了最后一轮"));
 
         CompEvent.Stepped stepped = builder
