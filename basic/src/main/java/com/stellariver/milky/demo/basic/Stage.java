@@ -27,7 +27,7 @@ public class Stage {
 
 
         if (nextMarketStatus == Status.MarketStatus.OPEN) {
-            int nextDbCode = marketType.getDbCode() + 1;
+            int nextDbCode = (marketType.getDbCode() + 1)%MarketType.values().length;
             nextMarketType = Kit.enumOfMightEx(MarketType::getDbCode, nextDbCode);
             if (nextMarketType == MarketType.INTER_ANNUAL_PROVINCIAL) {
                 nextRoundId = nextRoundId + 1;

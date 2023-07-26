@@ -60,9 +60,14 @@ public class CompController {
         LambdaQueryWrapper<CompDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.ne(CompDO::getCompStatus, Status.CompStatus.END);
         List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
-        BizEx.trueThrow(compDOs.size() > 1, ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛，请联系管理员"));
-        Comp comp = domainTunnel.getByAggregateId(Comp.class, compDOs.get(0).getCompId().toString());
-        return Result.success(comp);
+        if (compDOs.size() > 1) {
+            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛，请联系管理员"), ExceptionType.BIZ);
+        } else if (compDOs.size() == 0) {
+            return Result.success();
+        } else {
+            Comp comp = CompDODAOWrapper.Convertor.INST.to(compDOs.get(0));
+            return Result.success(comp);
+        }
     }
 
     @GetMapping("listComps")
@@ -123,6 +128,21 @@ public class CompController {
         CommandBus.accept(command, new HashMap<>());
         return Result.success();
     }
+
+    @PostMapping("closeAll")
+    public Result<Void> closeAll(@RequestHeader String token) {
+        User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
+        if (user.getRole() != Role.ADMIN) {
+            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
+        }
+        List<CompDO> compDOS = compDOMapper.selectList(null);
+        compDOS.forEach(compDO -> {
+            compDO.setCompStatus(Status.CompStatus.END.name());
+            compDOMapper.updateById(compDO);
+        });
+        return Result.success();
+    }
+
 
     @PostMapping("edit")
     public Result<Void> edit(@RequestHeader String token,
