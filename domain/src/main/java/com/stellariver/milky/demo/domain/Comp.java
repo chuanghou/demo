@@ -27,6 +27,7 @@ import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -271,10 +272,8 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         List<Double> collect1 = buyPointLines.stream().map(PointLine::getRightX).collect(Collectors.toList());
         List<Double> collect2 = sellPointLines.stream().map(PointLine::getLeftX).collect(Collectors.toList());
         List<Double> collect3 = sellPointLines.stream().map(PointLine::getRightX).collect(Collectors.toList());
-        List<Double> xes = Stream.of(collect0, collect1, collect2, collect3)
-                .flatMap(Collection::stream).distinct()
-                .sorted(Double::compareTo)
-                .collect(Collectors.toList());
+        List<Double> xes = Stream.of(collect0, collect1, collect2, collect3).flatMap(Collection::stream).distinct()
+                .sorted(Double::compareTo).collect(Collectors.toList());
 
 
         Pair<Double, Double> interPoint = null;
@@ -326,6 +325,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         List<PointLine> sellPointLines;
         Function<Double, Range<Double>> buyFunction;
         Function<Double, Range<Double>> sellFunction;
+        @Nullable
         Pair<Double, Double> interPoint;
 
     }
