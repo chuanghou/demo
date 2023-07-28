@@ -148,9 +148,9 @@ public class Routers implements EventRouters {
 
     @EventRouter
     public void route(CompEvent.Cleared event, Context context) {
-        ListMultimap<Long, Deal> collect = event.getDeals().stream().collect(Collect.listMultiMap(Deal::getUnitId));
-        collect.keySet().forEach(unitId -> {
-            List<Deal> deals = collect.get(unitId);
+        ListMultimap<Long, Deal> dealMultiMap = event.getDeals().stream().collect(Collect.listMultiMap(Deal::getUnitId));
+        dealMultiMap.keySet().forEach(unitId -> {
+            List<Deal> deals = dealMultiMap.get(unitId);
             UnitCommand.DealReport command = UnitCommand.DealReport.builder().unitId(unitId).deals(deals).build();
             CommandBus.driveByEvent(command, event);
         });

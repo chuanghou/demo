@@ -83,7 +83,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         comp.setUserTotal(create.getAgentTotal());
 
         IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getReplenishes().add(new HashMap<>()));
-        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getCentralizedBids().add(new ConcurrentHashMap<>()));
+        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getCentralizedBids().add(new HashMap<>()));
 
         context.publish(CompEvent.Created.builder().compId(comp.getCompId()).comp(comp).build());
         return comp;
@@ -144,8 +144,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     @MethodHandler
     public void handle(CompCommand.CentralizedBid command, Context context) {
-        centralizedBids.get(roundId)
-                .computeIfAbsent(command.getMarketType(), k -> new ArrayList<>()).addAll(command.getBids());
+        centralizedBids.get(roundId).computeIfAbsent(command.getMarketType(), k -> new ArrayList<>()).addAll(command.getBids());
         CompEvent.CentralizedBidAccept event = CompEvent.CentralizedBidAccept.builder()
                 .compId(compId)
                 .roundId(roundId)
@@ -157,20 +156,14 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     @MethodHandler
     public void handle(CompCommand.Clear clear, Context context) {
-
-        SysEx.trueThrow(Status.MarketStatus.CLOSE != marketStatus, ErrorEnums.SYS_EX);
         List<Bid> bids = centralizedBids.get(roundId).get(marketType);
-
         List<Bid> buyBids = bids.stream().filter(bid -> bid.getDirection() == Direction.BUY).collect(Collectors.toList());
         List<Bid> sellBids = bids.stream().filter(bid -> bid.getDirection() == Direction.SELL).collect(Collectors.toList());
         List<Deal> deals = Arrays.stream(TimeFrame.values())
                 .map(timeFrame -> clear(buyBids, sellBids, timeFrame)).flatMap(Collection::stream).collect(Collectors.toList());
         CompEvent.Cleared event = CompEvent.Cleared.builder().compId(compId).marketType(marketType).deals(deals).build();
         context.publish(event);
-
     }
-
-
 
     /**
      * |
@@ -190,66 +183,80 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         ResolveResult resolveResult = resolveInterPoint(buyBids, sellBids);
         Pair<Double, Double> interPoint = resolveResult.getInterPoint();
         GridLimit gridLimit = transLimit.get(marketType).get(timeFrame);
-        Triple<Double, Double, Double> triple;
+        Triple<Double, Double, Double> triple;  // left --> deal quantity, middle -> deal price, middle -> replenish
         if (interPoint == null) {
-            triple = Triple.of(0D, null, null);
+            triple = Triple.of(0D, null, 0D);
         } else if (interPoint.getLeft() <= gridLimit.getLow()) {
             triple = Triple.of(interPoint.getLeft(), interPoint.getRight(), gridLimit.getLow() - interPoint.getLeft());
         } else if (interPoint.getLeft() > gridLimit.getLow() && interPoint.getLeft() <= gridLimit.getHigh()) {
-            triple =  Triple.of(interPoint.getLeft(), interPoint.getRight(), null);
+            triple =  Triple.of(interPoint.getLeft(), interPoint.getRight(), 0D);
         } else if (interPoint.getLeft() > gridLimit.getHigh()) {
             Range<Double> buyRange = resolveResult.getBuyFunction().apply(gridLimit.getHigh());
             Range<Double> sellRange = resolveResult.getSellFunction().apply(gridLimit.getHigh());
             double buyPrice = (buyRange.lowerEndpoint()  + buyRange.upperEndpoint()) / 2;
             double sellPrice = (sellRange.lowerEndpoint()  + sellRange.upperEndpoint()) / 2;
             double price = (buyPrice + sellPrice) / 2;
-            triple = Triple.of(gridLimit.getHigh(), price, null);
+            triple = Triple.of(gridLimit.getHigh(), price, 0D);
         } else {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
 
-        Double dealPrice;
-        Double dealQuantity;
-
-        List<Deal> deals = new ArrayList<>();
-
-        for (PointLine pointLine : resolveResult.getBuyPointLines()) {
-            if (pointLine.getLeftX() + pointLine.getQuantity() < triple.getLeft()) {
-                dealQuantity = pointLine.getQuantity();
-                dealPrice = triple.getMiddle();
-            } else if (pointLine.getLeftX() < triple.getLeft()){
-                dealQuantity = triple.getLeft() - pointLine.getLeftX();
-                dealPrice = triple.getMiddle();
-            } else {
-                break;
-            }
-
-            Long bidId = pointLine.getBidId();
-            Long unitId = pointLine.getUnitId();
-            Deal deal = Deal.builder().bidId(bidId).unitId(unitId).quantity(dealQuantity).price(dealPrice).build();
-        }
-
-
-        for (PointLine pointLine : resolveResult.getSellPointLines()) {
-            if (pointLine.getLeftX() + pointLine.getQuantity() < triple.getLeft()) {
-                dealQuantity = pointLine.getQuantity();
-                dealPrice = triple.getMiddle();
-            } else if (pointLine.getLeftX() < triple.getLeft()){
-                dealQuantity = triple.getLeft() - pointLine.getLeftX();
-                dealPrice = triple.getMiddle();
-            } else {
-                break;
-            }
-
-            Long bidId = pointLine.getBidId();
-            Long unitId = pointLine.getUnitId();
-            Deal deal = Deal.builder().bidId(bidId).unitId(unitId).quantity(dealQuantity).price(dealPrice).build();
-            deals.add(deal);
-        }
-
-        return deals;
+        List<Deal> buyDeals = resolveDeals(resolveResult.getBuyPointLines(), triple);
+        List<Deal> sellDeals = resolveDeals(resolveResult.getSellPointLines(), triple);
+        Map<TimeFrame, Double> replenishMap = replenishes.get(roundId).get(marketType);
+        replenishMap.put(timeFrame, triple.getRight());
+        return Stream.of(buyDeals, sellDeals).flatMap(Collection::stream).collect(Collectors.toList());
 
     }
+
+    private List<Deal> resolveDeals(List<PointLine> pointLines, Triple<Double, Double, Double> triple) {
+        Double dealQuantity, dealPrice;
+        List<Deal> deals = new ArrayList<>();
+        if (triple.getLeft() == null) {
+            return deals;
+        }
+        for (int i = 0; i < pointLines.size(); i++) {
+            PointLine pointLine = pointLines.get(i);
+            if (pointLine.getLeftX() + pointLine.getQuantity() <= triple.getLeft()) {
+                dealQuantity = pointLine.getQuantity();
+                dealPrice = triple.getMiddle();
+                Long bidId = pointLine.getBidId();
+                Long unitId = pointLine.getUnitId();
+                Deal deal = Deal.builder().bidId(bidId).unitId(unitId).quantity(dealQuantity).price(dealPrice).build();
+                deals.add(deal);
+            } else if (pointLine.getLeftX() < triple.getLeft()) {
+                dealQuantity = triple.getLeft() - pointLine.getLeftX();
+                dealPrice = triple.getMiddle();
+                int reverseIndex = 0;
+                List<PointLine> pLines = new ArrayList<>();
+                do {
+                    PointLine pLine = pointLines.get(i - reverseIndex);
+                    if (!Kit.eq(pLine.getPrice(), dealPrice)) {
+                        break;
+                    } else {
+                        pLines.add(pLine);
+                    }
+                } while (++reverseIndex <= i);
+
+                Double totalQuantity = pLines.stream().map(PointLine::getQuantity).reduce(0D, Double::sum);
+                Double finalDealQuantity = dealQuantity;
+                pLines.forEach(pL -> {
+                    double realDealQuantity = (pL.getQuantity() / totalQuantity) * finalDealQuantity;
+                    Double realDealPrice = triple.getMiddle();
+                    Long bidId = pL.getBidId();
+                    Long unitId = pL.getUnitId();
+                    Deal deal = Deal.builder().bidId(bidId).unitId(unitId).quantity(realDealQuantity).price(realDealPrice).build();
+                    deals.add(deal);
+                });
+                break;
+            } else {
+                throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+            }
+
+        }
+        return deals;
+    }
+
 
 
     public ResolveResult resolveInterPoint(List<Bid> buyBids, List<Bid> sellBids) {
