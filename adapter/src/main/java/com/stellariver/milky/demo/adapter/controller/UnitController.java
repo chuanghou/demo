@@ -64,13 +64,11 @@ public class UnitController {
     public Result<Void> centralizedBid(@RequestBody CentralizedBidPO centralizedBidPO, @RequestHeader("token") String token) {
         Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
         Unit unit = domainTunnel.getByAggregateId(Unit.class, centralizedBidPO.getUnitId().toString());
-        Comp comp = tunnel.currentComp();
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
         List<Bid> bids = Collect.transfer(centralizedBidPO.getBids(), Convertor.INST::to);
         bids.forEach(bid -> bid.setUnitId(centralizedBidPO.getUnitId()));
         UnitCommand.CentralizedBid command = UnitCommand.CentralizedBid.builder().unitId(centralizedBidPO.getUnitId()).bids(bids).build();
         CommandBus.accept(command, new HashMap<>());
-
         return Result.success();
     }
 
