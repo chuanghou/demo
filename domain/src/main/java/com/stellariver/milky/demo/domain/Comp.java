@@ -1,7 +1,9 @@
 package com.stellariver.milky.demo.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.collect.*;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeMap;
+import com.google.common.collect.TreeRangeMap;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;

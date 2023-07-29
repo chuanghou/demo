@@ -2,8 +2,6 @@ package com.stellariver.milky.demo.basic;
 
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.util.Json;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;

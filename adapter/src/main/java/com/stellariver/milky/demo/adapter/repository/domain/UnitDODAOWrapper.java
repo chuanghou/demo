@@ -2,8 +2,6 @@ package com.stellariver.milky.demo.adapter.repository.domain;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.stellariver.milky.common.tool.common.ConcurrentTool;
-import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.infrastructure.database.entity.BidDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.BidDOMapper;
@@ -12,16 +10,11 @@ import com.stellariver.milky.domain.support.dependency.DAOWrapper;
 import com.stellariver.milky.domain.support.util.ThreadLocalTransferableExecutor;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
