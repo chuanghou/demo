@@ -1,5 +1,7 @@
 package com.stellariver.milky.demo.domain;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.SysEx;
@@ -49,7 +51,7 @@ public class Unit extends AggregateRoot {
 
     Map<Long, Bid> bids = new HashMap<>();
 
-    Map<MarketType, List<Bid>> centralizedBids = new HashMap<>();
+    ListMultimap<MarketType, Bid> centralizedBids = ArrayListMultimap.create();
 
     Map<TimeFrame, Direction> stageFourDirections = new HashMap<>();
     Map<TimeFrame, Map<Direction, Double>> balances = new HashMap<>();
@@ -100,7 +102,8 @@ public class Unit extends AggregateRoot {
             BizEx.trueThrow(totalBidQuantity > balanceQuantity, PARAM_FORMAT_WRONG.message("余额不足"));
         });
 
-        centralizedBids.put(marketType, command.getBids());
+
+        centralizedBids.putAll(marketType, command.getBids());
         UnitCommand.CentralizedBidden event = UnitCommand.CentralizedBidden.builder().unitId(unitId).bids(bids).build();
         context.publish(event);
 

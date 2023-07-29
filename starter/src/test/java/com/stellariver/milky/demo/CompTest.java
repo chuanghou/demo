@@ -9,6 +9,7 @@ import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.basic.UnitType;
 import com.stellariver.milky.demo.client.po.BidPO;
 import com.stellariver.milky.demo.client.po.CentralizedBidPO;
+import com.stellariver.milky.demo.client.po.CompCreatePO;
 import com.stellariver.milky.demo.client.po.LoginPO;
 import com.stellariver.milky.demo.client.vo.LogInVO;
 import com.stellariver.milky.demo.common.MarketType;
@@ -28,10 +29,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 @CustomLog
 @SpringBootTest
@@ -60,7 +64,12 @@ public class CompTest {
         Assertions.assertNotNull(logInVO);
         Assertions.assertTrue(logInVO.getSuccess());
         String token = logInVO.getData().getToken();
-        compController.create(token, 5);
+        List<Long> durationLengths = new ArrayList<>();
+        for (int i = 0; i < MarketType.values().length; i++) {
+            durationLengths.add(1L);
+        }
+        CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationLengths).agentNumber(5).build();
+        compController.create(token, compCreatePO);
         Thread.sleep(1000);
 
         Result<Comp> compResult = compController.runningComp();
@@ -147,15 +156,20 @@ public class CompTest {
         Result<LogInVO> logInVO = userController.login(loginPO);
         Assertions.assertNotNull(logInVO);
         Assertions.assertTrue(logInVO.getSuccess());
-        String token = logInVO.getData().getToken();
-        compController.create(token, 5);
+        String adminToken = logInVO.getData().getToken();
+        List<Long> durationLengths = new ArrayList<>();
+        for (int i = 0; i < MarketType.values().length; i++) {
+            durationLengths.add(60L);
+        }
+        CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationLengths).agentNumber(5).build();
+        compController.create(adminToken, compCreatePO);
         Thread.sleep(10);
 
         Result<Comp> compResult = compController.runningComp();
         Assertions.assertTrue(compResult.getSuccess());
         Comp runningComp = compResult.getData();
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.INIT);
-        compController.start(token, runningComp.getCompId());
+        compController.start(adminToken, runningComp.getCompId());
         Thread.sleep(100);
         runningComp = compController.runningComp().getData();
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
@@ -213,6 +227,7 @@ public class CompTest {
             unitController.centralizedBid(centralizedBidPO, user0Token);
         }
 
+        compController.step(adminToken, runningComp.getCompId());
 
 
     }

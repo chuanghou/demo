@@ -4,6 +4,7 @@ import com.stellariver.milky.demo.common.Agent;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import javax.validation.constraints.*;
 import java.util.List;
 
 @Data
@@ -13,6 +14,10 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CompCreatePO {
 
-    List<Agent> agents;
+    @NotNull @Min(1) @Max(15)
+    Integer agentNumber;
+
+    @Size(min = 7, max = 7)
+    List<Long> durations; // seconds
 
 }

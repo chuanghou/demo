@@ -12,6 +12,7 @@ import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.basic.TokenUtils;
+import com.stellariver.milky.demo.client.po.CompCreatePO;
 import com.stellariver.milky.demo.client.po.CompEditPO;
 import com.stellariver.milky.demo.common.GridLimit;
 import com.stellariver.milky.demo.common.MarketType;
@@ -74,12 +75,11 @@ public class CompController {
 
     @PostMapping("create")
     public Result<Void> create(@RequestHeader("token") String token,
-                               @RequestParam @NotNull @Positive Integer agentNumber) {
+                               @RequestBody CompCreatePO compCreatePO) {
         User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
         if (user.getRole() != Role.ADMIN) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
         }
-        BizEx.trueThrow(agentNumber > 15, ErrorEnums.PARAM_FORMAT_WRONG.message("不允许超过15个交易员"));
         LambdaQueryWrapper<CompDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.ne(CompDO::getCompStatus, Status.CompStatus.END);
         List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
@@ -98,10 +98,15 @@ public class CompController {
                 Collect.asMap(MarketType.INTER_ANNUAL_PROVINCIAL, map, MarketType.INTER_MONTHLY_PROVINCIAL, map, MarketType.INTER_SPOT_PROVINCIAL, map);
 
         Map<MarketType, Duration> durations = new HashMap<>();
-        Arrays.stream(MarketType.values()).forEach(marketType -> durations.put(marketType, Duration.of(1, ChronoUnit.SECONDS)));
+        Arrays.stream(MarketType.values()).forEach(marketType -> {
+            Integer dbCode = marketType.getDbCode();
+            Long length = compCreatePO.getDurations().get(dbCode);
+            durations.put(marketType, Duration.of(length, ChronoUnit.SECONDS));
+        });
+
         CompCommand.Create command = CompCommand.Create.builder()
                 .compId(compId)
-                .agentTotal(agentNumber)
+                .agentTotal(compCreatePO.getAgentNumber())
                 .priceLimit(priceLimit)
                 .transLimit(transLimit)
                 .durations(Arrays.asList(durations, durations, durations))

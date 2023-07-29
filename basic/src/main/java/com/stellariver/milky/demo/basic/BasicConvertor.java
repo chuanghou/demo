@@ -1,6 +1,8 @@
 package com.stellariver.milky.demo.basic;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.common.enums.Direction;
@@ -70,11 +72,20 @@ public interface BasicConvertor {
         return Json.toJson(replenishes);
     }
 
-    default List<Map<MarketType, List<Bid>>> toCentralizedBids(String value) {
-        return Json.parse(value, new TypeReference<List<Map<MarketType, List<Bid>>>>() {});
+    default List<ListMultimap<MarketType, Bid>> toCentralizedBids0(String value) {
+        return Json.parse(value, new TypeReference<List<ListMultimap<MarketType, Bid>>>() {});
     }
 
-    default String fromCentralizedBids(List<Map<MarketType, List<Bid>>> centralizedBids) {
+    default String fromCentralizedBids0(List<ListMultimap<MarketType, Bid>> centralizedBids) {
+        return Json.toJson(centralizedBids);
+    }
+
+
+    default ListMultimap<MarketType, Bid> toCentralizedBids1(String value) {
+        return Json.parse(value, new TypeReference<ArrayListMultimap<MarketType, Bid>>() {});
+    }
+
+    default String fromCentralizedBids1(ListMultimap<MarketType, Bid> centralizedBids) {
         return Json.toJson(centralizedBids);
     }
 

@@ -1,9 +1,7 @@
 package com.stellariver.milky.demo.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.collect.Range;
-import com.google.common.collect.RangeMap;
-import com.google.common.collect.TreeRangeMap;
+import com.google.common.collect.*;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;
@@ -57,7 +55,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     @JsonIgnore
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
     @JsonIgnore
-    List<Map<MarketType, List<Bid>>> centralizedBids = new ArrayList<>();
+    List<ListMultimap<MarketType, Bid>> centralizedBids = new ArrayList<>();
 
     @JsonIgnore
     Map<Pair<Province, TimeFrame>, RealtimeBidProcessor> rtBidProcessors = new ConcurrentHashMap<>();
@@ -83,7 +81,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         comp.setUserTotal(create.getAgentTotal());
 
         IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getReplenishes().add(new HashMap<>()));
-        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getCentralizedBids().add(new HashMap<>()));
+        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getCentralizedBids().add(ArrayListMultimap.create()));
 
         context.publish(CompEvent.Created.builder().compId(comp.getCompId()).comp(comp).build());
         return comp;
@@ -144,7 +142,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     @MethodHandler
     public void handle(CompCommand.CentralizedBid command, Context context) {
-        centralizedBids.get(roundId).computeIfAbsent(command.getMarketType(), k -> new ArrayList<>()).addAll(command.getBids());
+        centralizedBids.get(roundId).get(command.getMarketType()).addAll(command.getBids());
         CompEvent.CentralizedBidAccept event = CompEvent.CentralizedBidAccept.builder()
                 .compId(compId)
                 .roundId(roundId)
@@ -179,6 +177,10 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
         buyBids = buyBids.stream().filter(bid -> bid.getTimeFrame() == timeFrame).collect(Collectors.toList());
         sellBids = sellBids.stream().filter(bid -> bid.getTimeFrame() == timeFrame).collect(Collectors.toList());
+
+        if (Collect.isEmpty(buyBids) || Collect.isEmpty(sellBids)) {
+            return Collections.EMPTY_LIST;
+        }
 
         ResolveResult resolveResult = resolveInterPoint(buyBids, sellBids);
         Pair<Double, Double> interPoint = resolveResult.getInterPoint();
