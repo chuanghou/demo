@@ -4,11 +4,15 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.domain.support.base.BaseDataObject;
 import com.stellariver.milky.infrastructure.base.database.AbstractMpDO;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author houchuang
@@ -32,6 +36,9 @@ public class UnitDO extends AbstractMpDO implements BaseDataObject<Long> {
     Integer metaUnitId;
     String province;    // for query
     String unitType;    // for query
+
+    @TableField(exist = false)
+    List<BidDO> bidDOs;
 
     String centralizedBids;
     String stageFourDirections;

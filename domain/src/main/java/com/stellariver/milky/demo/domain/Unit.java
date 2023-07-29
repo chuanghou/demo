@@ -119,8 +119,6 @@ public class Unit extends AggregateRoot {
     }
 
 
-
-
     @MethodHandler
     public void handle(UnitCommand.DealReport command, Context context) {
         List<Deal> deals = command.getDeals();

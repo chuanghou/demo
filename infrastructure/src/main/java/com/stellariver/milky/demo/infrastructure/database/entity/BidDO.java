@@ -1,5 +1,7 @@
 package com.stellariver.milky.demo.infrastructure.database.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -14,6 +16,7 @@ import java.util.Date;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BidDO {
 
+    @TableId(type = IdType.INPUT)
     Long bidId;
     Long unitId;
     String province;
@@ -24,7 +27,6 @@ public class BidDO {
     Double price;
     Date date;
     String deals;
-
     String bidStatus;
 
 }

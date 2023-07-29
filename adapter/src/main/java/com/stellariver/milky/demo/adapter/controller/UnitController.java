@@ -72,7 +72,6 @@ public class UnitController {
         List<Bid> bids = Collect.transfer(centralizedBidPO.getBids(), Convertor.INST::to);
         bids.forEach(bid -> bid.setUnitId(centralizedBidPO.getUnitId()));
         Comp comp = tunnel.currentComp();
-        System.out.println("MY_COMP" + Json.toJson(comp));
         Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
         UnitCommand.CentralizedBid command = UnitCommand.CentralizedBid.builder().unitId(centralizedBidPO.getUnitId()).bids(bids).build();
         CommandBus.accept(command, parameters);
