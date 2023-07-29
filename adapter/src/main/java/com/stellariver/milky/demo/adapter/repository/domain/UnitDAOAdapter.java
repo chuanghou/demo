@@ -42,7 +42,7 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
 
     @Override
     public DataObjectInfo dataObjectInfo(String aggregateId) {
-        return DataObjectInfo.builder().clazz(UnitDO.class).primaryId(aggregateId).build();
+        return DataObjectInfo.builder().clazz(UnitDO.class).primaryId(Long.parseLong(aggregateId)).build();
     }
 
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,

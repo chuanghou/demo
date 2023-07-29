@@ -45,19 +45,4 @@ public class UserDODAOWrapper implements DAOWrapper<UserDO, Integer> {
         return Collect.toMap(userDOs, UserDO::getUserId);
     }
 
-    @Override
-    public UserDO merge(@NonNull UserDO priority, @NonNull UserDO original) {
-        return Merger.INST.merge(priority, original);
-    }
-
-    @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
-            nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    public interface Merger {
-
-        Merger INST = Mappers.getMapper(Merger.class);
-
-        @BeanMapping(builder = @Builder(disableBuilder = true))
-        UserDO merge(UserDO priority, @MappingTarget UserDO original);
-
-    }
 }

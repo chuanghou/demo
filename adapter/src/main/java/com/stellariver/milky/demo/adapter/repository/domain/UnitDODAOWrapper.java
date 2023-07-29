@@ -31,7 +31,6 @@ public class UnitDODAOWrapper implements DAOWrapper<UnitDO, Long> {
     final UnitDOMapper unitDOMapper;
 
 
-
     @Override
     public int batchSave(@NonNull List<UnitDO> unitDOs) {
         return unitDOs.stream().map(unitDOMapper::insert).reduce(0, Integer::sum);
@@ -48,19 +47,4 @@ public class UnitDODAOWrapper implements DAOWrapper<UnitDO, Long> {
         return Collect.toMap(unitDOMapper.selectBatchIds(ids), UnitDO::getUnitId);
     }
 
-    @Override
-    public UnitDO merge(@NonNull UnitDO priority, @NonNull UnitDO original) {
-        return Merger.INST.merge(priority, original);
-    }
-
-    @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
-            nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    public interface Merger {
-
-        Merger INST = Mappers.getMapper(Merger.class);
-
-        @BeanMapping(builder = @Builder(disableBuilder = true))
-        UnitDO merge(UnitDO priority, @MappingTarget UnitDO original);
-
-    }
 }

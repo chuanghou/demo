@@ -58,6 +58,9 @@ public class CompController {
     @GetMapping("runningComp")
     public Result<Comp> runningComp() {
         LambdaQueryWrapper<CompDO> queryWrapper = new LambdaQueryWrapper<>();
+
+
+
         queryWrapper.ne(CompDO::getCompStatus, Status.CompStatus.END);
         List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
         if (compDOs.size() > 1) {

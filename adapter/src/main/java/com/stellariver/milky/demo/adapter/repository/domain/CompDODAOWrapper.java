@@ -63,11 +63,6 @@ public class CompDODAOWrapper implements DAOWrapper<Comp, Long> {
         return Collect.mergeMightEx(comps, dbCompMap);
     }
 
-    @Override
-    public Comp merge(@NonNull Comp priority, @NonNull Comp original) {
-        return priority;
-    }
-
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
             nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     public interface Convertor extends BasicConvertor {

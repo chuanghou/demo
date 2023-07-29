@@ -156,8 +156,8 @@ public class CompTest {
         Comp runningComp = compResult.getData();
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.INIT);
         compController.start(token, runningComp.getCompId());
+        Thread.sleep(100);
         runningComp = compController.runningComp().getData();
-
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
