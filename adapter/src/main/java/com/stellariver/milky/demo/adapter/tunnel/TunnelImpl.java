@@ -1,21 +1,33 @@
 package com.stellariver.milky.demo.adapter.tunnel;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.stellariver.milky.common.base.BizEx;
+import com.stellariver.milky.common.base.ErrorEnum;
+import com.stellariver.milky.common.base.ExceptionType;
+import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.demo.adapter.repository.domain.CompDODAOWrapper;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
+import com.stellariver.milky.demo.adapter.repository.domain.UnitDODAOWrapper;
+import com.stellariver.milky.demo.basic.ErrorEnums;
+import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
+import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.MetaUnitDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
+import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.MetaUnitDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UnitDOMapper;
+import com.stellariver.milky.domain.support.command.CommandBus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +41,9 @@ public class TunnelImpl implements Tunnel {
 
     final MetaUnitDOMapper metaUnitDOMapper;
     final UnitDOMapper unitDOMapper;
+    final CompDOMapper compDOMapper;
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    final CompDODAOWrapper compDODAOWrapper;
 
     @Override
     public List<Unit> listUnitsByCompId(Long compId) {
@@ -78,7 +93,14 @@ public class TunnelImpl implements Tunnel {
     }
 
     @Override
+    @Nullable
     public Comp currentComp() {
+        List<Comp> comps = compDODAOWrapper.memoryComps();
+        ErrorEnum errorEnum = ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛，请联系管理员");
+        BizEx.trueThrow(comps.size() > 1, errorEnum);
+        if (comps.size() == 1) {
+            return comps.get(0);
+        }
         return null;
     }
 }

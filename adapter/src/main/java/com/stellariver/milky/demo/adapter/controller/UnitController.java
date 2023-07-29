@@ -6,10 +6,13 @@ import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
+import com.stellariver.milky.common.tool.common.Typed;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TokenUtils;
+import com.stellariver.milky.demo.basic.TypedEnums;
 import com.stellariver.milky.demo.client.po.BidPO;
 import com.stellariver.milky.demo.client.po.CentralizedBidPO;
 import com.stellariver.milky.demo.client.po.RealtimeBidPO;
@@ -32,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author houchuang
@@ -67,8 +71,11 @@ public class UnitController {
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
         List<Bid> bids = Collect.transfer(centralizedBidPO.getBids(), Convertor.INST::to);
         bids.forEach(bid -> bid.setUnitId(centralizedBidPO.getUnitId()));
+        Comp comp = tunnel.currentComp();
+        System.out.println("MY_COMP" + Json.toJson(comp));
+        Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
         UnitCommand.CentralizedBid command = UnitCommand.CentralizedBid.builder().unitId(centralizedBidPO.getUnitId()).bids(bids).build();
-        CommandBus.accept(command, new HashMap<>());
+        CommandBus.accept(command, parameters);
         return Result.success();
     }
 
@@ -79,8 +86,10 @@ public class UnitController {
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
         Bid bid = Convertor.INST.to(realtimeBidPO.getBidPO());
         bid.setUnitId(realtimeBidPO.getUnitId());
+        Comp comp = tunnel.currentComp();
+        Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
         UnitCommand.RtNewBidDeclare realtimeBid = UnitCommand.RtNewBidDeclare.builder().unitId(unit.getUnitId()).bid(bid).build();
-        CommandBus.accept(realtimeBid, new HashMap<>());
+        CommandBus.accept(realtimeBid, parameters);
         return Result.success();
     }
 

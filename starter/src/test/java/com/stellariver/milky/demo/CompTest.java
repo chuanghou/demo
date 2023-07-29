@@ -162,8 +162,6 @@ public class CompTest {
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
-        Thread.sleep(1100);
-
         String user0Token = TokenUtils.sign("0");
         List<Unit> user0Units = unitController.listUnits(runningComp.getCompId(), user0Token).getData();
 

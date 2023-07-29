@@ -21,6 +21,7 @@ import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.CompCommand;
+import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.MarketSettingDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
@@ -49,6 +50,7 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CompController {
 
+    final Tunnel tunnel;
     final DomainTunnel domainTunnel;
     final CompDOMapper compDOMapper;
     final UniqueIdBuilder uniqueIdBuilder;
@@ -57,21 +59,10 @@ public class CompController {
 
     @GetMapping("runningComp")
     public Result<Comp> runningComp() {
-        LambdaQueryWrapper<CompDO> queryWrapper = new LambdaQueryWrapper<>();
-
-
-
-        queryWrapper.ne(CompDO::getCompStatus, Status.CompStatus.END);
-        List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
-        if (compDOs.size() > 1) {
-            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛，请联系管理员"), ExceptionType.BIZ);
-        } else if (compDOs.size() == 0) {
-            return Result.success();
-        } else {
-            Comp comp = CompDODAOWrapper.Convertor.INST.to(compDOs.get(0));
-            return Result.success(comp);
-        }
+        Comp comp = tunnel.currentComp();
+        return Result.success(comp);
     }
+
 
     @GetMapping("listComps")
     public Result<List<Comp>> listComps() {

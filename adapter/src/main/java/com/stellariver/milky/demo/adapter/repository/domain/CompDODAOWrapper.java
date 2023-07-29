@@ -32,6 +32,10 @@ public class CompDODAOWrapper implements DAOWrapper<Comp, Long> {
 
     final ThreadLocalTransferableExecutor executor;
 
+    public List<Comp> memoryComps() {
+        return new ArrayList<>(compMap.values());
+    }
+
     @Override
     @SneakyThrows
     public int batchSave(@NonNull List<Comp> comps) {
