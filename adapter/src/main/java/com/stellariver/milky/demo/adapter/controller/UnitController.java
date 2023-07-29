@@ -70,8 +70,11 @@ public class UnitController {
         Unit unit = domainTunnel.getByAggregateId(Unit.class, centralizedBidPO.getUnitId().toString());
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
         List<Bid> bids = Collect.transfer(centralizedBidPO.getBids(), Convertor.INST::to);
-        bids.forEach(bid -> bid.setUnitId(centralizedBidPO.getUnitId()));
         Comp comp = tunnel.currentComp();
+        bids.forEach(bid -> {
+            bid.setUnitId(centralizedBidPO.getUnitId());
+            bid.setProvince(unit.getMetaUnit().getProvince());
+        });
         Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
         UnitCommand.CentralizedBid command = UnitCommand.CentralizedBid.builder().unitId(centralizedBidPO.getUnitId()).bids(bids).build();
         CommandBus.accept(command, parameters);
@@ -84,8 +87,9 @@ public class UnitController {
         Unit unit = domainTunnel.getByAggregateId(Unit.class, realtimeBidPO.getUnitId().toString());
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
         Bid bid = Convertor.INST.to(realtimeBidPO.getBidPO());
-        bid.setUnitId(realtimeBidPO.getUnitId());
         Comp comp = tunnel.currentComp();
+        bid.setProvince(unit.getMetaUnit().getProvince());
+        bid.setUnitId(realtimeBidPO.getUnitId());
         Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
         UnitCommand.RtNewBidDeclare realtimeBid = UnitCommand.RtNewBidDeclare.builder().unitId(unit.getUnitId()).bid(bid).build();
         CommandBus.accept(realtimeBid, parameters);
