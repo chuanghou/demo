@@ -55,7 +55,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     @JsonIgnore
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
     @JsonIgnore
-    List<ListMultimap<MarketType, Bid>> centralizedBids = new ArrayList<>();
+    List<Bid> centralizedBids = new ArrayList<>();
 
     @JsonIgnore
     Map<Pair<Province, TimeFrame>, RealtimeBidProcessor> rtBidProcessors = new ConcurrentHashMap<>();
@@ -81,7 +81,6 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         comp.setUserTotal(create.getAgentTotal());
 
         IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getReplenishes().add(new HashMap<>()));
-        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getCentralizedBids().add(ArrayListMultimap.create()));
 
         context.publish(CompEvent.Created.builder().compId(comp.getCompId()).comp(comp).build());
         return comp;
@@ -142,7 +141,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     @MethodHandler
     public void handle(CompCommand.CentralizedBid command, Context context) {
-        centralizedBids.get(roundId).get(command.getMarketType()).addAll(command.getBids());
+        centralizedBids.addAll(command.getBids());
         CompEvent.CentralizedBidAccept event = CompEvent.CentralizedBidAccept.builder()
                 .compId(compId)
                 .roundId(roundId)
@@ -154,12 +153,12 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     @MethodHandler
     public void handle(CompCommand.Clear clear, Context context) {
-        List<Bid> bids = centralizedBids.get(roundId).get(marketType);
-        List<Bid> buyBids = bids.stream().filter(bid -> bid.getDirection() == Direction.BUY).collect(Collectors.toList());
-        List<Bid> sellBids = bids.stream().filter(bid -> bid.getDirection() == Direction.SELL).collect(Collectors.toList());
+        List<Bid> buyBids = centralizedBids.stream().filter(bid -> bid.getDirection() == Direction.BUY).collect(Collectors.toList());
+        List<Bid> sellBids = centralizedBids.stream().filter(bid -> bid.getDirection() == Direction.SELL).collect(Collectors.toList());
         List<Deal> deals = Arrays.stream(TimeFrame.values())
                 .map(timeFrame -> clear(buyBids, sellBids, timeFrame)).flatMap(Collection::stream).collect(Collectors.toList());
         CompEvent.Cleared event = CompEvent.Cleared.builder().compId(compId).marketType(marketType).deals(deals).build();
+        centralizedBids.clear();
         context.publish(event);
     }
 

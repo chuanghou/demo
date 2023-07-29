@@ -9,6 +9,7 @@ import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -73,20 +74,26 @@ public interface BasicConvertor {
     }
 
     default List<ListMultimap<MarketType, Bid>> toCentralizedBids0(String value) {
+        List<Map<MarketType, List<Bid>>> parse = Json.parse(value, new TypeReference<List<Map<MarketType, List<Bid>>>>() {});
+
         return Json.parse(value, new TypeReference<List<ListMultimap<MarketType, Bid>>>() {});
     }
 
     default String fromCentralizedBids0(List<ListMultimap<MarketType, Bid>> centralizedBids) {
+        centralizedBids.stream().
         return Json.toJson(centralizedBids);
     }
 
 
     default ListMultimap<MarketType, Bid> toCentralizedBids1(String value) {
-        return Json.parse(value, new TypeReference<ArrayListMultimap<MarketType, Bid>>() {});
+        Map<MarketType, List<Bid>> parseResult = Json.parse(value, new TypeReference<HashMap<MarketType, List<Bid>>>() {});
+        ListMultimap<MarketType, Bid> listMultimap = ArrayListMultimap.create();
+        parseResult.forEach(listMultimap::putAll);
+        return listMultimap;
     }
 
     default String fromCentralizedBids1(ListMultimap<MarketType, Bid> centralizedBids) {
-        return Json.toJson(centralizedBids);
+        return Json.toJson(centralizedBids.asMap());
     }
 
     default Map<TimeFrame, Direction> toDirections(String value) {
