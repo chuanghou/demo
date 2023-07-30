@@ -124,6 +124,10 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
             roundId = command.getNextStage().getRoundId();
             marketType = command.getNextStage().getMarketType();
             marketStatus = command.getNextStage().getMarketStatus();
+        } else if (command.getNextStage().allowSkip()){
+            roundId = command.getNextStage().getRoundId();
+            marketType = command.getNextStage().getMarketType();
+            marketStatus = command.getNextStage().getMarketStatus();
         } else {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }

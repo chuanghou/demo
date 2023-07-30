@@ -103,6 +103,16 @@ public class Routers implements EventRouters {
         Comp comp = context.getByAggregateId(Comp.class, stepped.getAggregateId());
         Duration duration = comp.getDurations().get(stepped.getNextRoundId()).get(stepped.getNextMarketType());
         scheduledExecutorService.schedule(() -> {
+            boolean b0 = comp.getRoundId() == comp.getRoundTotal() - 1L;
+            boolean b1 = stepped.getNextMarketType() == MarketType.FINAL_CLEAR;
+            boolean b2 = stepped.getNextMarketStatus() == Status.MarketStatus.CLOSE;
+
+            if (b0 && b1 && b2) {
+                CompCommand.Close command = CompCommand.Close.builder().compId(comp.getCompId()).build();
+                CommandBus.accept(command, new HashMap<>());
+                return;
+            }
+
             Stage nexStage = Stage.builder()
                     .roundId(stepped.getNextRoundId())
                     .marketType(stepped.getNextMarketType())

@@ -62,4 +62,7 @@ public class Stage {
 
     }
 
+    public boolean allowSkip() {
+        return marketType == MarketType.FINAL_CLEAR && marketStatus == Status.MarketStatus.CLOSE;
+    }
 }
