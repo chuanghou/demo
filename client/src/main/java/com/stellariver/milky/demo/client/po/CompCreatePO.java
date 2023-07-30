@@ -19,6 +19,7 @@ public class CompCreatePO {
     @NotNull @Min(1) @Max(15)
     Integer agentNumber;
 
+    @NotNull
     @Size(min = 7, max = 7)
     List<Long> durations; // seconds
 
