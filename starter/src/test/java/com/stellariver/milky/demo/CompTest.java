@@ -58,7 +58,7 @@ public class CompTest {
     public void testComp() throws InterruptedException {
         compDOMapper.selectList(null).forEach(compDO -> compDOMapper.deleteById(compDO.getCompId()));
         LoginPO loginPO = LoginPO.builder().userId("1000").password("admin").build();
-        Result<LogInVO> logInVO = userController.login(loginPO);
+        Result<LogInVO> logInVO = userController.login(loginPO.getUserId(), loginPO.getPassword());
         Assertions.assertNotNull(logInVO);
         Assertions.assertTrue(logInVO.getSuccess());
         String token = logInVO.getData().getToken();
@@ -151,7 +151,7 @@ public class CompTest {
     public void testCentralBids() {
         compDOMapper.selectList(null).forEach(compDO -> compDOMapper.deleteById(compDO.getCompId()));
         LoginPO loginPO = LoginPO.builder().userId("1000").password("admin").build();
-        Result<LogInVO> logInVO = userController.login(loginPO);
+        Result<LogInVO> logInVO = userController.login(loginPO.getUserId(), loginPO.getPassword());
         Assertions.assertNotNull(logInVO);
         Assertions.assertTrue(logInVO.getSuccess());
         String adminToken = logInVO.getData().getToken();

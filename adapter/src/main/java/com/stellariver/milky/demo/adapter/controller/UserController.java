@@ -61,8 +61,9 @@ public class UserController {
 
 
     @GetMapping("login")
-    public Result<LogInVO> login(@RequestBody LoginPO loginPO) {
-        UserLogin userLogin = UserLogin.builder().userId(loginPO.getUserId()).password(loginPO.getPassword()).build();
+    public Result<LogInVO> login(@RequestParam String userId,
+                                 @RequestParam String password) {
+        UserLogin userLogin = UserLogin.builder().userId(userId).password(password).build();
         Map<Class<? extends Typed<?>>, Object> parameters = new HashMap<>();
         LogIn logIn;
         try {

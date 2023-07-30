@@ -22,10 +22,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -91,10 +88,6 @@ public class TunnelImpl implements Tunnel {
     public Comp currentComp() {
         List<Comp> comps = compDODAOWrapper.memoryComps();
         ErrorEnum errorEnum = ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛，请联系管理员");
-        BizEx.trueThrow(comps.size() > 1, errorEnum);
-        if (comps.size() == 1) {
-            return comps.get(0);
-        }
-        return null;
+        return comps.stream().max(Comparator.comparing(Comp::getCompId)).orElse(null);
     }
 }
