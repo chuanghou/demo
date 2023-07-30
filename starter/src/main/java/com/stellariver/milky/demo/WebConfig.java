@@ -10,10 +10,6 @@ public class WebConfig implements WebMvcConfigurer {
 
 
 
-    /**
-     * 解决跨域问题
-     * @param registry
-     */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
