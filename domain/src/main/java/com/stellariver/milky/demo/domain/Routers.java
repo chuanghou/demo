@@ -108,6 +108,9 @@ public class Routers implements EventRouters {
                     .marketType(stepped.getNextMarketType())
                     .marketStatus(stepped.getNextMarketStatus())
                     .build().next(comp.getRoundTotal());
+            if (nexStage.getMarketType() == MarketType.FINAL_CLEAR && nexStage.getMarketStatus() == Status.MarketStatus.OPEN) {
+                nexStage = nexStage.next(comp.getRoundTotal());
+            }
             CompCommand.Step command = CompCommand.Step.builder()
                     .compId(stepped.getCompId())
                     .nextStage(nexStage)
