@@ -159,7 +159,7 @@ public class CompController {
         }
         Comp comp = domainTunnel.getByAggregateId(Comp.class, compId.toString());
         Stage nextStage = Stage.builder().roundId(comp.getRoundId())
-                .marketType(comp.getMarketType()).marketStatus(comp.getMarketStatus()).build().next(comp.getRoundTotal());
+                .marketType(comp.getMarketType()).marketStatus(comp.getMarketStatus()).build().next();
         CompCommand.Step command = CompCommand.Step.builder()
                 .compId(compId)
                 .nextStage(nextStage)

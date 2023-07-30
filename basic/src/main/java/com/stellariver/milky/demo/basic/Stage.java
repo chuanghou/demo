@@ -20,7 +20,7 @@ public class Stage {
     MarketType marketType;
     Status.MarketStatus marketStatus;
 
-    public Stage next(Integer roundIdTotal) {
+    public Stage next() {
         Status.MarketStatus nextMarketStatus = this.marketStatus.opposite();
         Integer nextRoundId = this.roundId;
         MarketType nextMarketType = this.marketType;
@@ -29,15 +29,13 @@ public class Stage {
         if (nextMarketStatus == Status.MarketStatus.OPEN) {
             int nextDbCode = (marketType.getDbCode() + 1)%MarketType.values().length;
             nextMarketType = Kit.enumOfMightEx(MarketType::getDbCode, nextDbCode);
-            if (nextMarketType == MarketType.INTER_ANNUAL_PROVINCIAL) {
-                nextRoundId = nextRoundId + 1;
-            }
+        } else if (nextMarketType == MarketType.FINAL_CLEAR) {
+            nextMarketStatus = Status.MarketStatus.OPEN;
+            nextMarketType = MarketType.INTER_ANNUAL_PROVINCIAL;
+            roundId = nextRoundId + 1;
         }
-        return Stage.builder()
-                .roundId(nextRoundId)
-                .marketType(nextMarketType)
-                .marketStatus(nextMarketStatus)
-                .build();
+
+        return Stage.builder().roundId(nextRoundId).marketType(nextMarketType).marketStatus(nextMarketStatus).build();
     }
 
     public boolean laterThan(Stage stage) {
@@ -62,7 +60,4 @@ public class Stage {
 
     }
 
-    public boolean allowSkip() {
-        return marketType == MarketType.FINAL_CLEAR && marketStatus == Status.MarketStatus.CLOSE;
-    }
 }

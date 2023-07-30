@@ -120,11 +120,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
         if (lastStage.laterThan(command.getNextStage()) || lastStage.equals(command.getNextStage())) {
             return;
-        }  else if (lastStage.next(roundTotal).equals(command.getNextStage())){
-            roundId = command.getNextStage().getRoundId();
-            marketType = command.getNextStage().getMarketType();
-            marketStatus = command.getNextStage().getMarketStatus();
-        } else if (command.getNextStage().allowSkip()){
+        }  else if (lastStage.next().equals(command.getNextStage())){
             roundId = command.getNextStage().getRoundId();
             marketType = command.getNextStage().getMarketType();
             marketStatus = command.getNextStage().getMarketStatus();

@@ -88,7 +88,7 @@ public class Routers implements EventRouters {
                 .marketType(comp.getMarketType())
                 .marketStatus(comp.getMarketStatus())
                 .build()
-                .next(comp.getRoundTotal());
+                .next();
         scheduledExecutorService.schedule(() -> {
 
             CompCommand.Step command = CompCommand.Step.builder().compId(started.getCompId()).nextStage(next).build();
@@ -117,10 +117,8 @@ public class Routers implements EventRouters {
                     .roundId(stepped.getNextRoundId())
                     .marketType(stepped.getNextMarketType())
                     .marketStatus(stepped.getNextMarketStatus())
-                    .build().next(comp.getRoundTotal());
-            if (nexStage.getMarketType() == MarketType.FINAL_CLEAR && nexStage.getMarketStatus() == Status.MarketStatus.OPEN) {
-                nexStage = nexStage.next(comp.getRoundTotal());
-            }
+                    .build()
+                    .next();
             CompCommand.Step command = CompCommand.Step.builder()
                     .compId(stepped.getCompId())
                     .nextStage(nexStage)
