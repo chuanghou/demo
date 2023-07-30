@@ -5,7 +5,6 @@ import com.stellariver.milky.common.tool.common.Typed;
 import com.stellariver.milky.demo.basic.LogIn;
 import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.TokenUtils;
-import com.stellariver.milky.demo.client.po.LoginPO;
 import com.stellariver.milky.demo.client.po.UserAddPO;
 import com.stellariver.milky.demo.client.vo.LogInVO;
 import com.stellariver.milky.demo.client.vo.UserVO;

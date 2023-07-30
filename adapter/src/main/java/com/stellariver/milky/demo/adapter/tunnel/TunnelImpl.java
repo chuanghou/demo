@@ -1,7 +1,6 @@
 package com.stellariver.milky.demo.adapter.tunnel;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.ErrorEnum;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.adapter.repository.domain.CompDODAOWrapper;
