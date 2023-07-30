@@ -27,7 +27,6 @@ public class BidDO {
     Double price;
     Date date;
     String deals;
-
     String bidStatus;
 
 }
