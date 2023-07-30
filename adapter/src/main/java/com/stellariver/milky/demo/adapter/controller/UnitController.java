@@ -70,9 +70,11 @@ public class UnitController {
         Unit unit = domainTunnel.getByAggregateId(Unit.class, centralizedBidPO.getUnitId().toString());
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
         List<Bid> bids = Collect.transfer(centralizedBidPO.getBids(), Convertor.INST::to);
-        bids.forEach(bid -> bid.setUnitId(centralizedBidPO.getUnitId()));
+        bids.forEach(bid -> {
+            bid.setUnitId(centralizedBidPO.getUnitId());
+            bid.setProvince(unit.getMetaUnit().getProvince());
+        });
         Comp comp = tunnel.currentComp();
-        System.out.println("MY_COMP" + Json.toJson(comp));
         Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
         UnitCommand.CentralizedBid command = UnitCommand.CentralizedBid.builder().unitId(centralizedBidPO.getUnitId()).bids(bids).build();
         CommandBus.accept(command, parameters);

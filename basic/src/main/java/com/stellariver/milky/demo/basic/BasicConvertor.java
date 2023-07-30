@@ -72,21 +72,17 @@ public interface BasicConvertor {
         return Json.toJson(replenishes);
     }
 
-    default List<ListMultimap<MarketType, Bid>> toCentralizedBids0(String value) {
-        return Json.parse(value, new TypeReference<List<ListMultimap<MarketType, Bid>>>() {});
+
+
+    default ListMultimap<MarketType, Bid> toCentralizedBids(String value) {
+        Map<MarketType, List<Bid>> parseMap = Json.parse(value, new TypeReference<Map<MarketType, List<Bid>>>() {});
+        ListMultimap<MarketType, Bid> result = ArrayListMultimap.create();
+        parseMap.forEach(result::putAll);
+        return result;
     }
 
-    default String fromCentralizedBids0(List<ListMultimap<MarketType, Bid>> centralizedBids) {
-        return Json.toJson(centralizedBids);
-    }
-
-
-    default ListMultimap<MarketType, Bid> toCentralizedBids1(String value) {
-        return Json.parse(value, new TypeReference<ArrayListMultimap<MarketType, Bid>>() {});
-    }
-
-    default String fromCentralizedBids1(ListMultimap<MarketType, Bid> centralizedBids) {
-        return Json.toJson(centralizedBids);
+    default String fromCentralizedBids(ListMultimap<MarketType, Bid> centralizedBids) {
+        return Json.toJson(centralizedBids.asMap());
     }
 
     default Map<TimeFrame, Direction> toDirections(String value) {

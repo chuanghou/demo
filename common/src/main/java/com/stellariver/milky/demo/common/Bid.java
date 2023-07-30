@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class Bid {
     Double quantity;
     Double price;
     Date date;
-    List<Deal> deals;
+    List<Deal> deals = new ArrayList<>();
 
     BidStatus bidStatus;
 
