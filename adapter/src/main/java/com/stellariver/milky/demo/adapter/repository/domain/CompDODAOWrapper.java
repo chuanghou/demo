@@ -52,18 +52,7 @@ public class CompDODAOWrapper implements DAOWrapper<Comp, Long> {
 
     @Override
     public Map<Long, Comp> batchGetByPrimaryIds(@NonNull Set<Long> ids) {
-        Map<Long, Comp> comps = new HashMap<>();
-        List<Long> omitIds = new ArrayList<>();
-        ids.forEach(id -> {
-            Comp comp = compMap.get(id);
-            if (comp == null) {
-                omitIds.add(id);
-            } else {
-                comps.put(id, comp);
-            }
-        });
-        Map<Long, Comp> dbCompMap = ConcurrentTool.batchCall(omitIds, id -> Convertor.INST.to(compDOMapper.selectById(id)), executor);
-        return Collect.mergeMightEx(comps, dbCompMap);
+         return Collect.toMapMightEx(compMap.values(), Comp::getCompId);
     }
 
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,

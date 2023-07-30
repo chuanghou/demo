@@ -25,5 +25,5 @@ public interface Tunnel {
     Set<Integer> getMetaUnitIdBySourceIds(Set<Integer> metaUnitSourceIds);
 
 
-    Comp currentComp();
+    Comp runningComp();
 }

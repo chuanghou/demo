@@ -84,9 +84,8 @@ public class TunnelImpl implements Tunnel {
 
     @Override
     @Nullable
-    public Comp currentComp() {
+    public Comp runningComp() {
         List<Comp> comps = compDODAOWrapper.memoryComps();
-        ErrorEnum errorEnum = ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛，请联系管理员");
         return comps.stream().max(Comparator.comparing(Comp::getCompId)).orElse(null);
     }
 }

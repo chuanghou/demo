@@ -1,10 +1,7 @@
 package com.stellariver.milky.demo.adapter.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
-import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.adapter.repository.domain.CompDODAOWrapper;
 import com.stellariver.milky.demo.basic.ErrorEnums;
@@ -54,7 +51,7 @@ public class CompController {
 
     @GetMapping("runningComp")
     public Result<Comp> runningComp() {
-        Comp comp = tunnel.currentComp();
+        Comp comp = tunnel.runningComp();
         return Result.success(comp);
     }
 
