@@ -101,4 +101,13 @@ public interface BasicConvertor {
         return Json.parseList(value, Deal.class);
     }
 
+    default List<Map<MarketType, Map<TimeFrame, CentralizedDeals>>> toCentralizedDeals(String value) {
+        return Json.parse(value, new TypeReference<List<Map<MarketType, Map<TimeFrame, CentralizedDeals>>>>() {});
+    }
+
+    default String fromCentralizedDeals(List<Map<MarketType, Map<TimeFrame, CentralizedDeals>>> centralizedDeals) {
+        return Json.toJson(centralizedDeals);
+    }
+
+
 }

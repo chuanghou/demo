@@ -1,4 +1,4 @@
-package com.stellariver.milky.demo.domain;
+package com.stellariver.milky.demo.basic;
 
 import com.stellariver.milky.demo.common.enums.Direction;
 import lombok.AccessLevel;

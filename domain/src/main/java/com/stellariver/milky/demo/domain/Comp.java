@@ -8,7 +8,9 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.demo.basic.CentralizedDeals;
 import com.stellariver.milky.demo.basic.ErrorEnums;
+import com.stellariver.milky.demo.basic.PointLine;
 import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.common.enums.Direction;
@@ -55,10 +57,13 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     PriceLimit priceLimit;
     Map<MarketType, Map<TimeFrame, GridLimit>> transLimit;
     List<Map<MarketType, Duration>> durations;
+
     @JsonIgnore
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
     @JsonIgnore
     List<ListMultimap<MarketType, Bid>> centralizedBids = new ArrayList<>();
+
+    List<Map<MarketType, Map<TimeFrame, CentralizedDeals>>> roundCentralizedDeals = new ArrayList<>();
 
     @JsonIgnore
     Map<Pair<Province, TimeFrame>, RealtimeBidProcessor> rtBidProcessors = new ConcurrentHashMap<>();
@@ -91,6 +96,8 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
             comp.getReplenishes().add(map);
         });
         IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getCentralizedBids().add(ArrayListMultimap.create()));
+
+        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getRoundCentralizedDeals().add(new HashMap<>()));
 
         context.publish(CompEvent.Created.builder().compId(comp.getCompId()).comp(comp).build());
         return comp;
@@ -164,11 +171,45 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     @MethodHandler
     public void handle(CompCommand.Clear clear, Context context) {
         List<Bid> bids = centralizedBids.get(roundId).get(marketType);
-        List<Bid> buyBids = bids.stream().filter(bid -> bid.getDirection() == Direction.BUY).collect(Collectors.toList());
-        List<Bid> sellBids = bids.stream().filter(bid -> bid.getDirection() == Direction.SELL).collect(Collectors.toList());
-        List<Deal> deals = Arrays.stream(TimeFrame.values())
-                .map(timeFrame -> clear(buyBids, sellBids, timeFrame)).flatMap(Collection::stream).collect(Collectors.toList());
-        CompEvent.Cleared event = CompEvent.Cleared.builder().compId(compId).marketType(marketType).deals(deals).build();
+        Map<TimeFrame, CentralizedDeals> marketTypeCentralizedDeals = new HashMap<>();
+        for (TimeFrame timeFrame : TimeFrame.values()) {
+
+            List<Bid> buyBids = bids.stream().filter(bid -> {
+                boolean b0 = bid.getDirection() == Direction.BUY;
+                boolean b1 = bid.getTimeFrame() == timeFrame;
+                return b0 && b1;
+            }).collect(Collectors.toList());
+            List<Bid> sellBids = bids.stream().filter(bid -> {
+                boolean b0 = bid.getDirection() == Direction.SELL;
+                boolean b1 = bid.getTimeFrame() == timeFrame;
+                return b0 && b1;
+            }).collect(Collectors.toList());
+
+            Clearance clearance = clear(buyBids, sellBids, timeFrame);
+            Double dealQuantityTotal = clearance.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum);
+            Double totalVolume = clearance.getDeals().stream().map(deal -> deal.getQuantity() * deal.getPrice()).reduce(0D, Double::sum);
+            Double dealAveragePrice = Objects.equals(totalVolume, 0D) ? 0 : totalVolume/dealQuantityTotal;
+
+            CentralizedDeals centralizedDeals = CentralizedDeals.builder()
+                    .buyBidQuantityTotal(buyBids.stream().map(Bid::getQuantity).reduce(0D, Double::sum))
+                    .sellBidQuantityTotal(sellBids.stream().map(Bid::getQuantity).reduce(0D, Double::sum))
+                    .dealAveragePrice(dealAveragePrice)
+                    .dealQuantityTotal(dealQuantityTotal)
+                    .buyPointLines(clearance.getBuyPointLines())
+                    .sellPointLines(clearance.getSellPointLines())
+                    .interPoint(clearance.getInterPoint())
+                    .deals(clearance.getDeals())
+                    .build();
+
+            marketTypeCentralizedDeals.put(timeFrame, centralizedDeals);
+        }
+
+        roundCentralizedDeals.get(roundId).put(marketType, marketTypeCentralizedDeals);
+        CompEvent.Cleared event = CompEvent.Cleared.builder()
+                .compId(compId)
+                .marketType(marketType)
+                .centralizedDealsMap(marketTypeCentralizedDeals)
+                .build();
         context.publish(event);
     }
 
@@ -182,13 +223,18 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
      * |------------------------------------------------
      * |
      */
-    public List<Deal> clear(List<Bid> buyBids, List<Bid> sellBids, TimeFrame timeFrame) {
+    public Clearance clear(List<Bid> buyBids, List<Bid> sellBids, TimeFrame timeFrame) {
 
         buyBids = buyBids.stream().filter(bid -> bid.getTimeFrame() == timeFrame).collect(Collectors.toList());
         sellBids = sellBids.stream().filter(bid -> bid.getTimeFrame() == timeFrame).collect(Collectors.toList());
 
         if (Collect.isEmpty(buyBids) || Collect.isEmpty(sellBids)) {
-            return Collections.EMPTY_LIST;
+            return Clearance.builder()
+                    .deals(new ArrayList<>())
+                    .interPoint(null) // 其实应该是null，为避免前端崩溃，显示为0
+                    .sellPointLines(buildPointLine(sellBids))
+                    .buyPointLines(buildPointLine(buyBids))
+                    .build();
         }
 
         ResolveResult resolveResult = resolveInterPoint(buyBids, sellBids);
@@ -216,7 +262,12 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         List<Deal> sellDeals = resolveDeals(resolveResult.getSellPointLines(), triple);
         Map<TimeFrame, Double> replenishMap = replenishes.get(roundId).get(marketType);
         replenishMap.put(timeFrame, triple.getRight());
-        return Stream.of(buyDeals, sellDeals).flatMap(Collection::stream).collect(Collectors.toList());
+        List<Deal> deals = Stream.of(buyDeals, sellDeals).flatMap(Collection::stream).collect(Collectors.toList());
+        return  Clearance.builder().deals(deals)
+                .buyPointLines(resolveResult.getBuyPointLines())
+                .sellPointLines(resolveResult.getSellPointLines())
+                .interPoint(resolveResult.getInterPoint())
+                .build();
 
     }
 

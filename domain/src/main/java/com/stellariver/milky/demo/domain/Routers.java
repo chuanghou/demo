@@ -5,6 +5,7 @@ import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.Allocate;
+import com.stellariver.milky.demo.basic.CentralizedDeals;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.common.Deal;
@@ -158,7 +159,8 @@ public class Routers implements EventRouters {
 
     @EventRouter
     public void route(CompEvent.Cleared event, Context context) {
-        ListMultimap<Long, Deal> dealMultiMap = event.getDeals().stream().collect(Collect.listMultiMap(Deal::getUnitId));
+        ListMultimap<Long, Deal> dealMultiMap = event.getCentralizedDealsMap().values().stream()
+                .map(CentralizedDeals::getDeals).flatMap(Collection::stream).collect(Collect.listMultiMap(Deal::getUnitId));
         dealMultiMap.keySet().forEach(unitId -> {
             List<Deal> deals = dealMultiMap.get(unitId);
             UnitCommand.DealReport command = UnitCommand.DealReport.builder().unitId(unitId).deals(deals).build();
