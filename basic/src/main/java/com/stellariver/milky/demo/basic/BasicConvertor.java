@@ -93,4 +93,12 @@ public interface BasicConvertor {
         return Json.toJson(directions);
     }
 
+    default String fromDeals(List<Deal> deals) {
+        return Json.toJson(deals);
+    }
+
+    default List<Deal> toDeals(String value) {
+        return Json.parseList(value, Deal.class);
+    }
+
 }

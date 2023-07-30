@@ -112,7 +112,10 @@ public class Unit extends AggregateRoot {
     @MethodHandler
     public void handle(UnitCommand.CentralizedTrigger command, Context context) {
         List<Bid> marketTypeBids = centralizedBids.get(command.getMarketType());
-        marketTypeBids.forEach(bid -> bids.put(bid.getBidId(), bid));
+        marketTypeBids.forEach(bid -> {
+            bid.setBidStatus(BidStatus.NEW_DECELERATED);
+            bids.put(bid.getBidId(), bid);
+        });
         UnitEvent.CentralizedTriggered event = UnitEvent.CentralizedTriggered.builder()
                 .unitId(unitId).marketType(command.getMarketType()).compId(compId).bids(marketTypeBids).build();
         context.publish(event);
