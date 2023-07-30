@@ -3,20 +3,12 @@ package com.stellariver.milky.demo.infrastructure.database.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.stellariver.milky.demo.basic.UnitType;
-import com.stellariver.milky.demo.common.enums.Direction;
-import com.stellariver.milky.demo.common.enums.Province;
-import com.stellariver.milky.demo.common.enums.TimeFrame;
-import com.stellariver.milky.domain.support.base.BaseDataObject;
-import com.stellariver.milky.infrastructure.base.database.AbstractMpDO;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-
-import java.util.Map;
 
 @Data
 @NoArgsConstructor

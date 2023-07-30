@@ -10,13 +10,12 @@ import com.stellariver.milky.domain.support.dependency.DAOWrapper;
 import com.stellariver.milky.domain.support.util.ThreadLocalTransferableExecutor;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.mapstruct.*;
 import org.mapstruct.Builder;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 
 /**
  * @author houchuang
