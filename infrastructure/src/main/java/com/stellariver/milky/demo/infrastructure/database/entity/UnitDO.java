@@ -10,6 +10,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
 /**
  * @author houchuang
  */
@@ -36,6 +38,9 @@ public class UnitDO extends AbstractMpDO implements BaseDataObject<Long> {
     String centralizedBids;
     String stageFourDirections;
     String balances;
+
+    @TableField(exist = false)
+    List<BidDO> bidDOs;
 
     @Override
     public Long getPrimaryId() {

@@ -204,7 +204,7 @@ public class CompTest {
             Map<Direction, Double> balances = transferGenerator.getBalances().get(timeFrame);
             Double sellBalance = balances.get(Direction.SELL);
             double quantity = sellBalance / 3;
-            BidPO bidPO = BidPO.builder().direction(Direction.SELL.name()).price(100D).quantity(quantity).timeFrame(TimeFrame.FLAT.name()).build();
+            BidPO bidPO = BidPO.builder().direction(Direction.SELL.name()).price(100D).quantity(quantity).timeFrame(timeFrame.name()).build();
             CentralizedBidPO centralizedBidPO = CentralizedBidPO.builder().unitId(transferGenerator.getUnitId()).bids(Arrays.asList(bidPO, bidPO, bidPO)).build();
             unitController.centralizedBid(centralizedBidPO, user0Token);
         }
@@ -222,8 +222,8 @@ public class CompTest {
             Map<Direction, Double> balances = receiveLoad.getBalances().get(timeFrame);
             Double sellBalance = balances.get(Direction.BUY);
             double quantity = sellBalance / 3;
-            BidPO bidPO = BidPO.builder().direction(Direction.SELL.name()).price(100D).quantity(quantity).timeFrame(TimeFrame.FLAT.name()).build();
-            CentralizedBidPO centralizedBidPO = CentralizedBidPO.builder().unitId(transferGenerator.getUnitId()).bids(Arrays.asList(bidPO, bidPO, bidPO)).build();
+            BidPO bidPO = BidPO.builder().direction(Direction.BUY.name()).price(100D).quantity(quantity).timeFrame(timeFrame.name()).build();
+            CentralizedBidPO centralizedBidPO = CentralizedBidPO.builder().unitId(receiveLoad.getUnitId()).bids(Arrays.asList(bidPO, bidPO, bidPO)).build();
             unitController.centralizedBid(centralizedBidPO, user0Token);
         }
 

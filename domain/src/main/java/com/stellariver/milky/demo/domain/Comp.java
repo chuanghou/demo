@@ -2,8 +2,10 @@ package com.stellariver.milky.demo.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.*;
+import com.stellariver.milky.common.base.BeanUtil;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.SysEx;
+import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.ErrorEnums;
@@ -19,6 +21,7 @@ import com.stellariver.milky.domain.support.base.BaseDataObject;
 import com.stellariver.milky.domain.support.command.ConstructorHandler;
 import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
+import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
@@ -75,12 +78,18 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         comp.setMarketType(MarketType.INTER_ANNUAL_PROVINCIAL);
         comp.setMarketStatus(Status.MarketStatus.CLOSE);
         comp.setPriceLimit(create.getPriceLimit());
-        comp.setTransLimit(new HashMap<>());
+        comp.setTransLimit(create.getTransLimit());
         comp.setDurations(create.getDurations());
         comp.setReplenishes(new ArrayList<>());
         comp.setUserTotal(create.getAgentTotal());
 
-        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getReplenishes().add(new HashMap<>()));
+        IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> {
+            Map<MarketType, Map<TimeFrame, Double>> map = Collect.asMap(
+                    MarketType.INTER_ANNUAL_PROVINCIAL, new HashMap<>(),
+                    MarketType.INTER_MONTHLY_PROVINCIAL, new HashMap<>()
+            );
+            comp.getReplenishes().add(map);
+        });
         IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> comp.getCentralizedBids().add(ArrayListMultimap.create()));
 
         context.publish(CompEvent.Created.builder().compId(comp.getCompId()).comp(comp).build());
@@ -212,49 +221,76 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     }
 
     private List<Deal> resolveDeals(List<PointLine> pointLines, Triple<Double, Double, Double> triple) {
-        Double dealQuantity, dealPrice;
         List<Deal> deals = new ArrayList<>();
         if (triple.getLeft() == null) {
             return deals;
         }
+        UniqueIdBuilder uniqueIdBuilder = BeanUtil.getBean(UniqueIdBuilder.class);
+        int lastPointLineIndex = 0;
         for (int i = 0; i < pointLines.size(); i++) {
             PointLine pointLine = pointLines.get(i);
-            if (pointLine.getLeftX() + pointLine.getQuantity() <= triple.getLeft()) {
-                dealQuantity = pointLine.getQuantity();
-                dealPrice = triple.getMiddle();
-                Long bidId = pointLine.getBidId();
-                Long unitId = pointLine.getUnitId();
-                Deal deal = Deal.builder().bidId(bidId).unitId(unitId).quantity(dealQuantity).price(dealPrice).build();
-                deals.add(deal);
-            } else if (pointLine.getLeftX() < triple.getLeft()) {
-                dealQuantity = triple.getLeft() - pointLine.getLeftX();
-                dealPrice = triple.getMiddle();
-                int reverseIndex = 0;
-                List<PointLine> pLines = new ArrayList<>();
-                do {
-                    PointLine pLine = pointLines.get(i - reverseIndex);
-                    if (!Kit.eq(pLine.getPrice(), dealPrice)) {
-                        break;
-                    } else {
-                        pLines.add(pLine);
-                    }
-                } while (++reverseIndex <= i);
-
-                Double totalQuantity = pLines.stream().map(PointLine::getQuantity).reduce(0D, Double::sum);
-                Double finalDealQuantity = dealQuantity;
-                pLines.forEach(pL -> {
-                    double realDealQuantity = (pL.getQuantity() / totalQuantity) * finalDealQuantity;
-                    Double realDealPrice = triple.getMiddle();
-                    Long bidId = pL.getBidId();
-                    Long unitId = pL.getUnitId();
-                    Deal deal = Deal.builder().bidId(bidId).unitId(unitId).quantity(realDealQuantity).price(realDealPrice).build();
-                    deals.add(deal);
-                });
-                break;
+            boolean b = pointLine.getLeftX() < triple.getLeft();
+            if (b) {
+                lastPointLineIndex = i;
             } else {
-                throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+                break;
             }
+        }
 
+        double totalDealQuantity = 0;
+        double totalQuantity = 0;
+        double lastPartQuantity = triple.getLeft() - pointLines.get(lastPointLineIndex).getLeftX();
+        totalDealQuantity += lastPartQuantity;
+        totalQuantity += pointLines.get(lastPointLineIndex).getQuantity();
+        int exclusivePointLineIndex = lastPointLineIndex - 1;
+
+        for (; exclusivePointLineIndex >= 0; exclusivePointLineIndex--) {
+            boolean b = Kit.notEq(pointLines.get(exclusivePointLineIndex).getPrice(), triple.getMiddle());
+            if (b) {
+                break;
+            }
+        }
+
+        for (int i = exclusivePointLineIndex + 1; i < lastPointLineIndex; i++) {
+            PointLine pointLine = pointLines.get(i);
+            totalDealQuantity += pointLine.getQuantity();
+            totalQuantity += pointLine.getQuantity();
+        }
+
+
+        for (int i = exclusivePointLineIndex + 1; i < lastPointLineIndex; i++) {
+            PointLine pointLine = pointLines.get(i);
+            Deal deal = Deal.builder().dealId(uniqueIdBuilder.get())
+                    .bidId(pointLine.getBidId())
+                    .unitId(pointLine.getUnitId())
+                    .quantity(pointLine.getQuantity() * totalDealQuantity / totalQuantity)
+                    .price(triple.getMiddle())
+                    .date(Clock.now())
+                    .build();
+            deals.add(deal);
+        }
+
+        PointLine lastPointLine = pointLines.get(lastPointLineIndex);
+        Deal deal = Deal.builder().dealId(uniqueIdBuilder.get())
+                .bidId(lastPointLine.getBidId())
+                .unitId(lastPointLine.getUnitId())
+                .quantity(lastPointLine.getQuantity() * totalDealQuantity / totalQuantity)
+                .price(triple.getMiddle())
+                .date(Clock.now())
+                .build();
+        deals.add(deal);
+
+
+        for (int i = 0; i <= exclusivePointLineIndex; i++) {
+            PointLine pointLine = pointLines.get(i);
+            deal = Deal.builder().dealId(uniqueIdBuilder.get())
+                    .bidId(pointLine.getBidId())
+                    .unitId(pointLine.getUnitId())
+                    .quantity(pointLine.getQuantity())
+                    .price(triple.getMiddle())
+                    .date(Clock.now())
+                    .build();
+            deals.add(deal);
         }
         return deals;
     }
@@ -367,6 +403,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         Double cumulateQuantity = 0D;
         for (Bid bid : bids) {
             PointLine pointLine = PointLine.builder()
+                    .bidId(bid.getBidId())
                     .unitId(bid.getUnitId())
                     .direction(bid.getDirection())
                     .price(bid.getPrice())
