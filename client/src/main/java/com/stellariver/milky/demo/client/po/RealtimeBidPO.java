@@ -16,7 +16,7 @@ public class RealtimeBidPO {
     @Valid
     Long unitId;
 
-    @NotEmpty
-    BidPO bidPO;
+    @Valid
+    BidPO bid;
 
 }

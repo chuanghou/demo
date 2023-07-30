@@ -18,14 +18,11 @@ public class BidPO {
 
     @NotNull @OfEnum(enumType = TimeFrame.class)
     String timeFrame;
-
     @NotNull @OfEnum(enumType = Direction.class)
     String direction;
-
     @NotNull
     @Positive
     Double quantity;
-
     @NotNull
     @Positive
     Double price;

@@ -130,7 +130,7 @@ public class Routers implements EventRouters {
             CommandBus.driveByEvent(clear, stepped);
         }
 
-        boolean b3 = stepped.getLastMarketType() == MarketType.INTER_SPOT_PROVINCIAL;
+        boolean b3 = stepped.getLastMarketType() == MarketType.FINAL_CLEAR;
         boolean b4 = stepped.getLastMarketStatus() == Status.MarketStatus.CLOSE;
         if (b3 && b4) {
             buildUnits(stepped, comp);

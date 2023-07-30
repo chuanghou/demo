@@ -1,7 +1,12 @@
 package com.stellariver.milky.demo.common.enums;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public enum Direction {
-    BUY {
+    BUY("买") {
 
         @Override
         public Direction opposite() {
@@ -13,7 +18,7 @@ public enum Direction {
             return value < base;
         }
 
-    }, SELL {
+    }, SELL("卖") {
 
         @Override
         public Direction opposite() {
@@ -26,6 +31,8 @@ public enum Direction {
         }
 
     };
+
+    final String desc;
 
     public abstract Direction opposite();
 

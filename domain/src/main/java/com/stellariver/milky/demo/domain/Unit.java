@@ -1,5 +1,6 @@
 package com.stellariver.milky.demo.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
@@ -49,11 +50,14 @@ public class Unit extends AggregateRoot {
 
     AbstractMetaUnit metaUnit;
 
+    @JsonIgnore
     Map<Long, Bid> bids = new HashMap<>();
 
+    @JsonIgnore
     ListMultimap<MarketType, Bid> centralizedBids = ArrayListMultimap.create();
 
     Map<TimeFrame, Direction> stageFourDirections = new HashMap<>();
+
     Map<TimeFrame, Map<Direction, Double>> balances = new HashMap<>();
 
     @StaticWire

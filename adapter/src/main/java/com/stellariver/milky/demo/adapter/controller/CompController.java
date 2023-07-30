@@ -36,10 +36,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -65,7 +62,8 @@ public class CompController {
     @GetMapping("listComps")
     public Result<List<Comp>> listComps() {
         List<CompDO> compDOs= compDOMapper.selectList(null);
-        List<Comp> comps = Collect.transfer(compDOs, CompDODAOWrapper.Convertor.INST::to);
+        List<Comp> comps = Collect.transfer(compDOs, CompDODAOWrapper.Convertor.INST::to)
+                .stream().sorted(Comparator.comparing(Comp::getCompId).reversed()).collect(Collectors.toList());
         return Result.success(comps);
     }
 
@@ -77,11 +75,6 @@ public class CompController {
         if (user.getRole() != Role.ADMIN) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
         }
-        LambdaQueryWrapper<CompDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.ne(CompDO::getCompStatus, Status.CompStatus.END);
-        List<CompDO> compDOs = compDOMapper.selectList(queryWrapper);
-        BizEx.trueThrow(compDOs.size() == 1, ErrorEnums.PARAM_FORMAT_WRONG.message("存在一个非关闭状态竞赛, 请关闭后再创建新的"));
-        SysEx.trueThrow(compDOs.size() > 1, ErrorEnums.PARAM_FORMAT_WRONG.message("存在多个非关闭状态竞赛, 请联系系统管理员"));
         Long compId = uniqueIdBuilder.get();
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);
         GridLimit generatorPriceLimit = GridLimit.builder().low(marketSettingDO.getOfferPriceFloor()).high(marketSettingDO.getOfferPriceCap()).build();
