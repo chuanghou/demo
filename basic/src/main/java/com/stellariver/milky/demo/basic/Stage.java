@@ -25,14 +25,13 @@ public class Stage {
         Integer nextRoundId = this.roundId;
         MarketType nextMarketType = this.marketType;
 
-
         if (nextMarketStatus == Status.MarketStatus.OPEN) {
             int nextDbCode = (marketType.getDbCode() + 1)%MarketType.values().length;
             nextMarketType = Kit.enumOfMightEx(MarketType::getDbCode, nextDbCode);
         } else if (nextMarketType == MarketType.FINAL_CLEAR) {
             nextMarketStatus = Status.MarketStatus.OPEN;
             nextMarketType = MarketType.INTER_ANNUAL_PROVINCIAL;
-            roundId = nextRoundId + 1;
+            nextRoundId += 1;
         }
 
         return Stage.builder().roundId(nextRoundId).marketType(nextMarketType).marketStatus(nextMarketStatus).build();

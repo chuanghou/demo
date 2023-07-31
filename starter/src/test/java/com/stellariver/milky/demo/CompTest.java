@@ -64,11 +64,11 @@ public class CompTest {
         String token = logInVO.getData().getToken();
         List<Long> durationLengths = new ArrayList<>();
         for (int i = 0; i < MarketType.values().length; i++) {
-            durationLengths.add(1L);
+            durationLengths.add(3L);
         }
         CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationLengths).agentNumber(5).build();
         compController.create(token, compCreatePO);
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         Result<Comp> compResult = compController.runningComp();
         Assertions.assertTrue(compResult.getSuccess());
@@ -81,20 +81,20 @@ public class CompTest {
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
-        Thread.sleep(1100);
+        Thread.sleep(3100);
 
         runningComp = compController.runningComp().getData();
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
 
-        Thread.sleep(1100);
+        Thread.sleep(3100);
 
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
-        Thread.sleep(1100);
+        Thread.sleep(3100);
 
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_ANNUAL_PROVINCIAL);
@@ -131,6 +131,11 @@ public class CompTest {
         compController.step(token, runningComp.getCompId());
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_SPOT_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
+
+        compController.step(token, runningComp.getCompId());
+
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.FINAL_CLEAR);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
         compController.step(token, runningComp.getCompId());
 
