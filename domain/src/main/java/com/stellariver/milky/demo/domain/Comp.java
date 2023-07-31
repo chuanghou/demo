@@ -482,6 +482,11 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         realtimeBidProcessor.post(cancelBid);
     }
 
+    @MethodHandler
+    public void handle(CompCommand.RtMarketClose command, Context context) {
+        rtBidProcessors.values().forEach(RealtimeBidProcessor::close);
+    }
+
 
 
 }

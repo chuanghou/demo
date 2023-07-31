@@ -72,6 +72,7 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
 
     public void post(NewBid newBid) {
         disruptor.publishEvent((rtBidContainer, sequence) -> {
+            rtBidContainer.setClose(false);
             rtBidContainer.setCancelBid(null);
             rtBidContainer.setNewBid(newBid);
         });
@@ -79,18 +80,48 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
 
     public void post(CancelBid cancelBid) {
         disruptor.publishEvent((rtBidContainer, sequence) -> {
+            rtBidContainer.setClose(false);
             rtBidContainer.setCancelBid(cancelBid);
             rtBidContainer.setNewBid(null);
         });
     }
 
+    public void close() {
+        disruptor.publishEvent((rtBidContainer, sequence) -> {
+            rtBidContainer.setClose(true);
+            rtBidContainer.setCancelBid(null);
+            rtBidContainer.setNewBid(null);
+        });
+    }
+
+
     @Override
     public void onEvent(RtBidContainer event, long sequence, boolean endOfBatch) throws Exception {
-        if (event.getCancelBid() == null) {
+        if (event.getNewBid() != null){
             doProcessNewBid(event.getNewBid());
-        } else {
+        } else if (event.getCancelBid() != null) {
             doProcessCancel(event.getCancelBid());
+        } else if (event.getClose()) {
+            doClose();
+        } else {
+            throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
+    }
+
+    private void doClose() {
+
+        buyPriorityQueue.forEach(bid -> {
+            UnitCommand.RtBidCancelled command = UnitCommand.RtBidCancelled.builder()
+                    .bidId(bid.getBidId()).unitId(bid.getUnitId()).remainder(bid.getQuantity()).build();
+            CommandBus.accept(command, new HashMap<>());
+        });
+
+        sellPriorityQueue.forEach(bid -> {
+            UnitCommand.RtBidCancelled command = UnitCommand.RtBidCancelled.builder()
+                    .bidId(bid.getBidId()).unitId(bid.getUnitId()).remainder(bid.getQuantity()).build();
+            CommandBus.accept(command, new HashMap<>());
+        });
+
     }
 
     private void doProcessCancel(CancelBid cancelBid) {
@@ -159,8 +190,5 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
                 .unitId(newBid.getUnitId()).deals(Collect.asList(deal)).build();
         CompletableFuture.runAsync(() -> CommandBus.accept(dealReport, new HashMap<>()));
     }
-
-
-
 
 }

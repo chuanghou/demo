@@ -160,6 +160,17 @@ public class Routers implements EventRouters {
         }
     }
 
+    @EventRouter
+    public void routeRealtimeMarketClose(CompEvent.Stepped stepped, Context context) {
+        boolean b0 = stepped.getLastMarketType() == MarketType.INTRA_ANNUAL_PROVINCIAL;
+        boolean b1 = stepped.getLastMarketType() == MarketType.INTRA_MONTHLY_PROVINCIAL;
+        boolean b2 = stepped.getLastMarketStatus() == Status.MarketStatus.OPEN;
+        if ((b0 || b1) && b2) {
+            Comp comp = tunnel.runningComp();
+
+        }
+    }
+
 
     @EventRouter
     public void route(UnitEvent.CentralizedTriggered event, Context context) {

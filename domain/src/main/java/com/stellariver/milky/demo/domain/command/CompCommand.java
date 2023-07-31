@@ -191,4 +191,18 @@ public class CompCommand {
 
     }
 
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class RtMarketClose extends Command{
+
+        Long compId;
+        @Override
+        public String getAggregateId() {
+            return compId.toString();
+        }
+    }
 }

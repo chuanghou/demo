@@ -15,5 +15,6 @@ public class RtBidContainer {
 
     NewBid newBid;
     CancelBid cancelBid;
+    Boolean close;
 
 }
