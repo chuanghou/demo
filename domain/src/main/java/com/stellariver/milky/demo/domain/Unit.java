@@ -164,7 +164,7 @@ public class Unit extends AggregateRoot {
             BizEx.trueThrow(unitType.generalDirection() != command.getBid().getDirection(), PARAM_FORMAT_WRONG.message("买卖方向错误"));
         }
 
-        Double balance = balances.get(bid.getTimeFrame()).get(bid.getDirection());
+        Double balance = balances.get(bid.getTimeFrame()).getOrDefault(bid.getDirection(), 0D);
         BizEx.trueThrow(balance < bid.getQuantity(), PARAM_FORMAT_WRONG.message("超过余额"));
         bid.setBidStatus(BidStatus.NEW_DECELERATED);
         bids.put(bid.getUnitId(), bid);

@@ -1,6 +1,8 @@
 package com.stellariver.milky.demo.domain;
 
 import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.enums.CancelBid;
+import com.stellariver.milky.demo.common.enums.NewBid;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -11,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RtBidContainer {
 
-    Long cancelBidId;
-    Bid newBid;
+    NewBid newBid;
+    CancelBid cancelBid;
 
 }

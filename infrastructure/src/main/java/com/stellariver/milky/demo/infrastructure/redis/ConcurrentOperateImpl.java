@@ -27,8 +27,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ConcurrentOperateImpl extends ConcurrentOperate {
-
-
     private final Map<String, ReentrantLock> lockMap = new ConcurrentHashMap<>();
 
     static private final String compClassName = "com.stellariver.milky.demo.domain.Comp";
@@ -63,12 +61,8 @@ public class ConcurrentOperateImpl extends ConcurrentOperate {
                 resultMap.put(key, Result.success());
             } else {
                 ReentrantLock reentrantLock = lockMap.get(key);
-                if (reentrantLock == null) {
-                    throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
-                } else {
-                    reentrantLock.unlock();
-                    resultMap.put(key, Result.success());
-                }
+                reentrantLock.unlock();
+                resultMap.put(key, Result.success());
             }
         });
         return resultMap;

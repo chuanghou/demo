@@ -5,6 +5,8 @@ import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.GridLimit;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.PriceLimit;
+import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.NewBid;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.domain.support.command.Command;
@@ -135,11 +137,10 @@ public class CompCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class RtNewBidDeclare extends Command {
+    public static class RtNewBid extends Command {
 
         Long compId;
-        Long unitId;
-        Bid bid;
+        NewBid newBid;
 
         @Override
         public String getAggregateId() {
@@ -154,11 +155,12 @@ public class CompCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class RtCancelBidDeclare extends Command {
+    public static class RtCancelBid extends Command {
 
         Long compId;
         Long unitId;
         Long bidId;
+        Direction bidDirection;
         Province province;
         TimeFrame timeFrame;
 

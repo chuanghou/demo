@@ -7,10 +7,7 @@ import com.stellariver.milky.demo.adapter.controller.UnitController;
 import com.stellariver.milky.demo.adapter.controller.UserController;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.basic.UnitType;
-import com.stellariver.milky.demo.client.po.BidPO;
-import com.stellariver.milky.demo.client.po.CentralizedBidPO;
-import com.stellariver.milky.demo.client.po.CompCreatePO;
-import com.stellariver.milky.demo.client.po.LoginPO;
+import com.stellariver.milky.demo.client.po.*;
 import com.stellariver.milky.demo.client.vo.LogInVO;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
@@ -232,8 +229,22 @@ public class CompTest {
 
         compController.step(adminToken, runningComp.getCompId());
         Long compId = compController.runningComp().getData().getCompId();
-        List<Unit> units = unitController.listUnits(compId, user0Token).getData();
         Assertions.assertNotNull(compController.runningComp());
+
+        compController.step(adminToken, runningComp.getCompId());
+
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_MONTHLY_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
+
+        BidPO bidPO = BidPO.builder()
+                .timeFrame(TimeFrame.PEAK.name())
+                .direction(Direction.SELL.name())
+                .quantity(100D)
+                .price(200D)
+                .build();
+        RealtimeBidPO realtimeBidPO = RealtimeBidPO.builder().bid(bidPO).unitId(transferGenerator.getUnitId()).build();
+        unitController.realtimeBid(realtimeBidPO, user0Token);
+
 
 
     }

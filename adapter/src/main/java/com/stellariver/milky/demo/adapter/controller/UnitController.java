@@ -86,6 +86,7 @@ public class UnitController {
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
         Bid bid = Convertor.INST.to(realtimeBidPO.getBid());
         bid.setUnitId(realtimeBidPO.getUnitId());
+        bid.setProvince(unit.getMetaUnit().getProvince());
         Comp comp = tunnel.runningComp();
         Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
         UnitCommand.RtNewBidDeclare realtimeBid = UnitCommand.RtNewBidDeclare.builder().unitId(unit.getUnitId()).bid(bid).build();

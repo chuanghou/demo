@@ -9,15 +9,17 @@ import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
+import com.stellariver.milky.demo.common.enums.CancelBid;
 import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.NewBid;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.domain.support.command.CommandBus;
 
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
 
@@ -30,7 +32,7 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
         disruptor.start();
     }
 
-    static private final Comparator<Bid> buyComparator = (o1, o2) -> {
+    static private final Comparator<NewBid> buyComparator = (o1, o2) -> {
         if (o1.getPrice() > o2.getPrice()) {
             return -1;
         } else if (o1.getPrice() < o2.getPrice()) {
@@ -46,7 +48,7 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
         }
     };
 
-    static private final Comparator<Bid> sellComparator = (o1, o2) -> {
+    static private final Comparator<NewBid> sellComparator = (o1, o2) -> {
         if (o1.getPrice() < o2.getPrice()) {
             return -1;
         } else if (o1.getPrice() > o2.getPrice()) {
@@ -63,63 +65,62 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
     };
 
 
-    public final PriorityQueue<Bid> buyPriorityQueue = new PriorityQueue<>(buyComparator);
+    public final PriorityQueue<NewBid> buyPriorityQueue = new PriorityQueue<>(buyComparator);
 
-    public final PriorityQueue<Bid> sellPriorityQueue = new PriorityQueue<>(sellComparator);
+    public final PriorityQueue<NewBid> sellPriorityQueue = new PriorityQueue<>(sellComparator);
 
 
-    public void post(Bid bid) {
+    public void post(NewBid newBid) {
         disruptor.publishEvent((rtBidContainer, sequence) -> {
-            rtBidContainer.setCancelBidId(null);
-            rtBidContainer.setNewBid(bid);
+            rtBidContainer.setCancelBid(null);
+            rtBidContainer.setNewBid(newBid);
         });
     }
 
-    public void cancel(Long bidId) {
+    public void post(CancelBid cancelBid) {
         disruptor.publishEvent((rtBidContainer, sequence) -> {
-            rtBidContainer.setCancelBidId(bidId);
+            rtBidContainer.setCancelBid(cancelBid);
             rtBidContainer.setNewBid(null);
         });
     }
 
     @Override
     public void onEvent(RtBidContainer event, long sequence, boolean endOfBatch) throws Exception {
-        Bid bid = event.getNewBid();
-        Long cancelBidId = event.getCancelBidId();
-        if (cancelBidId == null) {
+        if (event.getCancelBid() == null) {
             doProcessNewBid(event.getNewBid());
         } else {
-            doProcessCancel(event.getCancelBidId());
+            doProcessCancel(event.getCancelBid());
         }
     }
 
-    private void doProcessCancel(Long cancelBidId) {
-        Optional<Bid> bidOptional = buyPriorityQueue.stream().filter(bid -> Kit.eq(bid.getBidId(), cancelBidId)).findFirst();
-        Bid cancelBid;
-        if (bidOptional.isPresent()) {
-            cancelBid = bidOptional.get();
-            buyPriorityQueue.remove(cancelBid);
-        } else {
-            cancelBid = sellPriorityQueue.stream().filter(bid -> Kit.eq(bid.getBidId(), cancelBidId))
-                    .findFirst().orElseThrow(() -> new SysEx(ErrorEnums.UNREACHABLE_CODE));
-            sellPriorityQueue.remove(cancelBid);
-        }
+    private void doProcessCancel(CancelBid cancelBid) {
+        PriorityQueue<NewBid> newBids = cancelBid.getDirection() == Direction.BUY ? buyPriorityQueue : sellPriorityQueue;
+
+        AtomicReference<NewBid> cancelledBiz = new AtomicReference<>();
+        boolean b = newBids.removeIf(bid -> {
+            boolean eq = Kit.eq(cancelBid.getBidId(), bid.getBidId());
+            if (eq) {
+                cancelledBiz.set(bid);
+            }
+            return eq;
+        });
+        SysEx.falseThrow(b, ErrorEnums.SYS_EX.message("could not find bid" + cancelBid));
 
         UnitCommand.RtBidCancelled command = UnitCommand.RtBidCancelled.builder()
-                .bidId(cancelBidId).unitId(cancelBid.getUnitId()).remainder(cancelBid.getQuantity()).build();
+                .bidId(cancelBid.getBidId()).unitId(cancelledBiz.get().getUnitId()).remainder(cancelledBiz.get().getQuantity()).build();
         CommandBus.accept(command, new HashMap<>());
     }
 
-    public void doProcessNewBid(Bid bid) {
-        if (bid.getDirection() == Direction.BUY) {
-            buyPriorityQueue.add(bid);
-        } else if (bid.getDirection() == Direction.SELL) {
-            sellPriorityQueue.add(bid);
+    public void doProcessNewBid(NewBid newBid) {
+        if (newBid.getDirection() == Direction.BUY) {
+            buyPriorityQueue.add(newBid);
+        } else if (newBid.getDirection() == Direction.SELL) {
+            sellPriorityQueue.add(newBid);
         } else {
             throw new RuntimeException();
         }
-        Bid buyBid = buyPriorityQueue.peek();
-        Bid sellBid = sellPriorityQueue.peek();
+        NewBid buyBid = buyPriorityQueue.peek();
+        NewBid sellBid = sellPriorityQueue.peek();
 
         if (buyBid == null || sellBid == null) {
             return;
@@ -135,8 +136,6 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
         Double dealPrice = buyBid.getDate().after(sellBid.getDate()) ? sellBid.getPrice() : buyBid.getPrice();
         double dealQuantity = Math.min(buyBid.getQuantity(), sellBid.getQuantity());
 
-        System.out.println(buyBid.getBidId() +" buy deal " + dealQuantity);
-        System.out.println(sellBid.getBidId() + " sell deal " + dealQuantity);
         double buyBalance = buyBid.getQuantity() - dealQuantity;
         if (buyBalance == 0L) {
             buyPriorityQueue.remove();
@@ -153,11 +152,11 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
         report(sellBid, dealPrice, dealQuantity);
     }
 
-    private void report(Bid bid, Double dealPrice, double dealQuantity) {
-        Deal deal = Deal.builder().bidId(bid.getBidId())
-                .unitId(bid.getUnitId()).quantity(dealQuantity).price(dealPrice).build();
+    private void report(NewBid newBid, Double dealPrice, double dealQuantity) {
+        Deal deal = Deal.builder().bidId(newBid.getBidId())
+                .unitId(newBid.getUnitId()).quantity(dealQuantity).price(dealPrice).build();
         UnitCommand.DealReport dealReport = UnitCommand.DealReport.builder()
-                .unitId(bid.getUnitId()).deals(Collect.asList(deal)).build();
+                .unitId(newBid.getUnitId()).deals(Collect.asList(deal)).build();
         CompletableFuture.runAsync(() -> CommandBus.accept(dealReport, new HashMap<>()));
     }
 

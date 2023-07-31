@@ -2,15 +2,18 @@ package com.stellariver.milky.demo.domain;
 
 import com.google.common.collect.ListMultimap;
 import com.stellariver.milky.common.base.BizEx;
+import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.Allocate;
 import com.stellariver.milky.demo.basic.CentralizedDeals;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Stage;
+import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
+import com.stellariver.milky.demo.common.enums.NewBid;
 import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.demo.domain.command.UnitEvent;
@@ -27,6 +30,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.tuple.Pair;
+import org.mapstruct.*;
+import org.mapstruct.factory.Mappers;
 
 import java.time.Duration;
 import java.util.*;
@@ -179,7 +184,7 @@ public class Routers implements EventRouters {
     @EventRouter
     public void route(UnitEvent.RtCancelBidDeclared event, Context context) {
 
-        CompCommand.RtCancelBidDeclare command = CompCommand.RtCancelBidDeclare.builder()
+        CompCommand.RtCancelBid command = CompCommand.RtCancelBid.builder()
                 .compId(event.getCompId())
                 .bidId(event.getBid().getBidId())
                 .province(event.getBid().getProvince())
@@ -191,10 +196,25 @@ public class Routers implements EventRouters {
 
     @EventRouter
     public void route(UnitEvent.RtBidDeclared event, Context context) {
-        CompCommand.RtNewBidDeclare command = CompCommand.RtNewBidDeclare.builder()
-                .unitId(event.getUnitId()).compId(event.getCompId()).bid(event.getBid()).build();
+        CompCommand.RtNewBid command = CompCommand.RtNewBid.builder().newBid(Convertor.INST.to(event.getBid())).build();
         CommandBus.driveByEvent(command, event);
     }
 
+    @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
+            nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    public interface Convertor {
 
+        Convertor INST = Mappers.getMapper(Convertor.class);
+
+        @BeanMapping(builder = @Builder(disableBuilder = true))
+        NewBid to(Bid bid);
+
+        // 主机收到的报单时间，而不是客户机申报的时间
+        @AfterMapping
+        default void after(Bid bid, NewBid newBid) {
+            newBid.setDate(Clock.now());
+        }
+
+
+    }
 }

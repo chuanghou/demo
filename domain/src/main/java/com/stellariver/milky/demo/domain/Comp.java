@@ -13,9 +13,7 @@ import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.PointLine;
 import com.stellariver.milky.demo.basic.Stage;
 import com.stellariver.milky.demo.common.*;
-import com.stellariver.milky.demo.common.enums.Direction;
-import com.stellariver.milky.demo.common.enums.Province;
-import com.stellariver.milky.demo.common.enums.TimeFrame;
+import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.domain.event.CompEvent;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
@@ -469,18 +467,19 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
 
     @MethodHandler
-    public void handle(CompCommand.RtNewBidDeclare command, Context context) {
-        Bid bid = command.getBid();
-        Pair<Province, TimeFrame> processorKey = Pair.of(bid.getProvince(), bid.getTimeFrame());
+    public void handle(CompCommand.RtNewBid command, Context context) {
+        NewBid newBid = command.getNewBid();
+        Pair<Province, TimeFrame> processorKey = Pair.of(newBid.getProvince(), newBid.getTimeFrame());
         RealtimeBidProcessor realtimeBidProcessor = rtBidProcessors.computeIfAbsent(processorKey, bG -> new RealtimeBidProcessor());
-        realtimeBidProcessor.post(bid);
+        realtimeBidProcessor.post(newBid);
     }
 
     @MethodHandler
-    public void handle(CompCommand.RtCancelBidDeclare command, Context context) {
+    public void handle(CompCommand.RtCancelBid command, Context context) {
         Pair<Province, TimeFrame> processorKey = Pair.of(command.getProvince(), command.getTimeFrame());
         RealtimeBidProcessor realtimeBidProcessor = rtBidProcessors.computeIfAbsent(processorKey, bG -> new RealtimeBidProcessor());
-        realtimeBidProcessor.cancel(command.getBidId());
+        CancelBid cancelBid = new CancelBid(command.getBidId(), command.getBidDirection());
+        realtimeBidProcessor.post(cancelBid);
     }
 
 
