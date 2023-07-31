@@ -162,7 +162,7 @@ public class CompTest {
         String adminToken = logInVO.getData().getToken();
         List<Long> durationLengths = new ArrayList<>();
         for (int i = 0; i < MarketType.values().length; i++) {
-            durationLengths.add(60L);
+            durationLengths.add(600L);
         }
         CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationLengths).agentNumber(5).build();
         compController.create(adminToken, compCreatePO);
@@ -231,6 +231,9 @@ public class CompTest {
         }
 
         compController.step(adminToken, runningComp.getCompId());
+        Long compId = compController.runningComp().getData().getCompId();
+        List<Unit> units = unitController.listUnits(compId, user0Token).getData();
+        Assertions.assertNotNull(compController.runningComp());
 
 
     }

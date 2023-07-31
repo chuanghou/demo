@@ -134,6 +134,9 @@ public class Unit extends AggregateRoot {
             bid.getDeals().add(deal);
             Double sumQuantity = bid.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum);
             bid.setBidStatus(sumQuantity < bid.getQuantity() ? BidStatus.PART_DEAL : BidStatus.COMPLETE_DEAL);
+            Double balance = balances.get(bid.getTimeFrame()).get(bid.getDirection());
+            balance -= deal.getQuantity();
+            balances.get(bid.getTimeFrame()).put(bid.getDirection(), balance);
         });
         context.publishPlaceHolderEvent(getAggregateId());
     }

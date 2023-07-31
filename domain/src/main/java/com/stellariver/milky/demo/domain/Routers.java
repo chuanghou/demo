@@ -127,6 +127,11 @@ public class Routers implements EventRouters {
         }, duration.getSeconds(), TimeUnit.SECONDS);
 
 
+    }
+
+    @EventRouter
+    public void routeForClear(CompEvent.Stepped stepped, Context context) {
+        Comp comp = tunnel.runningComp();
         boolean b0 = stepped.getLastMarketType() == MarketType.INTER_ANNUAL_PROVINCIAL;
         boolean b1 = stepped.getLastMarketType() == MarketType.INTER_MONTHLY_PROVINCIAL;
         boolean b2 = stepped.getLastMarketStatus() == Status.MarketStatus.OPEN;
@@ -140,14 +145,16 @@ public class Routers implements EventRouters {
             CompCommand.Clear clear = CompCommand.Clear.builder().compId(comp.getCompId()).build();
             CommandBus.driveByEvent(clear, stepped);
         }
+    }
 
-        boolean b3 = stepped.getLastMarketType() == MarketType.FINAL_CLEAR;
-        boolean b4 = stepped.getLastMarketStatus() == Status.MarketStatus.CLOSE;
-        if (b3 && b4) {
+    @EventRouter
+    public void routeForNexRound(CompEvent.Stepped stepped, Context context) {
+        Comp comp = tunnel.runningComp();
+        if (stepped.getLastMarketType() == MarketType.FINAL_CLEAR) {
             buildUnits(stepped, comp);
         }
-
     }
+
 
     @EventRouter
     public void route(UnitEvent.CentralizedTriggered event, Context context) {

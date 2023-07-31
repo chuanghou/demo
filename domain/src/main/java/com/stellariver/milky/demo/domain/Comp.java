@@ -186,7 +186,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
             }).collect(Collectors.toList());
 
             Clearance clearance = clear(buyBids, sellBids, timeFrame);
-            Double dealQuantityTotal = clearance.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum);
+            Double dealQuantityTotal = clearance.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum) / 2;
             Double totalVolume = clearance.getDeals().stream().map(deal -> deal.getQuantity() * deal.getPrice()).reduce(0D, Double::sum);
             Double dealAveragePrice = Objects.equals(totalVolume, 0D) ? 0 : totalVolume/dealQuantityTotal;
 
@@ -225,13 +225,10 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
      */
     public Clearance clear(List<Bid> buyBids, List<Bid> sellBids, TimeFrame timeFrame) {
 
-        buyBids = buyBids.stream().filter(bid -> bid.getTimeFrame() == timeFrame).collect(Collectors.toList());
-        sellBids = sellBids.stream().filter(bid -> bid.getTimeFrame() == timeFrame).collect(Collectors.toList());
-
         if (Collect.isEmpty(buyBids) || Collect.isEmpty(sellBids)) {
             return Clearance.builder()
                     .deals(new ArrayList<>())
-                    .interPoint(null) // 其实应该是null，为避免前端崩溃，显示为0
+                    .interPoint(null)
                     .sellPointLines(buildPointLine(sellBids))
                     .buyPointLines(buildPointLine(buyBids))
                     .build();
