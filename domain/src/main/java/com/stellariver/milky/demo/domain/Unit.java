@@ -144,6 +144,11 @@ public class Unit extends AggregateRoot {
     public void handle(UnitCommand.RtNewBidDeclare command, Context context) {
 
         MarketType marketType = context.getMetaData(TypedEnums.STAGE.class);
+
+        boolean b0 = marketType == MarketType.INTRA_ANNUAL_PROVINCIAL;
+        boolean b1 = marketType == MarketType.INTRA_MONTHLY_PROVINCIAL;
+        BizEx.falseThrow(b0 || b1, PARAM_FORMAT_WRONG.message("只有在省内年度和省内月度可以发布竞价报价"));
+
         Bid bid = command.getBid();
         if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
             if (stageFourDirections.get(bid.getTimeFrame()) == null) {

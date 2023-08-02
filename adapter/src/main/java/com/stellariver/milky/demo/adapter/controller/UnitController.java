@@ -89,6 +89,7 @@ public class UnitController {
         bid.setUnitId(realtimeNewBidPO.getUnitId());
         bid.setProvince(unit.getMetaUnit().getProvince());
         Comp comp = tunnel.runningComp();
+
         Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
         UnitCommand.RtNewBidDeclare realtimeBid = UnitCommand.RtNewBidDeclare.builder().unitId(unit.getUnitId()).bid(bid).build();
         CommandBus.accept(realtimeBid, parameters);
