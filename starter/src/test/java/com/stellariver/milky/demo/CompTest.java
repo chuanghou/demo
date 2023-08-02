@@ -304,6 +304,9 @@ public class CompTest {
         bid = transLoad.getBids().values().stream().max(Comparator.comparing(Bid::getDate)).orElseThrow(() -> new BizEx(ErrorEnums.UNREACHABLE_CODE));
         Assertions.assertEquals(bid.getBidStatus(), BidStatus.CANCELLED);
 
+        Double balance = transLoad.getBalances().get(TimeFrame.PEAK).get(Direction.BUY);
+        double v = balance + 200D;
+        Assertions.assertEquals(v, transLoad.getMetaUnit().getCapacity().get(TimeFrame.PEAK).get(Direction.BUY));
     }
 
 

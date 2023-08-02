@@ -136,9 +136,6 @@ public class Unit extends AggregateRoot {
             bid.getDeals().add(deal);
             Double sumQuantity = bid.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum);
             bid.setBidStatus(sumQuantity < bid.getQuantity() ? BidStatus.PART_DEAL : BidStatus.COMPLETE_DEAL);
-            Double balance = balances.get(bid.getTimeFrame()).get(bid.getDirection());
-            balance -= deal.getQuantity();
-            balances.get(bid.getTimeFrame()).put(bid.getDirection(), balance);
         });
         context.publishPlaceHolderEvent(getAggregateId());
     }
@@ -153,7 +150,6 @@ public class Unit extends AggregateRoot {
                 Direction direction = command.getBid().getDirection();
                 UnitType unitType = metaUnit.getUnitType();
                 if (direction.opposite() == unitType.generalDirection()){
-                    Double balance = getBalances().get(bid.getTimeFrame()).get(unitType.generalDirection());
                     Double originalBalance = balances.get(bid.getTimeFrame()).remove(unitType.generalDirection());
                     balances.get(bid.getTimeFrame()).put(direction, originalBalance);
                 }
@@ -168,6 +164,7 @@ public class Unit extends AggregateRoot {
 
         Double balance = balances.get(bid.getTimeFrame()).getOrDefault(bid.getDirection(), 0D);
         BizEx.trueThrow(balance < bid.getQuantity(), PARAM_FORMAT_WRONG.message("超过余额"));
+        balances.get(bid.getTimeFrame()).put(bid.getDirection(), balance - bid.getQuantity());
         bid.setBidStatus(BidStatus.NEW_DECELERATED);
         bids.put(bid.getUnitId(), bid);
         UnitEvent.RtBidDeclared event = UnitEvent.RtBidDeclared.builder().unitId(unitId).bid(bid).build();
