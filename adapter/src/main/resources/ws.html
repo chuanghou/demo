@@ -18,7 +18,7 @@
     let ws = null;
     //判断当前浏览器是否支持WebSocket
     if ('WebSocket' in window) {
-        ws = new WebSocket("wss://www.bilanee.com/ws?token=xxxxx");
+        ws = new WebSocket("wss://localhost/ws?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhdXRoMCIsImV4cCI6MTY5MDk4NzQ4NywidXNlcklkIjoiMCJ9.eVZ3LdkT7ALCS74qpneuRafrDNVo7WdO9AX7asdL-mM");
     }
     else {
         alert('当前浏览器 Not support websocket')

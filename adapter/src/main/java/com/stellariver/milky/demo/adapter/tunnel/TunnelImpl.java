@@ -2,8 +2,11 @@ package com.stellariver.milky.demo.adapter.tunnel;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.adapter.repository.domain.CompDODAOWrapper;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
+import com.stellariver.milky.demo.adapter.websocket.WsHandler;
+import com.stellariver.milky.demo.basic.Message;
 import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
@@ -16,6 +19,7 @@ import com.stellariver.milky.demo.infrastructure.database.mapper.UnitDOMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -23,6 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TunnelImpl implements Tunnel {
@@ -78,6 +83,12 @@ public class TunnelImpl implements Tunnel {
         LambdaQueryWrapper<MetaUnitDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(MetaUnitDO::getSourceId, metaUnitSourceIds);
         return metaUnitDOMapper.selectList(queryWrapper).stream().map(MetaUnitDO::getMetaUnitId).collect(Collectors.toSet());
+    }
+
+    @Override
+    public void push(Message message) {
+        WsHandler.push(message.getUserId(), Json.toJson(message));
+        log.info(message.toString());
     }
 
     @Override

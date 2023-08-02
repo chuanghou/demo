@@ -1,5 +1,6 @@
 package com.stellariver.milky.demo.domain.tunnel;
 
+import com.stellariver.milky.demo.basic.Message;
 import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
@@ -24,6 +25,8 @@ public interface Tunnel {
 
     Set<Integer> getMetaUnitIdBySourceIds(Set<Integer> metaUnitSourceIds);
 
+
+    void push(Message message);
 
     Comp runningComp();
 }
