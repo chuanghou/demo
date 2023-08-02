@@ -307,6 +307,24 @@ public class CompTest {
         Double balance = transLoad.getBalances().get(TimeFrame.PEAK).get(Direction.BUY);
         double v = balance + 200D;
         Assertions.assertEquals(v, transLoad.getMetaUnit().getCapacity().get(TimeFrame.PEAK).get(Direction.BUY));
+
+        BidPO bidP4 = BidPO.builder()
+                .timeFrame(TimeFrame.FLAT.name())
+                .direction(Direction.BUY.name())
+                .quantity(100D)
+                .price(300D)
+                .build();
+        RealtimeNewBidPO realtimeNewBidPO4 = RealtimeNewBidPO.builder().bid(bidP4).unitId(transLoad.getUnitId()).build();
+        unitController.realtimeNewBid(realtimeNewBidPO4, user0Token);
+        transLoad = domainTunnel.getByAggregateId(Unit.class, transLoad.getUnitId().toString());
+        balance = transLoad.getBalances().get(TimeFrame.FLAT).get(Direction.BUY);
+        Assertions.assertEquals(balance, 200D);
+        Result<Void> step = compController.step(adminToken, compId);
+        Thread.sleep(100L);
+        transLoad = domainTunnel.getByAggregateId(Unit.class, transLoad.getUnitId().toString());
+        balance = transLoad.getBalances().get(TimeFrame.FLAT).get(Direction.BUY);
+        Assertions.assertEquals(balance, 300D);
+
     }
 
 

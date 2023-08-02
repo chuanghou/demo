@@ -167,7 +167,8 @@ public class Routers implements EventRouters {
         boolean b2 = stepped.getLastMarketStatus() == Status.MarketStatus.OPEN;
         if ((b0 || b1) && b2) {
             Comp comp = tunnel.runningComp();
-
+            CompCommand.RtMarketClose command = CompCommand.RtMarketClose.builder().compId(comp.getCompId()).build();
+            CommandBus.driveByEvent(command, stepped);
         }
     }
 
