@@ -55,7 +55,6 @@ public class UnitEvent {
     public static class RtBidDeclared extends Event {
 
         Long unitId;
-        Long compId;
         Bid bid;
 
         @Override

@@ -4,18 +4,19 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RealtimeBidPO {
+public class RealtimeCancelBidPO {
 
-    @Valid
+    @NotNull
     Long unitId;
 
-    @Valid
-    BidPO bid;
+    @NotNull
+    Long bidId;
 
 }

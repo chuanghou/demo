@@ -14,7 +14,8 @@ import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.basic.TypedEnums;
 import com.stellariver.milky.demo.client.po.BidPO;
 import com.stellariver.milky.demo.client.po.CentralizedBidPO;
-import com.stellariver.milky.demo.client.po.RealtimeBidPO;
+import com.stellariver.milky.demo.client.po.RealtimeCancelBidPO;
+import com.stellariver.milky.demo.client.po.RealtimeNewBidPO;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
@@ -79,18 +80,31 @@ public class UnitController {
         return Result.success();
     }
 
-    @PostMapping("realtimeBid")
-    public Result<Void> realtimeBid(@RequestBody RealtimeBidPO realtimeBidPO, @RequestHeader("token") String token) {
+    @PostMapping("realtimeNewBid")
+    public Result<Void> realtimeNewBid(@RequestBody RealtimeNewBidPO realtimeNewBidPO, @RequestHeader("token") String token) {
         Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
-        Unit unit = domainTunnel.getByAggregateId(Unit.class, realtimeBidPO.getUnitId().toString());
+        Unit unit = domainTunnel.getByAggregateId(Unit.class, realtimeNewBidPO.getUnitId().toString());
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
-        Bid bid = Convertor.INST.to(realtimeBidPO.getBid());
-        bid.setUnitId(realtimeBidPO.getUnitId());
+        Bid bid = Convertor.INST.to(realtimeNewBidPO.getBid());
+        bid.setUnitId(realtimeNewBidPO.getUnitId());
         bid.setProvince(unit.getMetaUnit().getProvince());
         Comp comp = tunnel.runningComp();
         Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
         UnitCommand.RtNewBidDeclare realtimeBid = UnitCommand.RtNewBidDeclare.builder().unitId(unit.getUnitId()).bid(bid).build();
         CommandBus.accept(realtimeBid, parameters);
+        return Result.success();
+    }
+
+    @PostMapping("realtimeCancelBid")
+    public Result<Void> realtimeCancelBid(@RequestBody RealtimeCancelBidPO realtimeCancelBidPO, @RequestHeader("token") String token) {
+        Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
+        Unit unit = domainTunnel.getByAggregateId(Unit.class, realtimeCancelBidPO.getUnitId().toString());
+        BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
+        Comp comp = tunnel.runningComp();
+        Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
+        UnitCommand.RtCancelBidDeclare cancelBidDeclare = UnitCommand.RtCancelBidDeclare
+                .builder().unitId(unit.getUnitId()).bidId(realtimeCancelBidPO.getBidId()).build();
+        CommandBus.accept(cancelBidDeclare, parameters);
         return Result.success();
     }
 

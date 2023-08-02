@@ -200,6 +200,8 @@ public class Routers implements EventRouters {
                 .bidId(event.getBid().getBidId())
                 .province(event.getBid().getProvince())
                 .unitId(event.getUnitId())
+                .bidDirection(event.getBid().getDirection())
+                .timeFrame(event.getBid().getTimeFrame())
                 .build();
         CommandBus.driveByEvent(command, event);
     }
@@ -207,7 +209,11 @@ public class Routers implements EventRouters {
 
     @EventRouter
     public void route(UnitEvent.RtBidDeclared event, Context context) {
-        CompCommand.RtNewBid command = CompCommand.RtNewBid.builder().newBid(Convertor.INST.to(event.getBid())).build();
+        Comp comp = tunnel.runningComp();
+        CompCommand.RtNewBid command = CompCommand.RtNewBid.builder()
+                .compId(comp.getCompId())
+                .newBid(Convertor.INST.to(event.getBid()))
+                .build();
         CommandBus.driveByEvent(command, event);
     }
 

@@ -1,5 +1,6 @@
 package com.stellariver.milky.demo;
 
+import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.demo.adapter.controller.CompController;
@@ -9,11 +10,11 @@ import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.basic.UnitType;
 import com.stellariver.milky.demo.client.po.*;
 import com.stellariver.milky.demo.client.vo.LogInVO;
+import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
-import com.stellariver.milky.demo.common.enums.Direction;
-import com.stellariver.milky.demo.common.enums.Province;
-import com.stellariver.milky.demo.common.enums.TimeFrame;
+import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
@@ -26,14 +27,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @CustomLog
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CompTest {
 
     @Autowired
@@ -200,6 +198,8 @@ public class CompTest {
         SysEx.trueThrow(units0.size() != 1, ErrorEnums.SYS_EX);
         Unit transferGenerator = units0.get(0);
 
+
+
         for (TimeFrame timeFrame : TimeFrame.values()) {
             Map<Direction, Double> balances = transferGenerator.getBalances().get(timeFrame);
             Double sellBalance = balances.get(Direction.SELL);
@@ -233,19 +233,76 @@ public class CompTest {
 
         compController.step(adminToken, runningComp.getCompId());
 
-        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_MONTHLY_PROVINCIAL);
+        Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
-        BidPO bidPO = BidPO.builder()
+        BidPO bidP0 = BidPO.builder()
                 .timeFrame(TimeFrame.PEAK.name())
                 .direction(Direction.SELL.name())
                 .quantity(100D)
                 .price(200D)
                 .build();
-        RealtimeBidPO realtimeBidPO = RealtimeBidPO.builder().bid(bidPO).unitId(transferGenerator.getUnitId()).build();
-        unitController.realtimeBid(realtimeBidPO, user0Token);
+        RealtimeNewBidPO realtimeNewBidPO0 = RealtimeNewBidPO.builder().bid(bidP0).unitId(transferGenerator.getUnitId()).build();
+        unitController.realtimeNewBid(realtimeNewBidPO0, user0Token);
 
+        Unit transLoad = user0Units.stream().filter(unit -> {
+            boolean b0 = unit.getMetaUnit().getUnitType() == UnitType.LOAD;
+            boolean b1 = unit.getMetaUnit().getProvince() == Province.TRANSFER;
+            return b0 && b1;
+        }).collect(Collectors.toList()).get(0);
 
+        BidPO bidP1 = BidPO.builder()
+                .timeFrame(TimeFrame.PEAK.name())
+                .direction(Direction.BUY.name())
+                .quantity(100D)
+                .price(300D)
+                .build();
+        RealtimeNewBidPO realtimeNewBidPO1 = RealtimeNewBidPO.builder().bid(bidP1).unitId(transLoad.getUnitId()).build();
+        unitController.realtimeNewBid(realtimeNewBidPO1, user0Token);
+
+        Thread.sleep(1000L);
+
+        Unit unit = domainTunnel.getByAggregateId(Unit.class, transLoad.getUnitId().toString());
+        Assertions.assertEquals(unit.getBids().size(), 1);
+        Bid bid = new ArrayList<>(unit.getBids().values()).get(0);
+        Deal deal = bid.getDeals().get(0);
+        Assertions.assertEquals(deal.getQuantity(), 100D);
+        Assertions.assertEquals(deal.getPrice(), 200D);
+        System.out.println("Hello");
+
+        BidPO bidP2 = BidPO.builder()
+                .timeFrame(TimeFrame.PEAK.name())
+                .direction(Direction.BUY.name())
+                .quantity(200D)
+                .price(300D)
+                .build();
+        RealtimeNewBidPO realtimeNewBidPO2 = RealtimeNewBidPO.builder().bid(bidP2).unitId(transLoad.getUnitId()).build();
+        unitController.realtimeNewBid(realtimeNewBidPO2, user0Token);
+
+        BidPO bidP3 = BidPO.builder()
+                .timeFrame(TimeFrame.PEAK.name())
+                .direction(Direction.SELL.name())
+                .quantity(100D)
+                .price(200D)
+                .build();
+        RealtimeNewBidPO realtimeNewBidPO3 = RealtimeNewBidPO.builder().bid(bidP3).unitId(transferGenerator.getUnitId()).build();
+        unitController.realtimeNewBid(realtimeNewBidPO3, user0Token);
+
+        transferGenerator = domainTunnel.getByAggregateId(Unit.class, transferGenerator.getUnitId().toString());
+        transLoad = domainTunnel.getByAggregateId(Unit.class, transLoad.getUnitId().toString());
+
+        bid = transLoad.getBids().values().stream().max(Comparator.comparing(Bid::getDate)).orElseThrow(() -> new BizEx(ErrorEnums.UNREACHABLE_CODE));
+        Assertions.assertEquals(bid.getDeals().size(), 1);
+        deal = bid.getDeals().get(0);
+
+        Assertions.assertEquals(deal.getPrice(), 300D);
+        Assertions.assertEquals(deal.getQuantity(), 100D);
+        RealtimeCancelBidPO realtimeCancelBidPO = RealtimeCancelBidPO.builder().bidId(bid.getBidId()).unitId(transLoad.getUnitId()).build();
+        unitController.realtimeCancelBid(realtimeCancelBidPO, user0Token);
+        Thread.sleep(1000L);
+        transLoad = domainTunnel.getByAggregateId(Unit.class, transLoad.getUnitId().toString());
+        bid = transLoad.getBids().values().stream().max(Comparator.comparing(Bid::getDate)).orElseThrow(() -> new BizEx(ErrorEnums.UNREACHABLE_CODE));
+        Assertions.assertEquals(bid.getBidStatus(), BidStatus.CANCELLED);
 
     }
 

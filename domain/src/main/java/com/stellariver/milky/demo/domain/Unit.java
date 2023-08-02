@@ -28,6 +28,7 @@ import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +37,7 @@ import java.util.Map;
 import static com.stellariver.milky.common.base.ErrorEnumsBase.PARAM_FORMAT_WRONG;
 
 @Data
+@Slf4j
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor

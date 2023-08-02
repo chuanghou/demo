@@ -3,7 +3,9 @@ package com.stellariver.milky.demo.domain;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.util.DaemonThreadFactory;
+import com.stellariver.milky.common.base.BeanUtil;
 import com.stellariver.milky.common.base.SysEx;
+import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.ErrorEnums;
@@ -14,6 +16,7 @@ import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.NewBid;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.domain.support.command.CommandBus;
+import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -184,8 +187,9 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
     }
 
     private void report(NewBid newBid, Double dealPrice, double dealQuantity) {
-        Deal deal = Deal.builder().bidId(newBid.getBidId())
-                .unitId(newBid.getUnitId()).quantity(dealQuantity).price(dealPrice).build();
+        UniqueIdBuilder uniqueIdBuilder = BeanUtil.getBean(UniqueIdBuilder.class);
+        Deal deal = Deal.builder().dealId(uniqueIdBuilder.get()).bidId(newBid.getBidId())
+                .unitId(newBid.getUnitId()).quantity(dealQuantity).price(dealPrice).date(Clock.now()).build();
         UnitCommand.DealReport dealReport = UnitCommand.DealReport.builder()
                 .unitId(newBid.getUnitId()).deals(Collect.asList(deal)).build();
         CompletableFuture.runAsync(() -> CommandBus.accept(dealReport, new HashMap<>()));
