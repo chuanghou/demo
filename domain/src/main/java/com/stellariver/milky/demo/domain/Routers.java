@@ -128,7 +128,7 @@ public class Routers implements EventRouters {
 
         @Override
         public long getDelay(TimeUnit timeUnit) {
-            return timeUnit.convert(executeDate.getTime() - Clock.currentTimeMillis(), TimeUnit.MILLISECONDS);
+            return timeUnit.convert(executeDate.getTime() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         }
 
         @Override
