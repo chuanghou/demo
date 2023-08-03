@@ -27,6 +27,7 @@ import com.stellariver.milky.domain.support.event.EventRouter;
 import com.stellariver.milky.domain.support.event.EventRouters;
 import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.AccessLevel;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.tuple.Pair;
@@ -41,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 
+@CustomLog
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Routers implements EventRouters {
@@ -95,8 +97,9 @@ public class Routers implements EventRouters {
                 .marketStatus(comp.getMarketStatus())
                 .build()
                 .next();
+        Date now = Clock.now();
         scheduledExecutorService.schedule(() -> {
-
+            log.arg0(now.toString()).arg1(Clock.now().toString()).arg2(next).info("STARTED");
             CompCommand.Step command = CompCommand.Step.builder().compId(started.getCompId()).nextStage(next).build();
             CommandBus.accept(command, new HashMap<>());
         }, duration.getSeconds(), TimeUnit.SECONDS);
@@ -108,8 +111,9 @@ public class Routers implements EventRouters {
 
         Comp comp = context.getByAggregateId(Comp.class, stepped.getAggregateId());
         Duration duration = comp.getDurations().get(stepped.getNextRoundId()).get(stepped.getNextMarketType());
+        Date now = Clock.now();
         scheduledExecutorService.schedule(() -> {
-
+            log.arg0(now.toString()).arg1(Clock.now().toString()).arg2(stepped).info("STEP");
             Stage nexStage = Stage.builder()
                     .roundId(stepped.getNextRoundId())
                     .marketType(stepped.getNextMarketType())

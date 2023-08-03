@@ -3,6 +3,7 @@ package com.stellariver.milky.demo;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.base.SysEx;
+import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.demo.adapter.controller.CompController;
 import com.stellariver.milky.demo.adapter.controller.UnitController;
 import com.stellariver.milky.demo.adapter.controller.UserController;
@@ -63,8 +64,9 @@ public class CompTest {
         }
         CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationLengths).agentNumber(5).build();
         compController.create(token, compCreatePO);
+        System.out.println( "FIRST" + Clock.now());
         Thread.sleep(3000);
-
+        System.out.println( "SECOND" + Clock.now());
         Result<Comp> compResult = compController.runningComp();
         Assertions.assertTrue(compResult.getSuccess());
         Comp runningComp = compResult.getData();
@@ -76,20 +78,24 @@ public class CompTest {
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
-        Thread.sleep(3100);
+        System.out.println( "THREE" + Clock.now());
+        Thread.sleep(3500);
+        System.out.println( "FOUR" + Clock.now());
 
         runningComp = compController.runningComp().getData();
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
 
-        Thread.sleep(3100);
+        System.out.println( "FIVE" + Clock.now());
+        Thread.sleep(3500);
+        System.out.println( "SIX" + Clock.now());
 
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
-        Thread.sleep(3100);
+        Thread.sleep(3500);
 
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_ANNUAL_PROVINCIAL);
@@ -320,7 +326,7 @@ public class CompTest {
         balance = transLoad.getBalances().get(TimeFrame.FLAT).get(Direction.BUY);
         Assertions.assertEquals(balance, 200D);
         Result<Void> step = compController.step(adminToken, compId);
-        Thread.sleep(100L);
+        Thread.sleep(1000L);
         transLoad = domainTunnel.getByAggregateId(Unit.class, transLoad.getUnitId().toString());
         balance = transLoad.getBalances().get(TimeFrame.FLAT).get(Direction.BUY);
         Assertions.assertEquals(balance, 300D);
