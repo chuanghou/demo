@@ -19,26 +19,26 @@ import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.demo.domain.command.UnitEvent;
 import com.stellariver.milky.demo.domain.event.CompEvent;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
-import com.stellariver.milky.domain.support.base.DomainTunnel;
+import com.stellariver.milky.domain.support.command.Command;
 import com.stellariver.milky.domain.support.command.CommandBus;
 import com.stellariver.milky.domain.support.context.Context;
 import com.stellariver.milky.domain.support.event.Event;
 import com.stellariver.milky.domain.support.event.EventRouter;
 import com.stellariver.milky.domain.support.event.EventRouters;
 import com.stellariver.milky.spring.partner.UniqueIdBuilder;
-import lombok.AccessLevel;
-import lombok.CustomLog;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.tuple.Pair;
 import org.mapstruct.*;
+import org.mapstruct.Builder;
 import org.mapstruct.factory.Mappers;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
 
@@ -47,10 +47,9 @@ import java.util.stream.IntStream;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Routers implements EventRouters {
 
-    final DomainTunnel domainTunnel;
     final Tunnel tunnel;
     final UniqueIdBuilder uniqueIdBuilder;
-    final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+    final DelayExecutor delayExecutor;
 
 
     @EventRouter
@@ -88,55 +87,86 @@ public class Routers implements EventRouters {
     }
 
     @EventRouter
-    public void route(CompEvent.Started started, Context context) {
+    public void routeAutoNext(CompEvent.Started started, Context context) {
+
         Comp comp = context.getByAggregateId(Comp.class, started.getAggregateId());
-        Duration duration = comp.getDurations().get(0).get(MarketType.INTER_ANNUAL_PROVINCIAL);
-        Stage next = Stage.builder()
+        Stage currentStage = Stage.builder()
                 .roundId(comp.getRoundId())
                 .marketType(comp.getMarketType())
                 .marketStatus(comp.getMarketStatus())
-                .build()
-                .next();
-        Date now = Clock.now();
-        scheduledExecutorService.schedule(() -> {
-            log.arg0(now.toString()).arg1(Clock.now().toString()).arg2(next).info("STARTED");
-            CompCommand.Step command = CompCommand.Step.builder().compId(started.getCompId()).nextStage(next).build();
-            CommandBus.accept(command, new HashMap<>());
-        }, duration.getSeconds(), TimeUnit.SECONDS);
+                .build();
+        Duration accumulateDuration = Duration.ZERO;
+        long startTime = Clock.currentTimeMillis();
+
+        do {
+            Duration duration = comp.getDurations().get(currentStage.getRoundId()).get(currentStage.getMarketType());
+            startTime += duration.get(ChronoUnit.SECONDS) * 1000;
+            accumulateDuration = accumulateDuration.plus(duration);
+            Stage nexStage = currentStage.next();
+            CompCommand.Step command = CompCommand.Step.builder().nextStage(nexStage).compId(comp.getCompId()).build();
+            DelayCommandWrapper delayCommandWrapper = new DelayCommandWrapper(command, new Date(startTime));
+            System.out.println("DELAY " + delayCommandWrapper.getExecuteDate().toString());
+            delayExecutor.delayQueue.add(delayCommandWrapper);
+            currentStage = nexStage;
+        } while (!currentStage.lastOne(comp.getRoundTotal()));
+
+        delayExecutor.start();
     }
 
 
-    @EventRouter
-    public void route(CompEvent.Stepped stepped, Context context) {
+    @Data
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    static class DelayCommandWrapper implements Delayed {
 
-        Comp comp = context.getByAggregateId(Comp.class, stepped.getAggregateId());
-        Duration duration = comp.getDurations().get(stepped.getNextRoundId()).get(stepped.getNextMarketType());
-        Date now = Clock.now();
-        scheduledExecutorService.schedule(() -> {
-            log.arg0(now.toString()).arg1(Clock.now().toString()).arg2(stepped).info("STEP");
-            Stage nexStage = Stage.builder()
-                    .roundId(stepped.getNextRoundId())
-                    .marketType(stepped.getNextMarketType())
-                    .marketStatus(stepped.getNextMarketStatus())
-                    .build()
-                    .next();
+        private Command command; // 消息内容
+        private Date executeDate;// 延迟时长，这个是必须的属性因为要按照这个判断延时时长。
 
-            if (Objects.equals(nexStage.getRoundId(), comp.getRoundTotal())) {
-                CompCommand.Close command = CompCommand.Close.builder().compId(comp.getCompId()).build();
+        public DelayCommandWrapper(Command command, Date executeDate) {
+            this.command = command;
+            this.executeDate = executeDate;
+        }
+
+        @Override
+        public long getDelay(TimeUnit timeUnit) {
+            return timeUnit.convert(executeDate.getTime() - Clock.currentTimeMillis(), TimeUnit.MILLISECONDS);
+        }
+
+        @Override
+        public int compareTo(@NonNull Delayed o) {
+            return Long.compare(executeDate.getTime(), ((DelayCommandWrapper) o).getExecuteDate().getTime());
+        }
+
+    }
+
+    @Component
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    static class DelayExecutor implements Runnable{
+
+        final DelayQueue<DelayCommandWrapper> delayQueue = new DelayQueue<>();
+        final ExecutorService executorService = Executors.newFixedThreadPool(1);
+        final AtomicBoolean started = new AtomicBoolean(false);
+        public void start() {
+            boolean b = started.compareAndSet(false, true);
+            if (b) {
+                executorService.execute(this);
+            }
+        }
+
+        @Override
+        @SneakyThrows
+        public void run() {
+
+            while (true) {
+                DelayCommandWrapper delayCommandWrapper = delayQueue.take();
+                Command command = delayCommandWrapper.getCommand();
+                log.arg0(Clock.now().toString()).arg1(command).arg2(delayCommandWrapper.getExecuteDate().toString()).info("Delay_Executor");
                 CommandBus.accept(command, new HashMap<>());
-                return;
             }
 
-            CompCommand.Step command = CompCommand.Step.builder()
-                    .compId(stepped.getCompId())
-                    .nextStage(nexStage)
-                    .build();
-            CommandBus.accept(command, new HashMap<>());
-
-        }, duration.getSeconds(), TimeUnit.SECONDS);
-
+        }
 
     }
+
 
     @EventRouter
     public void routeForClear(CompEvent.Stepped stepped, Context context) {

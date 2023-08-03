@@ -17,6 +17,8 @@ import lombok.experimental.SuperBuilder;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 
 public class CompCommand {
 
@@ -116,13 +118,13 @@ public class CompCommand {
     @Data
     @SuperBuilder
     @NoArgsConstructor
-    @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Step extends Command {
 
         Long compId;
         Stage nextStage;
+
 
         @Override
         public String getAggregateId() {

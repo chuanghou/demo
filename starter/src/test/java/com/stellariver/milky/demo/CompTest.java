@@ -65,7 +65,7 @@ public class CompTest {
         CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationLengths).agentNumber(5).build();
         compController.create(token, compCreatePO);
         System.out.println( "FIRST" + Clock.now());
-        Thread.sleep(3000);
+        Thread.sleep(3100);
         System.out.println( "SECOND" + Clock.now());
         Result<Comp> compResult = compController.runningComp();
         Assertions.assertTrue(compResult.getSuccess());
@@ -79,7 +79,7 @@ public class CompTest {
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
         System.out.println( "THREE" + Clock.now());
-        Thread.sleep(3500);
+        Thread.sleep(3100);
         System.out.println( "FOUR" + Clock.now());
 
         runningComp = compController.runningComp().getData();
@@ -88,14 +88,14 @@ public class CompTest {
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
 
         System.out.println( "FIVE" + Clock.now());
-        Thread.sleep(3500);
+        Thread.sleep(3100);
         System.out.println( "SIX" + Clock.now());
 
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
-        Thread.sleep(3500);
+        Thread.sleep(3100);
 
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_ANNUAL_PROVINCIAL);

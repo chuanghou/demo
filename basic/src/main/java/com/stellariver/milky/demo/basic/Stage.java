@@ -59,4 +59,10 @@ public class Stage {
 
     }
 
+    public boolean lastOne(Integer roundTotal) {
+        boolean eq0 = Kit.eq(roundTotal - 1, roundId);
+        boolean eq1 = marketType == MarketType.FINAL_CLEAR;
+        return eq0 && eq1;
+    }
+
 }
