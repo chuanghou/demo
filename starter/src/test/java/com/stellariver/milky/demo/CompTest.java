@@ -39,6 +39,7 @@ public class CompTest {
     private CompController compController;
 
     @Autowired
+
     private DomainTunnel domainTunnel;
 
     @Autowired
@@ -49,33 +50,6 @@ public class CompTest {
 
     @Autowired
     CompDOMapper compDOMapper;
-
-
-    @Test
-    public void testCompTemp() throws InterruptedException {
-        compDOMapper.selectList(null).forEach(compDO -> compDOMapper.deleteById(compDO.getCompId()));
-        LoginPO loginPO = LoginPO.builder().userId("1000").password("admin").build();
-        Result<LogInVO> logInVO = userController.login(loginPO.getUserId(), loginPO.getPassword());
-        Assertions.assertNotNull(logInVO);
-        Assertions.assertTrue(logInVO.getSuccess());
-        String token = logInVO.getData().getToken();
-        List<Long> durationLengths = new ArrayList<>();
-        for (int i = 0; i < MarketType.values().length; i++) {
-            durationLengths.add(3L);
-        }
-        CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationLengths).agentNumber(5).build();
-        compController.create(token, compCreatePO);
-        System.out.println("FIRST" + Clock.now());
-        Thread.sleep(3100);
-        System.out.println("SECOND" + Clock.now());
-        Result<Comp> compResult = compController.runningComp();
-        Assertions.assertTrue(compResult.getSuccess());
-        Comp runningComp = compResult.getData();
-        Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.INIT);
-        compController.start(token, runningComp.getCompId());
-        runningComp = compController.runningComp().getData();
-        Thread.sleep(1000000L);
-    }
 
     @Test
     public void testComp() throws InterruptedException {
@@ -91,9 +65,7 @@ public class CompTest {
         }
         CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationLengths).agentNumber(5).build();
         compController.create(token, compCreatePO);
-        System.out.println( "FIRST" + Clock.now());
         Thread.sleep(3100);
-        System.out.println( "SECOND" + Clock.now());
         Result<Comp> compResult = compController.runningComp();
         Assertions.assertTrue(compResult.getSuccess());
         Comp runningComp = compResult.getData();
@@ -105,18 +77,14 @@ public class CompTest {
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
-        System.out.println( "THREE" + Clock.now());
         Thread.sleep(3100);
-        System.out.println( "FOUR" + Clock.now());
 
         runningComp = compController.runningComp().getData();
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTER_ANNUAL_PROVINCIAL);
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.CLOSE);
 
-        System.out.println( "FIVE" + Clock.now());
         Thread.sleep(3100);
-        System.out.println( "SIX" + Clock.now());
 
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
         Assertions.assertSame(runningComp.getMarketType(), MarketType.INTRA_ANNUAL_PROVINCIAL);

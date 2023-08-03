@@ -2,6 +2,7 @@ package com.stellariver.milky.demo.domain;
 
 import com.google.common.collect.ListMultimap;
 import com.stellariver.milky.common.base.BizEx;
+import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
@@ -153,13 +154,16 @@ public class Routers implements EventRouters {
         }
 
         @Override
-        @SneakyThrows
         public void run() {
 
             while (true) {
-                DelayCommandWrapper delayCommandWrapper = delayQueue.take();
+                DelayCommandWrapper delayCommandWrapper = null;
+                try {
+                    delayCommandWrapper = delayQueue.take();
+                } catch (InterruptedException e) {
+                    throw new SysEx(e);
+                }
                 Command command = delayCommandWrapper.getCommand();
-                log.arg0(Clock.now().toString()).arg1(command).arg2(delayCommandWrapper.getExecuteDate().toString()).info("Delay_Executor");
                 CommandBus.accept(command, new HashMap<>());
             }
 
