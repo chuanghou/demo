@@ -157,7 +157,7 @@ public class Routers implements EventRouters {
         public void run() {
 
             while (true) {
-                DelayCommandWrapper delayCommandWrapper = null;
+                DelayCommandWrapper delayCommandWrapper;
                 try {
                     delayCommandWrapper = delayQueue.take();
                 } catch (InterruptedException e) {
