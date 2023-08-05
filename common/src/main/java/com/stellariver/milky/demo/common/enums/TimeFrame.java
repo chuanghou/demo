@@ -7,7 +7,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum TimeFrame {
 
-    PEAK("峰时段"), FLAT("平时段"), VALLEY(" 谷时段");
+    PEAK(1, "峰时段"), FLAT(2, "平时段"), VALLEY(3, " 谷时段");
 
+    final Integer dbCode;
     final String desc;
+
 }

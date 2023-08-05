@@ -3,6 +3,7 @@ package com.stellariver.milky.demo.adapter.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
+import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.common.tool.util.StreamMap;
@@ -24,8 +25,10 @@ import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.MarketSettingDO;
+import com.stellariver.milky.demo.infrastructure.database.entity.TransLineLimitDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.MarketSettingMapper;
+import com.stellariver.milky.demo.infrastructure.database.mapper.TransLineLimitDOMapper;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.CommandBus;
 import com.stellariver.milky.spring.partner.UniqueIdBuilder;
@@ -51,6 +54,7 @@ public class CompController {
     final CompDOMapper compDOMapper;
     final UniqueIdBuilder uniqueIdBuilder;
     final MarketSettingMapper marketSettingMapper;
+    final TransLineLimitDOMapper transLineLimitDOMapper;
 
 
     @GetMapping("runningComp")
@@ -138,17 +142,36 @@ public class CompController {
         GridLimit loadPriceLimit = GridLimit.builder().low(marketSettingDO.getBidPriceFloor()).high(marketSettingDO.getBidPriceCap()).build();
         PriceLimit priceLimit = PriceLimit.builder().generatorPriceLimit(generatorPriceLimit).loadPriceLimit(loadPriceLimit).build();
 
-        //TODO add real trans limit
-        GridLimit gridLimit = GridLimit.builder().low(50D).high(100D).build();
-        Map<TimeFrame, GridLimit> map = Collect.asMap(TimeFrame.PEAK, gridLimit, TimeFrame.FLAT, gridLimit, TimeFrame.VALLEY, gridLimit);
-        Map<MarketType, Map<TimeFrame, GridLimit>> transLimit =
-                Collect.asMap(MarketType.INTER_ANNUAL_PROVINCIAL, map, MarketType.INTER_MONTHLY_PROVINCIAL, map, MarketType.INTER_SPOT_PROVINCIAL, map);
+        List<TransLineLimitDO> transLineLimitDOS = transLineLimitDOMapper.selectList(null);
+        Map<MarketType, Map<TimeFrame, GridLimit>> marketTypeTransLimit = new HashMap<>();
+
+        Map<TimeFrame, GridLimit> transLimit = new HashMap<>();
+        for (TransLineLimitDO limitDO : transLineLimitDOS) {
+            TimeFrame timeFrame = Kit.enumOfMightEx(TimeFrame::getDbCode, limitDO.getPfvPrd());
+            GridLimit gridLimit = GridLimit.builder()
+                    .low(limitDO.getMinAnnualReceivingMw())
+                    .high(limitDO.getMaxAnnualReceivingMw())
+                    .build();
+            transLimit.put(timeFrame, gridLimit);
+        }
+        marketTypeTransLimit.put(MarketType.INTER_ANNUAL_PROVINCIAL, transLimit);
+
+        transLimit = new HashMap<>();
+        for (TransLineLimitDO limitDO : transLineLimitDOS) {
+            TimeFrame timeFrame = Kit.enumOfMightEx(TimeFrame::getDbCode, limitDO.getPfvPrd());
+            GridLimit gridLimit = GridLimit.builder()
+                    .low(limitDO.getMinMonthlyReceivingMw())
+                    .high(limitDO.getMaxMonthlyReceivingMw())
+                    .build();
+            transLimit.put(timeFrame, gridLimit);
+        }
+        marketTypeTransLimit.put(MarketType.INTER_MONTHLY_PROVINCIAL, transLimit);
 
         CompCommand.Create command = CompCommand.Create.builder()
                 .compId(compId)
                 .agentTotal(compCreatePO.getAgentNumber())
                 .priceLimit(priceLimit)
-                .transLimit(transLimit)
+                .transLimit(marketTypeTransLimit)
                 .durations(durations)
                 .build();
         CommandBus.accept(command, new HashMap<>());
