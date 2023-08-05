@@ -1,6 +1,7 @@
 package com.stellariver.milky.demo.infrastructure.database.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AccessLevel;
@@ -19,6 +20,7 @@ import lombok.experimental.SuperBuilder;
 public class MarketSettingDO {
 
     @TableId(type = IdType.INPUT)
+    @TableField("market_setting_id")
     Integer market_setting_id;
 //    String objective_type;
 //    String is_network_loss;
@@ -36,18 +38,28 @@ public class MarketSettingDO {
 //    String is_unitgroup_res_constraint;
 //    String is_entering_review_stage;
 //    String is_conducting_answering_module;
+    @TableField("offer_price_cap")
     Double offer_price_cap;
+    @TableField("offer_price_floor")
     Double offer_price_floor;
+    @TableField("bid_price_cap")
     Double bid_price_cap;
+    @TableField("bid_price_floor")
     Double bid_price_floor;
 //    String balance_constraint_penalty_factor;
 //    String branch_constraint_penalty_factor;
 //    String section_constraint_penalty_factor;
+    @TableField("load_annual_max_forecast_err")
     Double load_annual_max_forecast_err;
+    @TableField("load_monthly_max_forecast_err")
     Double load_monthly_max_forecast_err;
+    @TableField("load_da_max_forecast_err")
     Double load_da_max_forecast_err;
+    @TableField("renewable_annual_max_forecast_err")
     Double renewable_annual_max_forecast_err;
+    @TableField("renewable_monthly_max_forecast_err")
     Double renewable_monthly_max_forecast_err;
+    @TableField("renewable_da_max_forecast_err")
     Double renewable_da_max_forecast_err;
 //    String forward_num_offer_segs;
 //    String forward_num_bid_segs;
@@ -62,14 +74,21 @@ public class MarketSettingDO {
 //    String max_shutdown_curve_prds;
 //    String trader_num;
 //    String robot_num;
+    @TableField("round_id")
     Integer round_id;
 //    String round_num;
 //    String market_type;
+    @TableField("intraprovincial_annual_bid_duration")
     Integer intraprovincial_annual_bid_duration;
+    @TableField("intraprovincial_monthly_bid_duration")
     Integer intraprovincial_monthly_bid_duration;
+    @TableField("intraprovincial_spot_bid_duration")
     Integer intraprovincial_spot_bid_duration;
+    @TableField("interprovincial_annual_bid_duration")
     Integer interprovincial_annual_bid_duration;
+    @TableField("interprovincial_monthly_bid_duration")
     Integer interprovincial_monthly_bid_duration;
+    @TableField("interprovincial_spot_bid_duration")
     Integer interprovincial_spot_bid_duration;
 //    String dt;
 //    String max_load_coe_send;
@@ -80,20 +99,31 @@ public class MarketSettingDO {
 //    String min_wind_coe_send;
 //    String max_wind_coe_receive;
 //    String min_wind_coe_receive;
+    @TableField("transmission_and_distribution_tariff")
     Double transmission_and_distribution_tariff;
+    @TableField("regulated_user_tariff")
     Double regulated_user_tariff;
+    @TableField("regulated_producer_price")
     Double regulated_producer_price;
+    @TableField("regulated_interprov_transmission_price")
     Double regulated_interprov_transmission_price;
 //    String interprov_trading_mode;
 //    String interprov_clearing_mode;
 //    String is_setting_default_offer_for_traders;
 //    String paper_id;
+    @TableField("intraprovincial_annual_result_duration")
     Integer intraprovincial_annual_result_duration;
+    @TableField("intraprovincial_monthly_result_duration")
     Integer intraprovincial_monthly_result_duration;
+    @TableField("intraprovincial_spot_result_duration")
     Integer intraprovincial_spot_result_duration;
+    @TableField("interprovincial_annual_result_duration")
     Integer interprovincial_annual_result_duration;
+    @TableField("interprovincial_monthly_result_duration")
     Integer interprovincial_monthly_result_duration;
+    @TableField("interprovincial_spot_result_duration")
     Integer interprovincial_spot_result_duration;
+    @TableField("settle_result_duration")
     Integer settle_result_duration;
 
 

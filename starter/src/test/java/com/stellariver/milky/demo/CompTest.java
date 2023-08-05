@@ -20,9 +20,11 @@ import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
+import com.stellariver.milky.demo.infrastructure.database.entity.MarketSettingDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.Prv;
 import com.stellariver.milky.demo.infrastructure.database.entity.TieLinePowerDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
+import com.stellariver.milky.demo.infrastructure.database.mapper.MarketSettingMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.PfvMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.TieLineDOMapper;
 import com.stellariver.milky.domain.support.ErrorEnums;
@@ -62,14 +64,13 @@ public class CompTest {
     TieLineDOMapper tieLineDOMapper;
 
     @Autowired
-    PfvMapper pfvMapper;
+    MarketSettingMapper marketSettingMapper;
 
     @Test
     public void test() {
-        List<Prv> prvs = pfvMapper.selectList(null);
-        System.out.println(prvs.stream().filter(t -> t.getSendingPfvPrd() == 1).map(Prv::getPrd).map(Object::toString).collect(Collectors.joining(", ")));
-        System.out.println(prvs.stream().filter(t -> t.getSendingPfvPrd() == 2).map(Prv::getPrd).map(Object::toString).collect(Collectors.joining(", ")));
-        System.out.println(prvs.stream().filter(t -> t.getSendingPfvPrd() == 3).map(Prv::getPrd).map(Object::toString).collect(Collectors.joining(", ")));
+        List<MarketSettingDO> marketSettingDOS = marketSettingMapper.selectList(null);
+        System.out.println("s");
+
     }
 
     @Test
