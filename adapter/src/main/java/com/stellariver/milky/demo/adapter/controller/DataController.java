@@ -46,24 +46,24 @@ public class DataController {
     public Map<Label, String> marketAnnouncement() {
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1L);
         Map<Label, String> result = new HashMap<>();
-        result.put(Label.offer_price_cap, String.format("%.2f", marketSettingDO.getOffer_price_cap()));
-        result.put(Label.offer_price_floor, String.format("%.2f", marketSettingDO.getOffer_price_floor()));
-        result.put(Label.bid_price_cap, String.format("%.2f", marketSettingDO.getBid_price_cap()));
-        result.put(Label.bid_price_floor, String.format("%.2f", marketSettingDO.getBid_price_cap()));
+        result.put(Label.offer_price_cap, String.format("%.2f", marketSettingDO.getOfferPriceCap()));
+        result.put(Label.offer_price_floor, String.format("%.2f", marketSettingDO.getOfferPriceFloor()));
+        result.put(Label.bid_price_cap, String.format("%.2f", marketSettingDO.getBidPriceCap()));
+        result.put(Label.bid_price_floor, String.format("%.2f", marketSettingDO.getBidPriceCap()));
 
-        result.put(Label.load_annual_max_forecast_err, String.format("%.2f", marketSettingDO.getLoad_annual_max_forecast_err()));
-        result.put(Label.load_monthly_max_forecast_err, String.format("%.2f", marketSettingDO.getLoad_monthly_max_forecast_err()));
-        result.put(Label.load_da_max_forecast_err, String.format("%.2f", marketSettingDO.getLoad_da_max_forecast_err()));
-        result.put(Label.renewable_annual_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewable_annual_max_forecast_err()));
-        result.put(Label.renewable_monthly_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewable_monthly_max_forecast_err()));
-        result.put(Label.renewable_da_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewable_da_max_forecast_err()));
+        result.put(Label.load_annual_max_forecast_err, String.format("%.2f", marketSettingDO.getLoadAnnualMaxForecastErr()));
+        result.put(Label.load_monthly_max_forecast_err, String.format("%.2f", marketSettingDO.getLoadMonthlyMaxForecastErr()));
+        result.put(Label.load_da_max_forecast_err, String.format("%.2f", marketSettingDO.getLoadDaMaxForecastErr()));
+        result.put(Label.renewable_annual_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewableAnnualMaxForecastErr()));
+        result.put(Label.renewable_monthly_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewableMonthlyMaxForecastErr()));
+        result.put(Label.renewable_da_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewableDaMaxForecastErr()));
 
-        result.put(Label.transmission_and_distribution_tariff, String.format("%.2f", marketSettingDO.getTransmission_and_distribution_tariff()));
-        result.put(Label.regulated_user_tariff, String.format("%.2f", marketSettingDO.getRegulated_user_tariff()));
-        result.put(Label.regulated_producer_price, String.format("%.2f", marketSettingDO.getRegulated_producer_price()));
-        result.put(Label.regulated_interprov_transmission_price, String.format("%.2f", marketSettingDO.getRegulated_interprov_transmission_price()));
+        result.put(Label.transmission_and_distribution_tariff, String.format("%.2f", marketSettingDO.getTransmissionAndDistributionTariff()));
+        result.put(Label.regulated_user_tariff, String.format("%.2f", marketSettingDO.getRegulatedUserTariff()));
+        result.put(Label.regulated_producer_price, String.format("%.2f", marketSettingDO.getRegulatedProducerPrice()));
+        result.put(Label.regulated_interprov_transmission_price, String.format("%.2f", marketSettingDO.getRegulatedInterprovTransmissionPrice()));
 
-        result.put(Label.round_id, String.valueOf(marketSettingDO.getRound_id()));
+        result.put(Label.round_id, String.valueOf(marketSettingDO.getRoundId()));
 
         result.put(Label.sender_peak_prds, TimeFrame.PEAK.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
         result.put(Label.sender_flat_prds, TimeFrame.FLAT.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
@@ -85,45 +85,45 @@ public class DataController {
         if (UnitType.valueOf(unitType) == UnitType.GENERATOR) {
             GeneratorDO generatorDO = generatorDOMapper.selectById(sourceId);
             if (GeneratorType.valueOf(generatorType) == GeneratorType.CLASSIC) {
-                result.put(Label.unit_name, generatorDO.getUnit_name());
+                result.put(Label.unit_name, generatorDO.getUnitName());
                 result.put(Label.prov_of_generator, Kit.enumOfMightEx(Province::getDbCode, generatorDO.getProv()).getDesc());
-                result.put(Label.node_id_of_generator, String.valueOf(generatorDO.getNode_id()));
-                result.put(Label.min_off_duration, String.format("%.2f",generatorDO.getMin_off_duration()));
-                result.put(Label.min_on_duration, String.format("%.2f",generatorDO.getMin_on_duration()));
-                result.put(Label.ramp_up_rate, String.format("%.2f",generatorDO.getRamp_up_rate()));
-                result.put(Label.ramp_dn_rate, String.format("%.2f",generatorDO.getMin_on_duration()));
-                result.put(Label.max_p_of_classic_generator, String.format("%.2f",generatorDO.getMax_p()));
-                result.put(Label.min_p_of_classic_generator, String.format("%.2f",generatorDO.getMin_p()));
-                String startup_curve_x = Stream.of(generatorDO.getStartup_curve_1(),
-                        generatorDO.getStartup_curve_2(),
-                        generatorDO.getStartup_curve_3(),
-                        generatorDO.getStartup_curve_4(),
-                        generatorDO.getStartup_curve_5(),
-                        generatorDO.getStartup_curve_6()).map(Object::toString).collect(Collectors.joining(", "));
+                result.put(Label.node_id_of_generator, String.valueOf(generatorDO.getNodeId()));
+                result.put(Label.min_off_duration, String.format("%.2f",generatorDO.getMinOffDuration()));
+                result.put(Label.min_on_duration, String.format("%.2f",generatorDO.getMinOnDuration()));
+                result.put(Label.ramp_up_rate, String.format("%.2f",generatorDO.getRampUpRate()));
+                result.put(Label.ramp_dn_rate, String.format("%.2f",generatorDO.getMinOnDuration()));
+                result.put(Label.max_p_of_classic_generator, String.format("%.2f",generatorDO.getMaxP()));
+                result.put(Label.min_p_of_classic_generator, String.format("%.2f",generatorDO.getMinP()));
+                String startup_curve_x = Stream.of(generatorDO.getStartupCurve1(),
+                        generatorDO.getStartupCurve2(),
+                        generatorDO.getStartupCurve3(),
+                        generatorDO.getStartupCurve4(),
+                        generatorDO.getStartupCurve5(),
+                        generatorDO.getStartupCurve6()).map(Object::toString).collect(Collectors.joining(", "));
                 result.put(Label.startup_curve_x, startup_curve_x);
 
-                String shutdown_curve_x = Stream.of(generatorDO.getShutdown_curve_1(),
-                        generatorDO.getShutdown_curve_2(),
-                        generatorDO.getShutdown_curve_3(),
-                        generatorDO.getShutdown_curve_4(),
-                        generatorDO.getShutdown_curve_5(),
-                        generatorDO.getShutdown_curve_6()).map(Object::toString).collect(Collectors.joining(", "));
+                String shutdown_curve_x = Stream.of(generatorDO.getShutdownCurve1(),
+                        generatorDO.getShutdownCurve2(),
+                        generatorDO.getShutdownCurve3(),
+                        generatorDO.getShutdownCurve4(),
+                        generatorDO.getShutdownCurve5(),
+                        generatorDO.getShutdownCurve6()).map(Object::toString).collect(Collectors.joining(", "));
                 result.put(Label.shutdown_curve_x, shutdown_curve_x);
 
-                result.put(Label.num_startup_curve_prds, String.valueOf(generatorDO.getNum_startup_curve_prds()));
-                result.put(Label.num_shutdown_curve_prds, String.valueOf(generatorDO.getNum_shutdown_curve_prds()));
+                result.put(Label.num_startup_curve_prds, String.valueOf(generatorDO.getNumStartupCurvePrds()));
+                result.put(Label.num_shutdown_curve_prds, String.valueOf(generatorDO.getNumShutdownCurvePrds()));
             } else {
-                result.put(Label.unit_name, generatorDO.getUnit_name());
+                result.put(Label.unit_name, generatorDO.getUnitName());
                 result.put(Label.prov_of_generator, Kit.enumOfMightEx(Province::getDbCode, generatorDO.getProv()).getDesc());
-                result.put(Label.node_id_of_generator, String.valueOf(generatorDO.getNode_id()));
-                result.put(Label.max_p_of_renewable, String.format("%.2f",generatorDO.getMax_p()));
+                result.put(Label.node_id_of_generator, String.valueOf(generatorDO.getNodeId()));
+                result.put(Label.max_p_of_renewable, String.format("%.2f",generatorDO.getMaxP()));
             }
         } else {
             LoadDO loadDO = loadDOMapper.selectById(sourceId);
-            result.put(Label.load_name, loadDO.getLoad_name());
+            result.put(Label.load_name, loadDO.getLoadName());
             result.put(Label.prov_of_load, Kit.enumOfMightEx(Province::getDbCode, loadDO.getPrv()).getDesc());
-            result.put(Label.node_id_of_load, String.valueOf(loadDO.getNode_id()));
-            result.put(Label.max_p_of_load,  String.format("%.2f",loadDO.getMax_p()));
+            result.put(Label.node_id_of_load, String.valueOf(loadDO.getNodeId()));
+            result.put(Label.max_p_of_load,  String.format("%.2f",loadDO.getMaxP()));
 
         }
         return result;
@@ -336,7 +336,7 @@ public class DataController {
         GeneratorDO generatorDO = generatorDOMapper.selectById(generatorId);
         Map<String, List<Double>> map = new HashMap<>();
         List<Double> maxPs = new ArrayList<>();
-        IntStream.range(0, 96).forEach(i -> maxPs.add(generatorDO.getMax_p()));
+        IntStream.range(0, 96).forEach(i -> maxPs.add(generatorDO.getMaxP()));
         if (generatorDO.getType() == 1) {
             map.put(Label.maxPs.name(), maxPs);
         } else {
@@ -363,7 +363,7 @@ public class DataController {
                 .sorted(Comparator.comparing(GeneratorOutputStateDO::getPrd))
                 .map(GeneratorOutputStateDO::getBaseMw).collect(Collectors.toList());
         map.put(Label.baseContractMws.name(), baseContractMws);
-        return Pair.of(generatorDO.getUnit_name(), map);
+        return Pair.of(generatorDO.getUnitName(), map);
     }
 
     final LoadForecastMapper loadForecastMapper;
@@ -376,7 +376,7 @@ public class DataController {
                 .sorted(Comparator.comparing(LoadForecastDO::getPrd))
                 .map(LoadForecastDO::getAnnualForecast).collect(Collectors.toList());
         map.put(Label.loadForecast.name(), baseMws);
-        return Pair.of(loadDO.getLoad_name(), map);
+        return Pair.of(loadDO.getLoadName(), map);
     }
 
 

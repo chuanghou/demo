@@ -17,15 +17,15 @@ public class LoadDO {
 
     @TableId(type = IdType.AUTO)
     @TableField("load_id")
-    Integer load_id;
+    Integer loadId;
     @TableField("load_name")
-    String load_name;
+    String loadName;
     @TableField("prv")
     Integer prv;
     @TableField("max_p")
-    Double max_p;
+    Double maxP;
     @TableField("is_market_load")
-    Integer is_market_load;
+    Integer isMarketLoad;
     @TableField("node_id")
-    Integer node_id;
+    Integer nodeId;
 }

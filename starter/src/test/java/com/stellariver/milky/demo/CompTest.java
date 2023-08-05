@@ -68,7 +68,7 @@ public class CompTest {
 
     @Test
     public void test() {
-        List<MarketSettingDO> marketSettingDOS = marketSettingMapper.selectList(null);
+        MarketSettingDO marketSettingDOS = marketSettingMapper.selectById(1);
         System.out.println("s");
 
     }
