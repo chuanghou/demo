@@ -3,6 +3,8 @@ package com.stellariver.milky.demo.basic;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import javax.annotation.Nullable;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -11,6 +13,7 @@ import lombok.experimental.FieldDefaults;
 public class Message {
 
     Topic topic;
+    @Nullable
     String userId;
     Object entity;
 

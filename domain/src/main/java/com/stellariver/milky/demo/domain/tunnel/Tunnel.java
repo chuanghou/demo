@@ -35,4 +35,6 @@ public interface Tunnel {
     void updateRoundIdForMarketSetting(Integer roundId);
 
     void writeReplenishes(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes);
+
+    void cast(Message message);
 }

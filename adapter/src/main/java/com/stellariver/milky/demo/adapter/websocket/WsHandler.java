@@ -1,6 +1,8 @@
 package com.stellariver.milky.demo.adapter.websocket;
 
 import com.stellariver.milky.common.tool.common.Kit;
+import com.stellariver.milky.common.tool.util.Json;
+import com.stellariver.milky.demo.basic.Message;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WsHandler {
 
     static private final Map<String, Session> sessions = new ConcurrentHashMap<>();
+
+    @SneakyThrows
+    public static void cast(Message message) {
+        for (Session session : sessions.values()) {
+            session.getBasicRemote().sendText(Json.toJson(message));
+        }
+    }
 
     @OnOpen
     public void onOpen(Session session) {

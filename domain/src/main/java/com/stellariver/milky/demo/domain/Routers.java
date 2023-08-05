@@ -88,7 +88,9 @@ public class Routers implements EventRouters {
 
     @EventRouter
     public void routePush(CompEvent.Started started, Context context) {
-        //TODO
+        Comp comp = tunnel.runningComp();
+        Message message = Message.builder().topic(Topic.STAGE_CHANGE).entity(comp).build();
+        tunnel.cast(message);
     }
 
 

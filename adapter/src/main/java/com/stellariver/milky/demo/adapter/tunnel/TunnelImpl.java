@@ -113,8 +113,8 @@ public class TunnelImpl implements Tunnel {
     @Override
     public void updateRoundIdForMarketSetting(Integer roundId) {
         MarketSettingDO marketSettingDO = new MarketSettingDO();
-        marketSettingDO.setMarketSettingId(1);
-        marketSettingDO.setRoundId(roundId + 1);
+        marketSettingDO.setMarket_setting_id(1);
+        marketSettingDO.setRound_id(roundId + 1);
         marketSettingMapper.updateById(marketSettingDO);
     }
 
@@ -137,5 +137,10 @@ public class TunnelImpl implements Tunnel {
             }
         });
         tieLinePowerDOs.forEach(tieLineDOMapper::updateById);
+    }
+
+    @Override
+    public void cast(Message message) {
+        WsHandler.cast(message);
     }
 }
