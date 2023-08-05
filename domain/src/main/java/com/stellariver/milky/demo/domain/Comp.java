@@ -187,7 +187,10 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
             }).collect(Collectors.toList());
 
             Clearance clearance = clear(buyBids, sellBids, timeFrame);
+
             Double dealQuantityTotal = clearance.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum) / 2;
+
+
             Double totalVolume = clearance.getDeals().stream().map(deal -> deal.getQuantity() * deal.getPrice()).reduce(0D, Double::sum);
             Double dealAveragePrice = Objects.equals(totalVolume, 0D) ? 0 : totalVolume/dealQuantityTotal;
 
@@ -210,6 +213,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
                 .compId(compId)
                 .marketType(marketType)
                 .centralizedDealsMap(marketTypeCentralizedDeals)
+                .replenishes(replenishes.get(roundId).get(marketType))
                 .build();
         context.publish(event);
     }
@@ -238,9 +242,16 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         ResolveResult resolveResult = resolveInterPoint(buyBids, sellBids);
         Pair<Double, Double> interPoint = resolveResult.getInterPoint();
         GridLimit gridLimit = transLimit.get(marketType).get(timeFrame);
+
+        if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
+            CentralizedDeals centralizedDeals = roundCentralizedDeals.get(roundId).get(MarketType.INTER_ANNUAL_PROVINCIAL).get(timeFrame);
+            Double dealQuantityTotal = centralizedDeals.getDealQuantityTotal();
+            gridLimit = GridLimit.builder().low(gridLimit.getLow() - dealQuantityTotal).high(gridLimit.getHigh() - dealQuantityTotal).build();
+        }
+
         Triple<Double, Double, Double> triple;  // left --> deal quantity, middle -> deal price, middle -> replenish
         if (interPoint == null) {
-            triple = Triple.of(0D, null, 0D);
+            triple = Triple.of(null, null, 0D);
         } else if (interPoint.getLeft() <= gridLimit.getLow()) {
             triple = Triple.of(interPoint.getLeft(), interPoint.getRight(), gridLimit.getLow() - interPoint.getLeft());
         } else if (interPoint.getLeft() > gridLimit.getLow() && interPoint.getLeft() <= gridLimit.getHigh()) {
@@ -426,7 +437,9 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     @SuppressWarnings("UnstableApiUsage")
     private Function<Double, Range<Double>> buildFx(List<PointLine> pointLines, Double startPrice, Double endPrice) {
-        SysEx.trueThrow(Collect.isEmpty(pointLines), ErrorEnums.CONFIG_ERROR);
+        if (pointLines.isEmpty()) {
+            throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+        }
         RangeMap<Double, Range<Double>> rangeMap = TreeRangeMap.create();
         Double lastRightx = null;
         for (PointLine pointLine : pointLines) {

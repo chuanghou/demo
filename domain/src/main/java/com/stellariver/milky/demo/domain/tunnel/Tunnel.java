@@ -1,6 +1,8 @@
 package com.stellariver.milky.demo.domain.tunnel;
 
 import com.stellariver.milky.demo.basic.Message;
+import com.stellariver.milky.demo.common.MarketType;
+import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
@@ -31,4 +33,6 @@ public interface Tunnel {
     Comp runningComp();
 
     void updateRoundIdForMarketSetting(Integer roundId);
+
+    void writeReplenishes(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes);
 }

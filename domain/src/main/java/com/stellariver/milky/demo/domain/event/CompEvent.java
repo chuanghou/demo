@@ -11,6 +11,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,7 @@ public class CompEvent {
         Long compId;
         MarketType marketType;
         Map<TimeFrame, CentralizedDeals> centralizedDealsMap;
+        Map<TimeFrame, Double> replenishes;
 
         @Override
         public String getAggregateId() {

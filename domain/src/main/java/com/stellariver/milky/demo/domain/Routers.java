@@ -12,6 +12,7 @@ import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.common.enums.NewBid;
+import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.demo.domain.command.UnitEvent;
@@ -231,7 +232,7 @@ public class Routers implements EventRouters {
 
 
     @EventRouter
-    public void route(CompEvent.Cleared event, Context context) {
+    public void routeForDealReport(CompEvent.Cleared event, Context context) {
         ListMultimap<Long, Deal> dealMultiMap = event.getCentralizedDealsMap().values().stream()
                 .map(CentralizedDeals::getDeals).flatMap(Collection::stream).collect(Collect.listMultiMap(Deal::getUnitId));
         dealMultiMap.keySet().forEach(unitId -> {
@@ -239,7 +240,13 @@ public class Routers implements EventRouters {
             UnitCommand.DealReport command = UnitCommand.DealReport.builder().unitId(unitId).deals(deals).build();
             CommandBus.driveByEvent(command, event);
         });
+    }
 
+    @EventRouter
+    public void routeForReplenishes(CompEvent.Cleared event, Context context) {
+        Comp comp = tunnel.runningComp();
+        Map<TimeFrame, Double> replenishes = event.getReplenishes();
+        tunnel.writeReplenishes(comp.getRoundId(), comp.getMarketType(), replenishes);
     }
 
     @EventRouter
