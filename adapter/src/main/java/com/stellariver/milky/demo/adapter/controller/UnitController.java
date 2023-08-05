@@ -1,9 +1,7 @@
 package com.stellariver.milky.demo.adapter.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.stellariver.milky.common.base.BeanUtil;
-import com.stellariver.milky.common.base.BizEx;
-import com.stellariver.milky.common.base.Result;
+import com.stellariver.milky.common.base.*;
 import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.common.Typed;
@@ -12,11 +10,13 @@ import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.basic.TypedEnums;
+import com.stellariver.milky.demo.basic.UnitType;
 import com.stellariver.milky.demo.client.po.BidPO;
 import com.stellariver.milky.demo.client.po.CentralizedBidPO;
 import com.stellariver.milky.demo.client.po.RealtimeCancelBidPO;
 import com.stellariver.milky.demo.client.po.RealtimeNewBidPO;
 import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.PriceLimit;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
@@ -78,18 +78,34 @@ public class UnitController {
         return Result.success(units);
     }
 
+    private void checkPrice(UnitType unitType, PriceLimit priceLimit, Double price) {
+        if (unitType.equals(UnitType.LOAD)) {
+            priceLimit.getLoadPriceLimit().check(price);
+        } else if (unitType.equals(UnitType.GENERATOR)) {
+            priceLimit.getGeneratorPriceLimit().check(price);
+        } else {
+            throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+        }
+    }
+
 
     @PostMapping("centralizedBid")
     public Result<Void> centralizedBid(@RequestBody CentralizedBidPO centralizedBidPO, @RequestHeader("token") String token) {
+
         Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
         Unit unit = domainTunnel.getByAggregateId(Unit.class, centralizedBidPO.getUnitId().toString());
         BizEx.trueThrow(Kit.notEq(unit.getUserId(), userId), ErrorEnums.PARAM_FORMAT_WRONG.message("无权限操作"));
+
+        Comp comp = tunnel.runningComp();
+        PriceLimit priceLimit = comp.getPriceLimit();
+
         List<Bid> bids = Collect.transfer(centralizedBidPO.getBids(), Convertor.INST::to);
         bids.forEach(bid -> {
             bid.setUnitId(centralizedBidPO.getUnitId());
             bid.setProvince(unit.getMetaUnit().getProvince());
+            checkPrice(unit.getMetaUnit().getUnitType(), priceLimit, bid.getPrice());
         });
-        Comp comp = tunnel.runningComp();
+
         Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
         UnitCommand.CentralizedBid command = UnitCommand.CentralizedBid.builder().unitId(centralizedBidPO.getUnitId()).bids(bids).build();
         CommandBus.accept(command, parameters);
@@ -105,7 +121,7 @@ public class UnitController {
         bid.setUnitId(realtimeNewBidPO.getUnitId());
         bid.setProvince(unit.getMetaUnit().getProvince());
         Comp comp = tunnel.runningComp();
-
+        checkPrice(unit.getMetaUnit().getUnitType(), comp.getPriceLimit(), bid.getPrice());
         Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
         UnitCommand.RtNewBidDeclare realtimeBid = UnitCommand.RtNewBidDeclare.builder().unitId(unit.getUnitId()).bid(bid).build();
         CommandBus.accept(realtimeBid, parameters);

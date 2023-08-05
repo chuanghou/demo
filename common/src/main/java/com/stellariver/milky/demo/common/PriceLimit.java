@@ -14,4 +14,5 @@ import lombok.experimental.FieldDefaults;
 public class PriceLimit {
     GridLimit generatorPriceLimit;
     GridLimit loadPriceLimit;
+
 }
