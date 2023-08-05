@@ -226,7 +226,7 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
         Comp comp = tunnel.runningComp();
         Integer userTotal = comp.getUserTotal();
         for (int i = 0; i < userTotal; i++) {
-            Message message = Message.builder().topic(Topic.COMP).userId(String.valueOf(i)).entity(rtCompVO).build();
+            Message message = Message.builder().topic(Topic.RT_COMP).userId(String.valueOf(i)).entity(rtCompVO).build();
             tunnel.push(message);
         }
     }

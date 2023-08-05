@@ -2,8 +2,10 @@ package com.stellariver.milky.demo.basic;
 
 public enum Topic {
 
-    COMP,
+    RT_COMP,
 
-    UNIT;
+    RT_UNIT,
+
+    STAGE_CHANGE
 
 }

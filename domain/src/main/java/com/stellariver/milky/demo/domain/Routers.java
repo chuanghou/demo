@@ -38,6 +38,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 
@@ -86,6 +87,17 @@ public class Routers implements EventRouters {
     }
 
     @EventRouter
+    public void routePush(CompEvent.Started started, Context context) {
+        //TODO
+    }
+
+
+    @EventRouter
+    public void routePush(CompEvent.Stepped stepped, Context context) {
+        //TDODO
+    }
+
+    @EventRouter
     public void routeAutoNext(CompEvent.Started started, Context context) {
 
         Comp comp = context.getByAggregateId(Comp.class, started.getAggregateId());
@@ -95,21 +107,26 @@ public class Routers implements EventRouters {
                 .marketStatus(comp.getMarketStatus())
                 .build();
         Duration accumulateDuration = Duration.ZERO;
-        long startTime = Clock.currentTimeMillis();
+        long time = Clock.currentTimeMillis();
 
+        Map<Stage, Date> endTime = new HashMap<>();
         do {
             Duration duration = comp.getDurations().get(currentStage.getMarketType()).get(currentStage.getMarketStatus());
-            startTime += duration.get(ChronoUnit.SECONDS) * 1000;
+            time += duration.get(ChronoUnit.SECONDS) * 1000;
             accumulateDuration = accumulateDuration.plus(duration);
+            endTime.put(currentStage, new Date(time));
             Stage nexStage = currentStage.next();
             CompCommand.Step command = CompCommand.Step.builder().nextStage(nexStage).compId(comp.getCompId()).build();
-            DelayCommandWrapper delayCommandWrapper = new DelayCommandWrapper(command, new Date(startTime));
+            DelayCommandWrapper delayCommandWrapper = new DelayCommandWrapper(command, new Date(time));
             System.out.println("DELAY " + delayCommandWrapper.getExecuteDate().toString());
             delayExecutor.delayQueue.add(delayCommandWrapper);
             currentStage = nexStage;
         } while (!currentStage.lastOne(comp.getRoundTotal()));
 
         delayExecutor.start();
+
+        CompCommand.TimeLine command = CompCommand.TimeLine.builder().compId(comp.getCompId()).endTime(endTime).build();
+        CommandBus.driveByEvent(command, started);
     }
 
     @EventRouter
@@ -282,7 +299,7 @@ public class Routers implements EventRouters {
             return;
         }
         Message message = Message.builder()
-                .topic(Topic.UNIT).userId(event.getUnit().getUserId().toString()).entity(event.getUnit()).build();
+                .topic(Topic.RT_UNIT).userId(event.getUnit().getUserId().toString()).entity(event.getUnit()).build();
         tunnel.push(message);
     }
 

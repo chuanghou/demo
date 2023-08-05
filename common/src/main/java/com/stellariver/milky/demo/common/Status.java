@@ -26,10 +26,15 @@ public class Status {
         final String desc;
     }
 
+    @Getter
+    @AllArgsConstructor
     public enum CompStatus {
-        INIT,
-        OPEN,
-        END
+
+        INIT("初始化"),
+        OPEN("开放中"),
+        END("已结束");
+
+        final String desc;
     }
 
 }

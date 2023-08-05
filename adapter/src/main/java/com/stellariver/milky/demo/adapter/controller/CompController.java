@@ -40,7 +40,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @RestController
@@ -63,8 +62,6 @@ public class CompController {
         return Result.success(comp);
     }
 
-
-
     @GetMapping("listComps")
     public Result<List<Comp>> listComps() {
         List<CompDO> compDOs= compDOMapper.selectList(null);
@@ -79,37 +76,37 @@ public class CompController {
         Map<MarketType, Map<Status.MarketStatus, Integer>> data = new HashMap<>();
 
         Map<Status.MarketStatus, Integer> map0 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialAnnualBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialAnnualResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincial_annual_bid_duration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincial_annual_result_duration() * 60).getMap();
         data.put(MarketType.INTER_ANNUAL_PROVINCIAL, map0);
 
         Map<Status.MarketStatus, Integer> map1 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialAnnualBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialAnnualResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincial_annual_bid_duration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincial_annual_result_duration() * 60).getMap();
         data.put(MarketType.INTRA_ANNUAL_PROVINCIAL, map1);
 
         Map<Status.MarketStatus, Integer> map2 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialMonthlyBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialMonthlyResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincial_monthly_bid_duration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincial_monthly_result_duration() * 60).getMap();
         data.put(MarketType.INTER_MONTHLY_PROVINCIAL, map2);
 
         Map<Status.MarketStatus, Integer> map3 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialMonthlyBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialMonthlyResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincial_monthly_bid_duration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincial_monthly_result_duration() * 60).getMap();
         data.put(MarketType.INTRA_MONTHLY_PROVINCIAL, map3);
 
         Map<Status.MarketStatus, Integer> map4 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialSpotBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialSpotResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincial_spot_bid_duration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincial_spot_result_duration() * 60).getMap();
         data.put(MarketType.INTRA_SPOT_PROVINCIAL, map4);
 
         Map<Status.MarketStatus, Integer> map5 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialSpotBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialSpotResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincial_spot_bid_duration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincial_spot_result_duration() * 60).getMap();
         data.put(MarketType.INTER_SPOT_PROVINCIAL, map5);
 
         Map<Status.MarketStatus, Integer> map6 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getSettleResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getSettle_result_duration() * 60).getMap();
         data.put(MarketType.INTER_SPOT_PROVINCIAL, map6);
 
         return Result.success(data);
@@ -138,8 +135,8 @@ public class CompController {
         }
         Long compId = uniqueIdBuilder.get();
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);
-        GridLimit generatorPriceLimit = GridLimit.builder().low(marketSettingDO.getOfferPriceFloor()).high(marketSettingDO.getOfferPriceCap()).build();
-        GridLimit loadPriceLimit = GridLimit.builder().low(marketSettingDO.getBidPriceFloor()).high(marketSettingDO.getBidPriceCap()).build();
+        GridLimit generatorPriceLimit = GridLimit.builder().low(marketSettingDO.getOffer_price_floor()).high(marketSettingDO.getOffer_price_cap()).build();
+        GridLimit loadPriceLimit = GridLimit.builder().low(marketSettingDO.getBid_price_floor()).high(marketSettingDO.getBid_price_cap()).build();
         PriceLimit priceLimit = PriceLimit.builder().generatorPriceLimit(generatorPriceLimit).loadPriceLimit(loadPriceLimit).build();
 
         List<TransLineLimitDO> transLineLimitDOS = transLineLimitDOMapper.selectList(null);

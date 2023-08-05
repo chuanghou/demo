@@ -12,6 +12,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import java.time.Duration;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Delayed;
@@ -74,6 +76,25 @@ public class CompCommand {
 
     }
 
+
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class TimeLine extends Command {
+
+        Long compId;
+
+        Map<Stage, Date> endTime = new HashMap<>();
+
+        @Override
+        public String getAggregateId() {
+            return compId.toString();
+        }
+
+    }
 
     @Data
     @SuperBuilder

@@ -1,7 +1,9 @@
 package com.stellariver.milky.demo.adapter.controller;
 
 import com.stellariver.milky.common.base.Enumeration;
+import com.stellariver.milky.demo.basic.Label;
 import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.Province;
@@ -17,6 +19,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("enumerations")
 public class EnumerationController {
+
+    @GetMapping("listLabels")
+    public List<Enumeration> listLabels() {
+        return Arrays.stream(Label.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
+    }
 
     @GetMapping("listProvinces")
     public List<Enumeration> listProvinces() {
@@ -42,6 +49,17 @@ public class EnumerationController {
     public List<Enumeration> listMarketStatuses() {
         return Arrays.stream(Status.MarketStatus.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
     }
+
+    @GetMapping("listMarketTypes")
+    public List<Enumeration> listMarketTypes() {
+        return Arrays.stream(MarketType.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
+    }
+
+    @GetMapping("listCompStatuses")
+    public List<Enumeration> listCompStatuses() {
+        return Arrays.stream(Status.CompStatus.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
+    }
+
 
 
 }

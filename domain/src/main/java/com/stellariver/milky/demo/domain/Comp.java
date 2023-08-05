@@ -57,6 +57,8 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     Map<MarketType, Map<TimeFrame, GridLimit>> transLimit;
     Map<MarketType, Map<Status.MarketStatus, Duration>> durations;
 
+    Map<Stage, Date> endTime;
+
     @JsonIgnore
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
     @JsonIgnore
@@ -112,6 +114,12 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         marketStatus = Status.MarketStatus.OPEN;
         CompEvent.Started started = CompEvent.Started.builder().compId(compId).build();
         context.publish(started);
+    }
+
+    @MethodHandler
+    public void update(CompCommand.TimeLine timeLine, Context context) {
+        this.endTime = timeLine.getEndTime();
+        context.publishPlaceHolderEvent(getAggregateId());
     }
 
     @MethodHandler

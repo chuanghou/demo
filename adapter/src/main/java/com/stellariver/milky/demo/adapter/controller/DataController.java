@@ -1,18 +1,15 @@
 package com.stellariver.milky.demo.adapter.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.stellariver.milky.common.base.Enumeration;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
-import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.basic.Label;
-import com.stellariver.milky.demo.basic.TokenUtils;
-import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.Round;
+import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.infrastructure.database.entity.*;
@@ -24,11 +21,13 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 
 @RestController
@@ -38,17 +37,100 @@ public class DataController {
 
     final SprMapper sprMapper;
     final TpbfsdMapper tpbfsdMapper;
+    final MarketSettingMapper marketSettingMapper;
 
+    /**
+     * 市场公告
+     */
+    @GetMapping("marketAnnouncement")
+    public Map<Label, String> marketAnnouncement() {
+        MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1L);
+        Map<Label, String> result = new HashMap<>();
+        result.put(Label.offer_price_cap, String.format("%.2f", marketSettingDO.getOffer_price_cap()));
+        result.put(Label.offer_price_floor, String.format("%.2f", marketSettingDO.getOffer_price_floor()));
+        result.put(Label.bid_price_cap, String.format("%.2f", marketSettingDO.getBid_price_cap()));
+        result.put(Label.bid_price_floor, String.format("%.2f", marketSettingDO.getBid_price_cap()));
 
-    @GetMapping("listMarketTypes")
-    public List<Enumeration> listMarketTypes() {
-        return Arrays.stream(MarketType.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
+        result.put(Label.load_annual_max_forecast_err, String.format("%.2f", marketSettingDO.getLoad_annual_max_forecast_err()));
+        result.put(Label.load_monthly_max_forecast_err, String.format("%.2f", marketSettingDO.getLoad_monthly_max_forecast_err()));
+        result.put(Label.load_da_max_forecast_err, String.format("%.2f", marketSettingDO.getLoad_da_max_forecast_err()));
+        result.put(Label.renewable_annual_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewable_annual_max_forecast_err()));
+        result.put(Label.renewable_monthly_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewable_monthly_max_forecast_err()));
+        result.put(Label.renewable_da_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewable_da_max_forecast_err()));
+
+        result.put(Label.transmission_and_distribution_tariff, String.format("%.2f", marketSettingDO.getTransmission_and_distribution_tariff()));
+        result.put(Label.regulated_user_tariff, String.format("%.2f", marketSettingDO.getRegulated_user_tariff()));
+        result.put(Label.regulated_producer_price, String.format("%.2f", marketSettingDO.getRegulated_producer_price()));
+        result.put(Label.regulated_interprov_transmission_price, String.format("%.2f", marketSettingDO.getRegulated_interprov_transmission_price()));
+
+        result.put(Label.round_id, String.valueOf(marketSettingDO.getRound_id()));
+
+        result.put(Label.sender_peak_prds, TimeFrame.PEAK.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
+        result.put(Label.sender_flat_prds, TimeFrame.FLAT.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
+        result.put(Label.sender_valley_prds, TimeFrame.VALLEY.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
+
+        result.put(Label.receive_peak_prds, TimeFrame.PEAK.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
+        result.put(Label.receive_flat_prds, TimeFrame.FLAT.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
+        result.put(Label.receive_valley_prds,TimeFrame.VALLEY.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
+
+        return result;
     }
 
-    @GetMapping("listLabels")
-    public List<Enumeration> listLabels() {
-        return Arrays.stream(Label.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
+    /**
+     * 代理概况
+     */
+    @GetMapping("agentData")
+    public Map<Label, String> agentData(String unitType, @Nullable String generatorType, Integer sourceId) {
+        Map<Label, String> result = new HashMap<>();
+        if (UnitType.valueOf(unitType) == UnitType.GENERATOR) {
+            GeneratorDO generatorDO = generatorDOMapper.selectById(sourceId);
+            if (GeneratorType.valueOf(generatorType) == GeneratorType.CLASSIC) {
+                result.put(Label.unit_name, generatorDO.getUnit_name());
+                result.put(Label.prov_of_generator, Kit.enumOfMightEx(Province::getDbCode, generatorDO.getProv()).getDesc());
+                result.put(Label.node_id_of_generator, String.valueOf(generatorDO.getNode_id()));
+                result.put(Label.min_off_duration, String.format("%.2f",generatorDO.getMin_off_duration()));
+                result.put(Label.min_on_duration, String.format("%.2f",generatorDO.getMin_on_duration()));
+                result.put(Label.ramp_up_rate, String.format("%.2f",generatorDO.getRamp_up_rate()));
+                result.put(Label.ramp_dn_rate, String.format("%.2f",generatorDO.getMin_on_duration()));
+                result.put(Label.max_p_of_classic_generator, String.format("%.2f",generatorDO.getMax_p()));
+                result.put(Label.min_p_of_classic_generator, String.format("%.2f",generatorDO.getMin_p()));
+                String startup_curve_x = Stream.of(generatorDO.getStartup_curve_1(),
+                        generatorDO.getStartup_curve_2(),
+                        generatorDO.getStartup_curve_3(),
+                        generatorDO.getStartup_curve_4(),
+                        generatorDO.getStartup_curve_5(),
+                        generatorDO.getStartup_curve_6()).map(Object::toString).collect(Collectors.joining(", "));
+                result.put(Label.startup_curve_x, startup_curve_x);
+
+                String shutdown_curve_x = Stream.of(generatorDO.getShutdown_curve_1(),
+                        generatorDO.getShutdown_curve_2(),
+                        generatorDO.getShutdown_curve_3(),
+                        generatorDO.getShutdown_curve_4(),
+                        generatorDO.getShutdown_curve_5(),
+                        generatorDO.getShutdown_curve_6()).map(Object::toString).collect(Collectors.joining(", "));
+                result.put(Label.shutdown_curve_x, shutdown_curve_x);
+
+                result.put(Label.num_startup_curve_prds, String.valueOf(generatorDO.getNum_startup_curve_prds()));
+                result.put(Label.num_shutdown_curve_prds, String.valueOf(generatorDO.getNum_shutdown_curve_prds()));
+            } else {
+                result.put(Label.unit_name, generatorDO.getUnit_name());
+                result.put(Label.prov_of_generator, Kit.enumOfMightEx(Province::getDbCode, generatorDO.getProv()).getDesc());
+                result.put(Label.node_id_of_generator, String.valueOf(generatorDO.getNode_id()));
+                result.put(Label.max_p_of_renewable, String.format("%.2f",generatorDO.getMax_p()));
+            }
+        } else {
+            LoadDO loadDO = loadDOMapper.selectById(sourceId);
+            result.put(Label.load_name, loadDO.getLoad_name());
+            result.put(Label.prov_of_load, Kit.enumOfMightEx(Province::getDbCode, loadDO.getPrv()).getDesc());
+            result.put(Label.node_id_of_load, String.valueOf(loadDO.getNode_id()));
+            result.put(Label.max_p_of_load,  String.format("%.2f",loadDO.getMax_p()));
+
+        }
+        return result;
     }
+
+
+
 
     @GetMapping("systemParameterRelease")
     Map<String, Map<String, List<Double>>> systemParameterRelease(@RequestParam String marketTypeValue) {
@@ -254,7 +336,7 @@ public class DataController {
         GeneratorDO generatorDO = generatorDOMapper.selectById(generatorId);
         Map<String, List<Double>> map = new HashMap<>();
         List<Double> maxPs = new ArrayList<>();
-        IntStream.range(0, 96).forEach(i -> maxPs.add(generatorDO.getMaxP()));
+        IntStream.range(0, 96).forEach(i -> maxPs.add(generatorDO.getMax_p()));
         if (generatorDO.getType() == 1) {
             map.put(Label.maxPs.name(), maxPs);
         } else {
@@ -281,7 +363,7 @@ public class DataController {
                 .sorted(Comparator.comparing(GeneratorOutputStateDO::getPrd))
                 .map(GeneratorOutputStateDO::getBaseMw).collect(Collectors.toList());
         map.put(Label.baseContractMws.name(), baseContractMws);
-        return Pair.of(generatorDO.getUnitName(), map);
+        return Pair.of(generatorDO.getUnit_name(), map);
     }
 
     final LoadForecastMapper loadForecastMapper;
@@ -294,7 +376,7 @@ public class DataController {
                 .sorted(Comparator.comparing(LoadForecastDO::getPrd))
                 .map(LoadForecastDO::getAnnualForecast).collect(Collectors.toList());
         map.put(Label.loadForecast.name(), baseMws);
-        return Pair.of(loadDO.getLoadName(), map);
+        return Pair.of(loadDO.getLoad_name(), map);
     }
 
 
