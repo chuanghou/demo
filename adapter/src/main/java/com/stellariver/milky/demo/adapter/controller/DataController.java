@@ -121,7 +121,7 @@ public class DataController {
         } else {
             LoadDO loadDO = loadDOMapper.selectById(sourceId);
             result.put(Label.load_name, loadDO.getLoadName());
-            result.put(Label.prov_of_load, Kit.enumOfMightEx(Province::getDbCode, loadDO.getPrv()).getDesc());
+            result.put(Label.prov_of_load, Kit.enumOfMightEx(Province::getDbCode, loadDO.getProv()).getDesc());
             result.put(Label.node_id_of_load, String.valueOf(loadDO.getNodeId()));
             result.put(Label.max_p_of_load,  String.format("%.2f",loadDO.getMaxP()));
 

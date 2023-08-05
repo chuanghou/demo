@@ -16,16 +16,10 @@ import lombok.experimental.FieldDefaults;
 public class LoadDO {
 
     @TableId(type = IdType.AUTO)
-    @TableField("load_id")
     Integer loadId;
-    @TableField("load_name")
     String loadName;
-    @TableField("prv")
-    Integer prv;
-    @TableField("max_p")
+    Integer prov;
     Double maxP;
-    @TableField("is_market_load")
     Integer isMarketLoad;
-    @TableField("node_id")
     Integer nodeId;
 }

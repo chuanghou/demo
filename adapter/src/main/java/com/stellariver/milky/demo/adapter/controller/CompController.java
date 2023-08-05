@@ -91,7 +91,7 @@ public class CompController {
         data.put(MarketType.INTER_MONTHLY_PROVINCIAL, map2);
 
         Map<Status.MarketStatus, Integer> map3 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialMonthlyDidDuration() * 60)
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialMonthlyBidDuration() * 60)
                 .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialMonthlyResultDuration() * 60).getMap();
         data.put(MarketType.INTRA_MONTHLY_PROVINCIAL, map3);
 

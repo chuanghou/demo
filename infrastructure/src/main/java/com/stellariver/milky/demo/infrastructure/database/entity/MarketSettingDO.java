@@ -64,7 +64,7 @@ public class MarketSettingDO {
 //    String round_num;
 //    String market_type;
     Integer intraprovincialAnnualBidDuration;
-    Integer intraprovincialMonthlyDidDuration;
+    Integer intraprovincialMonthlyBidDuration;
     Integer intraprovincialSpotBidDuration;
     Integer interprovincialAnnualBidDuration;
     Integer interprovincialMonthlyBidDuration;

@@ -1,6 +1,7 @@
 package com.stellariver.milky.demo;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.stellariver.milky.common.base.BeanUtil;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.base.SysEx;
@@ -20,13 +21,8 @@ import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
-import com.stellariver.milky.demo.infrastructure.database.entity.MarketSettingDO;
-import com.stellariver.milky.demo.infrastructure.database.entity.Prv;
-import com.stellariver.milky.demo.infrastructure.database.entity.TieLinePowerDO;
-import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
-import com.stellariver.milky.demo.infrastructure.database.mapper.MarketSettingMapper;
-import com.stellariver.milky.demo.infrastructure.database.mapper.PfvMapper;
-import com.stellariver.milky.demo.infrastructure.database.mapper.TieLineDOMapper;
+import com.stellariver.milky.demo.infrastructure.database.entity.*;
+import com.stellariver.milky.demo.infrastructure.database.mapper.*;
 import com.stellariver.milky.domain.support.ErrorEnums;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import lombok.CustomLog;
@@ -69,7 +65,10 @@ public class CompTest {
     @Test
     public void test() {
         MarketSettingDO marketSettingDOS = marketSettingMapper.selectById(1);
+        LoadDO loadDO = BeanUtil.getBean(LoadDOMapper.class).selectById(1);
+        GeneratorDO generatorDO = BeanUtil.getBean(GeneratorDOMapper.class).selectById(1);
         System.out.println("s");
+
 
     }
 
