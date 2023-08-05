@@ -21,6 +21,7 @@ public class MetaUnitDO {
 
     @TableId(type = IdType.INPUT)
     Integer metaUnitId;
+    Integer nodeId;
     String name;
     String province;
     String unitType;

@@ -1,8 +1,12 @@
 package com.stellariver.milky.demo.infrastructure.database.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.stellariver.milky.demo.common.MarketType;
+import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.domain.support.base.BaseDataObject;
 import com.stellariver.milky.infrastructure.base.database.AbstractMpDO;
 import lombok.AccessLevel;
@@ -11,6 +15,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+
+import java.time.Duration;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -31,7 +38,8 @@ public class CompDO extends AbstractMpDO implements BaseDataObject<Long> {
     String marketStatus;
     String priceLimit;
     String transLimit;
-    String durations;
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    Map<MarketType, Map<Status.MarketStatus, Duration>> durations;
     String replenishes;
     String roundCentralizedDeals;
     @Override

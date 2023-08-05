@@ -7,13 +7,17 @@ import com.stellariver.milky.demo.adapter.repository.domain.CompDODAOWrapper;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.adapter.websocket.WsHandler;
 import com.stellariver.milky.demo.basic.Message;
+import com.stellariver.milky.demo.basic.RtCompVO;
 import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.Comp;
+import com.stellariver.milky.demo.domain.RtProcessorKey;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
+import com.stellariver.milky.demo.infrastructure.database.entity.MarketSettingDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.MetaUnitDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
+import com.stellariver.milky.demo.infrastructure.database.mapper.MarketSettingMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.MetaUnitDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UnitDOMapper;
 import lombok.AccessLevel;
@@ -37,6 +41,7 @@ public class TunnelImpl implements Tunnel {
     final CompDOMapper compDOMapper;
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     final CompDODAOWrapper compDODAOWrapper;
+    final MarketSettingMapper marketSettingMapper;
 
     @Override
     public List<Unit> listUnitsByCompId(Long compId) {
@@ -88,13 +93,26 @@ public class TunnelImpl implements Tunnel {
     @Override
     public void push(Message message) {
         WsHandler.push(message.getUserId(), Json.toJson(message));
-        log.info(message.toString());
     }
 
     @Override
     @Nullable
     public Comp runningComp() {
         List<Comp> comps = compDODAOWrapper.memoryComps();
-        return comps.stream().max(Comparator.comparing(Comp::getCompId)).orElse(null);
+        Comp comp = comps.stream().max(Comparator.comparing(Comp::getCompId)).orElse(null);
+        Map<RtProcessorKey, RtCompVO> rtCompVOMap = new HashMap<>();
+        if (comp != null) {
+            comp.getRtBidProcessors().forEach((pk, processor) -> rtCompVOMap.put(pk, processor.getRtCompVO()));
+            comp.setRtCompVOMap(rtCompVOMap);
+        }
+        return comp;
+    }
+
+    @Override
+    public void updateRoundIdForMarketSetting(Integer roundId) {
+        MarketSettingDO marketSettingDO = new MarketSettingDO();
+        marketSettingDO.setMarketSettingId(1);
+        marketSettingDO.setRoundId(roundId + 1);
+        marketSettingMapper.updateById(marketSettingDO);
     }
 }

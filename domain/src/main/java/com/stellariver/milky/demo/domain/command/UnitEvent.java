@@ -100,4 +100,21 @@ public class UnitEvent {
 
     }
 
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class DealReported extends Event {
+
+        Long unitId;
+        Unit unit;
+
+        @Override
+        public String getAggregateId() {
+            return unitId.toString();
+        }
+
+    }
+
 }

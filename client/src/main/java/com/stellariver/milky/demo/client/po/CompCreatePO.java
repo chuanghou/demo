@@ -8,6 +8,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -21,6 +22,6 @@ public class CompCreatePO {
 
     @NotNull
     @Size(min = 7, max = 7)
-    List<Long> durations; // seconds
+    Map<String, Map<String, Integer>> durations; // seconds
 
 }

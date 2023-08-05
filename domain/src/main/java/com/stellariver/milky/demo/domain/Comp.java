@@ -8,16 +8,15 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.basic.CentralizedDeals;
-import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.basic.PointLine;
-import com.stellariver.milky.demo.basic.Stage;
+import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.domain.command.CompCommand;
 import com.stellariver.milky.demo.domain.event.CompEvent;
+import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.base.BaseDataObject;
+import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.ConstructorHandler;
 import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
@@ -33,6 +32,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.DelayQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -55,7 +55,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     Status.MarketStatus marketStatus;
     PriceLimit priceLimit;
     Map<MarketType, Map<TimeFrame, GridLimit>> transLimit;
-    List<Map<MarketType, Duration>> durations;
+    Map<MarketType, Map<Status.MarketStatus, Duration>> durations;
 
     @JsonIgnore
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
@@ -65,7 +65,9 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     List<Map<MarketType, Map<TimeFrame, CentralizedDeals>>> roundCentralizedDeals = new ArrayList<>();
 
     @JsonIgnore
-    Map<Pair<Province, TimeFrame>, RealtimeBidProcessor> rtBidProcessors = new ConcurrentHashMap<>();
+    Map<RtProcessorKey, RealtimeBidProcessor> rtBidProcessors = new ConcurrentHashMap<>();
+
+    Map<RtProcessorKey, RtCompVO> rtCompVOMap = new HashMap<>();
 
     @Override
     public String getAggregateId() {
@@ -470,15 +472,26 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     @MethodHandler
     public void handle(CompCommand.RtNewBid command, Context context) {
         NewBid newBid = command.getNewBid();
-        Pair<Province, TimeFrame> processorKey = Pair.of(newBid.getProvince(), newBid.getTimeFrame());
-        RealtimeBidProcessor realtimeBidProcessor = rtBidProcessors.computeIfAbsent(processorKey, bG -> new RealtimeBidProcessor());
+        Comp comp = BeanUtil.getBean(Tunnel.class).runningComp();
+        RtProcessorKey processorKey = RtProcessorKey.builder().province(newBid.getProvince())
+                .timeFrame(newBid.getTimeFrame())
+                .marketType(comp.getMarketType())
+                .roundId(comp.getRoundId())
+                .build();
+
+        RealtimeBidProcessor realtimeBidProcessor = rtBidProcessors.computeIfAbsent(processorKey, RealtimeBidProcessor::new);
         realtimeBidProcessor.post(newBid);
     }
 
     @MethodHandler
     public void handle(CompCommand.RtCancelBid command, Context context) {
-        Pair<Province, TimeFrame> processorKey = Pair.of(command.getProvince(), command.getTimeFrame());
-        RealtimeBidProcessor realtimeBidProcessor = rtBidProcessors.computeIfAbsent(processorKey, bG -> new RealtimeBidProcessor());
+        Comp comp = BeanUtil.getBean(Tunnel.class).runningComp();
+        RtProcessorKey processorKey = RtProcessorKey.builder().province(command.getProvince())
+                .timeFrame(command.getTimeFrame())
+                .marketType(comp.getMarketType())
+                .roundId(comp.getRoundId())
+                .build();
+        RealtimeBidProcessor realtimeBidProcessor = rtBidProcessors.get(processorKey);
         CancelBid cancelBid = new CancelBid(command.getBidId(), command.getBidDirection());
         realtimeBidProcessor.post(cancelBid);
     }

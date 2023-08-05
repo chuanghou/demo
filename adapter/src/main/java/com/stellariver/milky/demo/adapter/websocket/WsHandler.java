@@ -44,7 +44,6 @@ public class WsHandler {
         String userId = sessions.entrySet().stream()
                 .filter(e -> Kit.eq(e.getValue().getId(), session.getId()))
                 .map(Map.Entry::getKey).findFirst().orElse(null);
-        log.error("userId {} ", userId, error);
         sessions.remove(userId);
     }
 

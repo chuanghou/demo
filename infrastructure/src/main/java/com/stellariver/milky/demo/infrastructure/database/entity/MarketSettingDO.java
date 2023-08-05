@@ -24,5 +24,21 @@ public class MarketSettingDO {
     Double offerPriceFloor;
     Double bidPriceCap;
     Double bidPriceFloor;
+    Integer roundId;
+
+    Integer interprovincialSpotBidDuration;
+    Integer interprovincialAnnualBidDuration;
+    Integer interprovincialMonthlyBidDuration;
+    Integer intraprovincialSpotBidDuration;
+    Integer intraprovincialAnnualBidDuration;
+    Integer intraprovincialMonthlyBidDuration;
+
+    Integer interprovincialSpotResultDuration;
+    Integer interprovincialAnnualResultDuration;
+    Integer interprovincialMonthlyResultDuration;
+    Integer intraprovincialSpotResultDuration;
+    Integer intraprovincialAnnualResultDuration;
+    Integer intraprovincialMonthlyResultDuration;
+    Integer settleResultDuration;
 
 }

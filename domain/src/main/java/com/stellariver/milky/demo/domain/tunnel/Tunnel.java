@@ -29,4 +29,6 @@ public interface Tunnel {
     void push(Message message);
 
     Comp runningComp();
+
+    void updateRoundIdForMarketSetting(Integer roundId);
 }

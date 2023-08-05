@@ -6,10 +6,7 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.basic.Allocate;
-import com.stellariver.milky.demo.basic.CentralizedDeals;
-import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.basic.Stage;
+import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
@@ -100,7 +97,7 @@ public class Routers implements EventRouters {
         long startTime = Clock.currentTimeMillis();
 
         do {
-            Duration duration = comp.getDurations().get(currentStage.getRoundId()).get(currentStage.getMarketType());
+            Duration duration = comp.getDurations().get(currentStage.getMarketType()).get(currentStage.getMarketStatus());
             startTime += duration.get(ChronoUnit.SECONDS) * 1000;
             accumulateDuration = accumulateDuration.plus(duration);
             Stage nexStage = currentStage.next();
@@ -114,6 +111,11 @@ public class Routers implements EventRouters {
         delayExecutor.start();
     }
 
+    @EventRouter
+    public void routeForMarketDB(CompEvent.Started started, Context context) {
+        Comp comp = tunnel.runningComp();
+        tunnel.updateRoundIdForMarketSetting(comp.getRoundId());
+    }
 
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -199,6 +201,15 @@ public class Routers implements EventRouters {
     }
 
     @EventRouter
+    public void routeForMarketDB(CompEvent.Stepped stepped, Context context) {
+        Comp comp = tunnel.runningComp();
+        if (stepped.getLastMarketType() == MarketType.FINAL_CLEAR) {
+            tunnel.updateRoundIdForMarketSetting(comp.getRoundId());
+        }
+    }
+
+
+    @EventRouter
     public void routeRealtimeMarketClose(CompEvent.Stepped stepped, Context context) {
         boolean b0 = stepped.getLastMarketType() == MarketType.INTRA_ANNUAL_PROVINCIAL;
         boolean b1 = stepped.getLastMarketType() == MarketType.INTRA_MONTHLY_PROVINCIAL;
@@ -255,6 +266,19 @@ public class Routers implements EventRouters {
                 .build();
         CommandBus.driveByEvent(command, event);
     }
+
+    @EventRouter
+    public void route(UnitEvent.DealReported event, Context context) {
+        boolean b0 = tunnel.runningComp().getMarketType() == MarketType.INTRA_ANNUAL_PROVINCIAL;
+        boolean b1 = tunnel.runningComp().getMarketType() == MarketType.INTRA_MONTHLY_PROVINCIAL;
+        if (!(b0 || b1)) {
+            return;
+        }
+        Message message = Message.builder()
+                .topic(Topic.UNIT).userId(event.getUnit().getUserId().toString()).entity(event.getUnit()).build();
+        tunnel.push(message);
+    }
+
 
     @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
             nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

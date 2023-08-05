@@ -1,8 +1,11 @@
 package com.stellariver.milky.demo.adapter.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.common.tool.util.Json;
+import com.stellariver.milky.common.tool.util.StreamMap;
 import com.stellariver.milky.demo.adapter.repository.domain.CompDODAOWrapper;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Role;
@@ -34,6 +37,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @RestController
@@ -56,6 +60,7 @@ public class CompController {
     }
 
 
+
     @GetMapping("listComps")
     public Result<List<Comp>> listComps() {
         List<CompDO> compDOs= compDOMapper.selectList(null);
@@ -64,12 +69,65 @@ public class CompController {
         return Result.success(comps);
     }
 
+    @GetMapping("getDurations")
+    public Result<Map<MarketType, Map<Status.MarketStatus, Integer>>> getDurations() {
+        MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);
+        Map<MarketType, Map<Status.MarketStatus, Integer>> data = new HashMap<>();
 
+        Map<Status.MarketStatus, Integer> map0 = StreamMap.<Status.MarketStatus, Integer>init()
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialAnnualBidDuration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialAnnualResultDuration() * 60).getMap();
+        data.put(MarketType.INTER_ANNUAL_PROVINCIAL, map0);
+
+        Map<Status.MarketStatus, Integer> map1 = StreamMap.<Status.MarketStatus, Integer>init()
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialAnnualBidDuration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialAnnualResultDuration() * 60).getMap();
+        data.put(MarketType.INTRA_ANNUAL_PROVINCIAL, map1);
+
+        Map<Status.MarketStatus, Integer> map2 = StreamMap.<Status.MarketStatus, Integer>init()
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialMonthlyBidDuration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialMonthlyResultDuration() * 60).getMap();
+        data.put(MarketType.INTER_MONTHLY_PROVINCIAL, map2);
+
+        Map<Status.MarketStatus, Integer> map3 = StreamMap.<Status.MarketStatus, Integer>init()
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialMonthlyBidDuration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialMonthlyResultDuration() * 60).getMap();
+        data.put(MarketType.INTRA_MONTHLY_PROVINCIAL, map3);
+
+        Map<Status.MarketStatus, Integer> map4 = StreamMap.<Status.MarketStatus, Integer>init()
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialSpotBidDuration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialSpotResultDuration() * 60).getMap();
+        data.put(MarketType.INTRA_SPOT_PROVINCIAL, map4);
+
+        Map<Status.MarketStatus, Integer> map5 = StreamMap.<Status.MarketStatus, Integer>init()
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialSpotBidDuration() * 60)
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialSpotResultDuration() * 60).getMap();
+        data.put(MarketType.INTER_SPOT_PROVINCIAL, map5);
+
+        Map<Status.MarketStatus, Integer> map6 = StreamMap.<Status.MarketStatus, Integer>init()
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getSettleResultDuration() * 60).getMap();
+        data.put(MarketType.INTER_SPOT_PROVINCIAL, map6);
+
+        return Result.success(data);
+    }
 
 
     @PostMapping("create")
     public Result<Void> create(@RequestHeader("token") String token,
                                @RequestBody CompCreatePO compCreatePO) {
+
+        Map<MarketType, Map<Status.MarketStatus, Integer>> durationParams = Json.parse(
+                Json.toJson(compCreatePO.getDurations()),
+                new TypeReference<Map<MarketType, Map<Status.MarketStatus, Integer>>>() {}
+        );
+
+        Map<MarketType, Map<Status.MarketStatus, Duration>> durations = new HashMap<>();
+        durationParams.forEach((t, d) -> {
+            Map<Status.MarketStatus, Duration> sd = new HashMap<>();
+            d.forEach((s, l) -> sd.put(s, Duration.of(l, ChronoUnit.SECONDS)));
+            durations.put(t, sd);
+        });
+
         User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
         if (user.getRole() != Role.ADMIN) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
@@ -86,19 +144,12 @@ public class CompController {
         Map<MarketType, Map<TimeFrame, GridLimit>> transLimit =
                 Collect.asMap(MarketType.INTER_ANNUAL_PROVINCIAL, map, MarketType.INTER_MONTHLY_PROVINCIAL, map, MarketType.INTER_SPOT_PROVINCIAL, map);
 
-        Map<MarketType, Duration> durations = new HashMap<>();
-        Arrays.stream(MarketType.values()).forEach(marketType -> {
-            Integer dbCode = marketType.getDbCode();
-            Long length = compCreatePO.getDurations().get(dbCode);
-            durations.put(marketType, Duration.of(length, ChronoUnit.SECONDS));
-        });
-
         CompCommand.Create command = CompCommand.Create.builder()
                 .compId(compId)
                 .agentTotal(compCreatePO.getAgentNumber())
                 .priceLimit(priceLimit)
                 .transLimit(transLimit)
-                .durations(Arrays.asList(durations, durations, durations))
+                .durations(durations)
                 .build();
         CommandBus.accept(command, new HashMap<>());
         return Result.success();

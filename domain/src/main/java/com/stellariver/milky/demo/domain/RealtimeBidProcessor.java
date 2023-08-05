@@ -8,29 +8,42 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
-import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.common.Deal;
-import com.stellariver.milky.demo.common.enums.CancelBid;
-import com.stellariver.milky.demo.common.enums.Direction;
-import com.stellariver.milky.demo.common.enums.NewBid;
+import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
+import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.domain.support.command.CommandBus;
 import com.stellariver.milky.spring.partner.UniqueIdBuilder;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.experimental.FieldDefaults;
+import org.mapstruct.*;
+import org.mapstruct.factory.Mappers;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
+@Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
 
+    final RtProcessorKey rtProcessorKey;
 
-    private final Disruptor<RtBidContainer> disruptor = new Disruptor<>(RtBidContainer::new, 1024, DaemonThreadFactory.INSTANCE);
+    final Disruptor<RtBidContainer> disruptor = new Disruptor<>(RtBidContainer::new, 1024, DaemonThreadFactory.INSTANCE);
 
+    final PriorityQueue<NewBid> buyPriorityQueue = new PriorityQueue<>(buyComparator);
 
-    public RealtimeBidProcessor() {
+    final PriorityQueue<NewBid> sellPriorityQueue = new PriorityQueue<>(sellComparator);
+
+    Double currentPrice;
+    final List<Deal> deals = new ArrayList<>();
+
+    final RtCompVO rtCompVO = new RtCompVO();
+
+    public RealtimeBidProcessor(RtProcessorKey rtProcessorKey) {
+        this.rtProcessorKey = rtProcessorKey;
         disruptor.handleEventsWith(this);
         disruptor.start();
     }
@@ -68,11 +81,6 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
     };
 
 
-    public final PriorityQueue<NewBid> buyPriorityQueue = new PriorityQueue<>(buyComparator);
-
-    public final PriorityQueue<NewBid> sellPriorityQueue = new PriorityQueue<>(sellComparator);
-
-
     public void post(NewBid newBid) {
         disruptor.publishEvent((rtBidContainer, sequence) -> {
             rtBidContainer.setClose(false);
@@ -99,7 +107,9 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
 
 
     @Override
-    public void onEvent(RtBidContainer event, long sequence, boolean endOfBatch) throws Exception {
+    public void onEvent(RtBidContainer event, long sequence, boolean endOfBatch) {
+        updateRtCompPushDetail();
+        CompletableFuture.runAsync(this::pushRtCompVO);
         if (event.getNewBid() != null){
             doProcessNewBid(event.getNewBid());
         } else if (event.getCancelBid() != null) {
@@ -109,6 +119,7 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
         } else {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
+        updateRtCompPushDetail();
     }
 
     private void doClose() {
@@ -124,6 +135,7 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
                     .bidId(bid.getBidId()).unitId(bid.getUnitId()).remainder(bid.getQuantity()).build();
             CommandBus.accept(command, new HashMap<>());
         });
+
 
     }
 
@@ -184,15 +196,71 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
         }
         report(buyBid, dealPrice, dealQuantity);
         report(sellBid, dealPrice, dealQuantity);
+
     }
 
     private void report(NewBid newBid, Double dealPrice, double dealQuantity) {
         UniqueIdBuilder uniqueIdBuilder = BeanUtil.getBean(UniqueIdBuilder.class);
         Deal deal = Deal.builder().dealId(uniqueIdBuilder.get()).bidId(newBid.getBidId())
                 .unitId(newBid.getUnitId()).quantity(dealQuantity).price(dealPrice).date(Clock.now()).build();
+        deals.add(deal);
+        currentPrice = dealPrice;
         UnitCommand.DealReport dealReport = UnitCommand.DealReport.builder()
                 .unitId(newBid.getUnitId()).deals(Collect.asList(deal)).build();
         CompletableFuture.runAsync(() -> CommandBus.accept(dealReport, new HashMap<>()));
+    }
+
+    private void updateRtCompPushDetail() {
+        rtCompVO.setCurrentPrice(currentPrice);
+        rtCompVO.setDeals(new ArrayList<>(deals));
+        rtCompVO.setBuyBids(Collect.transfer(new ArrayList<>(buyPriorityQueue), Convertor.INST::to));
+        rtCompVO.setSellBids(Collect.transfer(new ArrayList<>(sellPriorityQueue), Convertor.INST::to));
+        List<MarketAsk> buyMarketAsks = buildMarketAsks(rtCompVO.getBuyBids());
+        rtCompVO.setBuyMarketAsks(buyMarketAsks);
+        List<MarketAsk> sellMarketAsks = buildMarketAsks(rtCompVO.getSellBids());
+        rtCompVO.setSellMarketAsks(sellMarketAsks);
+    }
+
+    private void pushRtCompVO() {
+        Tunnel tunnel = BeanUtil.getBean(Tunnel.class);
+        Comp comp = tunnel.runningComp();
+        Integer userTotal = comp.getUserTotal();
+        for (int i = 0; i < userTotal; i++) {
+            Message message = Message.builder().topic(Topic.COMP).userId(String.valueOf(i)).entity(rtCompVO).build();
+            tunnel.push(message);
+        }
+    }
+
+
+    private List<MarketAsk> buildMarketAsks(List<NewBid> newBids) {
+        List<MarketAsk> marketAsks = new ArrayList<>();
+        for (int i = 0; i < rtCompVO.getBuyBids().size(); i++) {
+            NewBid newBid = rtCompVO.getBuyBids().get(i);
+            if (marketAsks.size() == 0) {
+                marketAsks.add(MarketAsk.builder().quantity(newBid.getQuantity()).price(newBid.getPrice()).build());
+            } else if (marketAsks.size() > 5){
+                break;
+            } else {
+                MarketAsk marketAsk = marketAsks.get(marketAsks.size() - 1);
+                if (Kit.eq(marketAsk.getPrice(), newBid.getPrice())) {
+                    marketAsk.setQuantity(marketAsk.getQuantity() + newBid.getQuantity());
+                } else {
+                    marketAsks.add(MarketAsk.builder().quantity(newBid.getQuantity()).price(newBid.getPrice()).build());
+                }
+            }
+        }
+        return marketAsks;
+    }
+
+    @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
+            nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    public interface Convertor {
+
+        Convertor INST = Mappers.getMapper(Convertor.class);
+
+        @BeanMapping(builder = @Builder(disableBuilder = true))
+        NewBid to(NewBid bid);
+
     }
 
 }

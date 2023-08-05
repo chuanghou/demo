@@ -79,7 +79,7 @@ public class Unit extends AggregateRoot {
         unit.setRoundId(create.getRoundId());
         unit.setMetaUnit(create.getMetaUnit());
         unit.setBalances(create.getMetaUnit().getCapacity());
-        context.publish(UnitEvent.Created.builder().unitId(unit.getUnitId()).unit(unit).build());
+        context.publish(UnitEvent.DealReported.builder().unitId(unit.getUnitId()).unit(unit).build());
         return unit;
     }
 
@@ -137,7 +137,9 @@ public class Unit extends AggregateRoot {
             Double sumQuantity = bid.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum);
             bid.setBidStatus(sumQuantity < bid.getQuantity() ? BidStatus.PART_DEAL : BidStatus.COMPLETE_DEAL);
         });
-        context.publishPlaceHolderEvent(getAggregateId());
+
+        UnitEvent.DealReported dealReported = UnitEvent.DealReported.builder().unitId(unitId).unit(this).build();
+        context.publish(dealReported);
     }
 
     @MethodHandler

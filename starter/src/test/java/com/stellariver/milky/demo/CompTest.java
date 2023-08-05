@@ -1,9 +1,11 @@
 package com.stellariver.milky.demo;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Clock;
+import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.adapter.controller.CompController;
 import com.stellariver.milky.demo.adapter.controller.UnitController;
 import com.stellariver.milky.demo.adapter.controller.UserController;
@@ -59,11 +61,20 @@ public class CompTest {
         Assertions.assertNotNull(logInVO);
         Assertions.assertTrue(logInVO.getSuccess());
         String token = logInVO.getData().getToken();
-        List<Long> durationLengths = new ArrayList<>();
-        for (int i = 0; i < MarketType.values().length; i++) {
-            durationLengths.add(3L);
+
+        Map<MarketType, Map<Status.MarketStatus, Integer>> durations = new HashMap<>();
+        for (MarketType marketType : MarketType.values()) {
+            Map<Status.MarketStatus, Integer> map = new HashMap<>();
+            for (Status.MarketStatus marketStatus : Status.MarketStatus.values()) {
+                map.put(marketStatus, 3);
+            }
+            durations.put(marketType, map);
         }
-        CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationLengths).agentNumber(5).build();
+        Map<String, Map<String, Integer>> durationsParam = Json.parse(Json.toJson(durations), new TypeReference<Map<String, Map<String, Integer>>>() {});
+
+        CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationsParam).agentNumber(5).build();
+        Json.toJson(compCreatePO);
+        System.out.println(Json.toJson(compCreatePO));
         compController.create(token, compCreatePO);
         Thread.sleep(3100);
         Result<Comp> compResult = compController.runningComp();
@@ -156,11 +167,16 @@ public class CompTest {
         Assertions.assertNotNull(logInVO);
         Assertions.assertTrue(logInVO.getSuccess());
         String adminToken = logInVO.getData().getToken();
-        List<Long> durationLengths = new ArrayList<>();
-        for (int i = 0; i < MarketType.values().length; i++) {
-            durationLengths.add(600L);
+        Map<MarketType, Map<Status.MarketStatus, Integer>> durations = new HashMap<>();
+        for (MarketType marketType : MarketType.values()) {
+            Map<Status.MarketStatus, Integer> map = new HashMap<>();
+            for (Status.MarketStatus marketStatus : Status.MarketStatus.values()) {
+                map.put(marketStatus, 3);
+            }
+            durations.put(marketType, map);
         }
-        CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationLengths).agentNumber(5).build();
+        Map<String, Map<String, Integer>> durationsParam = Json.parse(Json.toJson(durations), new TypeReference<Map<String, Map<String, Integer>>>() {});
+        CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationsParam).agentNumber(5).build();
         compController.create(adminToken, compCreatePO);
         Thread.sleep(10);
 

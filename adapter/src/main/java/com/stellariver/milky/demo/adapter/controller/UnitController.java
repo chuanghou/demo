@@ -63,6 +63,22 @@ public class UnitController {
     }
 
 
+    final
+
+    @GetMapping("listGeneratorDetails")
+    public Result<List<Unit>> listGeneratorDetails(@RequestParam Long compId, @RequestHeader String token) {
+        Comp comp = domainTunnel.getByAggregateId(Comp.class, compId.toString());
+        String userId = TokenUtils.getUserId(token);
+        LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UnitDO::getCompId, comp.getCompId());
+        queryWrapper.eq(UnitDO::getUserId, userId);
+        queryWrapper.eq(UnitDO::getRoundId, comp.getRoundId());
+        List<UnitDO> unitDOS = unitDOMapper.selectList(queryWrapper);
+        List<Unit> units = Collect.transfer(unitDOS, UnitDAOAdapter.Convertor.INST::to);
+        return Result.success(units);
+    }
+
+
     @PostMapping("centralizedBid")
     public Result<Void> centralizedBid(@RequestBody CentralizedBidPO centralizedBidPO, @RequestHeader("token") String token) {
         Integer userId = Integer.parseInt(TokenUtils.getUserId(token));

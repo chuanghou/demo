@@ -5,12 +5,16 @@ import com.stellariver.milky.common.base.Enumeration;
 import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Label;
 import com.stellariver.milky.demo.basic.TokenUtils;
+import com.stellariver.milky.demo.basic.UnitType;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.Round;
+import com.stellariver.milky.demo.domain.AbstractMetaUnit;
+import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.infrastructure.database.entity.*;
 import com.stellariver.milky.demo.infrastructure.database.mapper.*;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
@@ -206,41 +210,37 @@ public class DataController {
         MarketType marketType = MarketType.valueOf(marketTypeValue);
         Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
 
-//        LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(UnitDO::getCompId, compId);
-//        queryWrapper.eq(UnitDO::getUserId, userId);
-//
-//
-//        List<UnitDO> unitDOS = unitDOMapper.selectList(queryWrapper);
-//        SysEx.trueThrow(unitDOS.size() == 4, ErrorEnums.SYS_EX);
+        LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UnitDO::getCompId, compId);
+        queryWrapper.eq(UnitDO::getUserId, userId);
+
+
+        List<UnitDO> unitDOS = unitDOMapper.selectList(queryWrapper);
+        SysEx.trueThrow(unitDOS.size() == 4, ErrorEnums.SYS_EX);
 
         Map<String, Map<String, List<Double>>> result = new HashMap<>();
         Pair<String, Map<String, List<Double>>> mapPair;
 
-//        List<Unit> units = Collect.transfer(unitDOS, UnitDAOAdapter.Convertor.INST::to);
-//        List<List<AbstractMetaUnit>> metaUnits = units.stream().map(Unit::getMetaUnit).collect(Collect.select(
-//                u -> Kit.eq(u.getUnitType(), UnitType.GENERATOR),
-//                u -> Kit.eq(u.getUnitType(), UnitType.LOAD)
-//        ));
-//
-//        Integer sourceId = metaUnits.get(0).get(0).getSourceId();
-        Integer sourceId = 1;
+        List<Unit> units = Collect.transfer(unitDOS, UnitDAOAdapter.Convertor.INST::to);
+        List<List<AbstractMetaUnit>> metaUnits = units.stream().map(Unit::getMetaUnit).collect(Collect.select(
+                u -> Kit.eq(u.getUnitType(), UnitType.GENERATOR),
+                u -> Kit.eq(u.getUnitType(), UnitType.LOAD)
+        ));
+
+        Integer sourceId = metaUnits.get(0).get(0).getSourceId();
         mapPair = loadGenerator(sourceId, marketType);
         result.put(mapPair.getKey(), mapPair.getValue());
 
-//        sourceId = metaUnits.get(0).get(1).getSourceId();
-        sourceId = 11;
+        sourceId = metaUnits.get(0).get(1).getSourceId();
 
         mapPair = loadGenerator(sourceId, marketType);
         result.put(mapPair.getKey(), mapPair.getValue());
 
-//        sourceId = metaUnits.get(1).get(0).getSourceId();
-        sourceId = 1;
+        sourceId = metaUnits.get(1).get(0).getSourceId();
         mapPair = loadLoad(sourceId);
         result.put(mapPair.getKey(), mapPair.getValue());
 
-//        sourceId = metaUnits.get(1).get(1).getSourceId();
-        sourceId = 11;
+        sourceId = metaUnits.get(1).get(1).getSourceId();
         mapPair = loadLoad(sourceId);
         result.put(mapPair.getKey(), mapPair.getValue());
 

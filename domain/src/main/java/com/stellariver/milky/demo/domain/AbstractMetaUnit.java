@@ -21,6 +21,7 @@ import java.util.Map;
 public class AbstractMetaUnit {
 
     Integer metaUnitId;
+    Integer nodeId;
     String name;
     Province province;
     UnitType unitType;

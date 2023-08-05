@@ -2,6 +2,7 @@ package com.stellariver.milky.demo.adapter.controller;
 
 import com.stellariver.milky.common.base.Enumeration;
 import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
@@ -36,5 +37,11 @@ public class EnumerationController {
     public List<Enumeration> listTimeFrames() {
         return Arrays.stream(TimeFrame.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
     }
+
+    @GetMapping("listMarketStatuses")
+    public List<Enumeration> listMarketStatuses() {
+        return Arrays.stream(Status.MarketStatus.values()).map(e -> new Enumeration(e.name(), e.getDesc())).collect(Collectors.toList());
+    }
+
 
 }

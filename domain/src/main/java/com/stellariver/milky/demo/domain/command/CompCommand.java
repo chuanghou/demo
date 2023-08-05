@@ -1,10 +1,7 @@
 package com.stellariver.milky.demo.domain.command;
 
 import com.stellariver.milky.demo.basic.Stage;
-import com.stellariver.milky.demo.common.Bid;
-import com.stellariver.milky.demo.common.GridLimit;
-import com.stellariver.milky.demo.common.MarketType;
-import com.stellariver.milky.demo.common.PriceLimit;
+import com.stellariver.milky.demo.common.*;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.NewBid;
 import com.stellariver.milky.demo.common.enums.Province;
@@ -34,7 +31,7 @@ public class CompCommand {
         Integer agentTotal;
         PriceLimit priceLimit;
         Map<MarketType, Map<TimeFrame, GridLimit>> transLimit;
-        List<Map<MarketType, Duration>> durations;
+        Map<MarketType, Map<Status.MarketStatus, Duration>> durations;
 
         @Override
         public String getAggregateId() {
