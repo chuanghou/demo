@@ -130,6 +130,25 @@ public class DataController {
     }
 
 
+    /**
+     * 市场概况
+     */
+    @GetMapping("marketProfile")
+    public List<Map<Label, String>> marketData() {
+        HashMap<Label, String> result0 = new HashMap<>();
+        result0.put(Label.market_profile_locate_province, Province.TRANSFER.getDesc());
+        result0.put(Label.market_profile_locate_province, "xxx");
+        result0.put(Label.market_profile_load, "xxx");
+        result0.put(Label.market_profile_offer_require_ratio, "xxx");
+
+        HashMap<Label, String> result1 = new HashMap<>();
+        result1.put(Label.market_profile_locate_province, Province.TRANSFER.getDesc());
+        result1.put(Label.market_profile_locate_province, "xxx");
+        result1.put(Label.market_profile_load, "xxx");
+        result1.put(Label.market_profile_offer_require_ratio, "xxx");
+        return Arrays.asList(result0, result1);
+    }
+
 
 
     @GetMapping("systemParameterRelease")

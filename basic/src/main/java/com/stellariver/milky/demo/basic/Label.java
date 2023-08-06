@@ -65,6 +65,13 @@ public enum Label {
 
     max_p_of_load("配电电容量（MW）"),
 
+
+    market_profile_locate_province("所在省份"),
+    market_profile_generator("机组"),
+    market_profile_load("负荷(考虑省间输电)"),
+    market_profile_offer_require_ratio("供需比"),
+
+
     min_thermal_mw("全省火电最小"),
     annual_renewable_forecast("全省新能源预测"),
     adjustable_thermal_mw("全省火电可调"),
