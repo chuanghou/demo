@@ -77,7 +77,7 @@ public class CompController {
     @GetMapping("getDurations")
     public Result<Map<MarketType, Map<Status.MarketStatus, Integer>>> getDurations() {
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);
-        Map<MarketType, Map<Status.MarketStatus, Integer>> data = new HashMap<>();
+        Map<MarketType, Map<Status.MarketStatus, Integer>> data = new LinkedHashMap<>();
 
         Map<Status.MarketStatus, Integer> map0 = StreamMap.<Status.MarketStatus, Integer>init()
                 .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialAnnualBidDuration())
