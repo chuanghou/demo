@@ -107,7 +107,7 @@ public class CompController {
 
         Map<Status.MarketStatus, Integer> map6 = StreamMap.<Status.MarketStatus, Integer>init()
                 .put(Status.MarketStatus.OPEN, marketSettingDO.getSettleResultDuration() * 60).getMap();
-        data.put(MarketType.INTER_SPOT_PROVINCIAL, map6);
+        data.put(MarketType.FINAL_CLEAR, map6);
 
         return Result.success(data);
     }

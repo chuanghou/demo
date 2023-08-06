@@ -37,7 +37,7 @@ public class WebConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         List<String> excludePath = new ArrayList<>();
-        excludePath.add("/agent/login");  //登录
+        excludePath.add("/user/login");  //登录
         excludePath.add("/static/**");  //静态资源
         registry.addInterceptor(tokenInterceptor).addPathPatterns("/**").excludePathPatterns(excludePath);
         WebMvcConfigurer.super.addInterceptors(registry);
