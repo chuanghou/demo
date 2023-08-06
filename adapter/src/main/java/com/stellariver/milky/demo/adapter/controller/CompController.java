@@ -70,6 +70,10 @@ public class CompController {
         return Result.success(comps);
     }
 
+    public static void main(String[] args) {
+        System.out.println(TokenUtils.sign("1000"));
+    }
+
     @GetMapping("getDurations")
     public Result<Map<MarketType, Map<Status.MarketStatus, Integer>>> getDurations() {
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);
