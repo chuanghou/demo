@@ -41,17 +41,29 @@ public class GeneratorDO {
     Double minP;
 //    String max_q;
 //    String min_q;
+    @TableField("startup_curve_1")
     Double startupCurve1;
+    @TableField("startup_curve_2")
     Double startupCurve2;
+    @TableField("startup_curve_3")
     Double startupCurve3;
+    @TableField("startup_curve_4")
     Double startupCurve4;
+    @TableField("startup_curve_5")
     Double startupCurve5;
+    @TableField("startup_curve_6")
     Double startupCurve6;
+    @TableField("shutdown_curve_1")
     Double shutdownCurve1;
+    @TableField("shutdown_curve_2")
     Double shutdownCurve2;
+    @TableField("shutdown_curve_3")
     Double shutdownCurve3;
+    @TableField("shutdown_curve_4")
     Double shutdownCurve4;
+    @TableField("shutdown_curve_5")
     Double shutdownCurve5;
+    @TableField("shutdown_curve_6")
     Double shutdownCurve6;
     Integer numStartupCurvePrds;
     Integer numShutdownCurvePrds;
