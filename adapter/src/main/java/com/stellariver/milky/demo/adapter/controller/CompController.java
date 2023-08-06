@@ -76,37 +76,37 @@ public class CompController {
         Map<MarketType, Map<Status.MarketStatus, Integer>> data = new HashMap<>();
 
         Map<Status.MarketStatus, Integer> map0 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialAnnualBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialAnnualResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialAnnualBidDuration())
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialAnnualResultDuration()).getMap();
         data.put(MarketType.INTER_ANNUAL_PROVINCIAL, map0);
 
         Map<Status.MarketStatus, Integer> map1 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialAnnualBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialAnnualResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialAnnualBidDuration())
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialAnnualResultDuration()).getMap();
         data.put(MarketType.INTRA_ANNUAL_PROVINCIAL, map1);
 
         Map<Status.MarketStatus, Integer> map2 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialMonthlyBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialMonthlyResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialMonthlyBidDuration())
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialMonthlyResultDuration()).getMap();
         data.put(MarketType.INTER_MONTHLY_PROVINCIAL, map2);
 
         Map<Status.MarketStatus, Integer> map3 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialMonthlyBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialMonthlyResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialMonthlyBidDuration())
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialMonthlyResultDuration()).getMap();
         data.put(MarketType.INTRA_MONTHLY_PROVINCIAL, map3);
 
         Map<Status.MarketStatus, Integer> map4 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialSpotBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialSpotResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialSpotBidDuration())
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialSpotResultDuration()).getMap();
         data.put(MarketType.INTRA_SPOT_PROVINCIAL, map4);
 
         Map<Status.MarketStatus, Integer> map5 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialSpotBidDuration() * 60)
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialSpotResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialSpotBidDuration())
+                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialSpotResultDuration()).getMap();
         data.put(MarketType.INTER_SPOT_PROVINCIAL, map5);
 
         Map<Status.MarketStatus, Integer> map6 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getSettleResultDuration() * 60).getMap();
+                .put(Status.MarketStatus.OPEN, marketSettingDO.getSettleResultDuration()).getMap();
         data.put(MarketType.FINAL_CLEAR, map6);
 
         return Result.success(data);
@@ -125,7 +125,7 @@ public class CompController {
         Map<MarketType, Map<Status.MarketStatus, Duration>> durations = new HashMap<>();
         durationParams.forEach((t, d) -> {
             Map<Status.MarketStatus, Duration> sd = new HashMap<>();
-            d.forEach((s, l) -> sd.put(s, Duration.of(l, ChronoUnit.SECONDS)));
+            d.forEach((s, l) -> sd.put(s, Duration.of(l, ChronoUnit.MINUTES)));
             durations.put(t, sd);
         });
 

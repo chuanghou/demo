@@ -1,6 +1,9 @@
 package com.stellariver.milky.demo;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 import com.stellariver.milky.common.base.BeanUtil;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.Result;
@@ -27,11 +30,15 @@ import com.stellariver.milky.domain.support.ErrorEnums;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import lombok.CustomLog;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,11 +70,35 @@ public class CompTest {
     MarketSettingMapper marketSettingMapper;
 
     @Test
+    @SneakyThrows
     public void test() {
-        MarketSettingDO marketSettingDOS = marketSettingMapper.selectById(1);
-        LoadDO loadDO = BeanUtil.getBean(LoadDOMapper.class).selectById(1);
-        GeneratorDO generatorDO = BeanUtil.getBean(GeneratorDOMapper.class).selectById(1);
-        System.out.println("s");
+        String user = "administrator";
+        String password = "co188.com";
+        String host = "118.184.179.116";
+        int port = 22;
+        JSch jsch = new JSch();
+        Session session = jsch.getSession(user, host, port);
+        session.setPassword(password);
+        session.setConfig("StrictHostKeyChecking", "no");
+        System.out.println("Establishing Connection...");
+        session.connect();
+        System.out.println("Connection established.");
+        Channel channel = session.openChannel("shell");
+        channel.connect();
+        System.out.println("shell Channel created.");
+
+        InputStream inputStream = channel.getInputStream();
+        OutputStream outputStream = channel.getOutputStream();
+        try (Scanner scanner = new Scanner(new InputStreamReader(inputStream))) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                boolean asciiPrintable = StringUtils.isAsciiPrintable(line);
+                if (!asciiPrintable) {
+                    continue;
+                }
+                System.out.println(line);
+            }
+        }
 
 
     }
