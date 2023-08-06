@@ -1,5 +1,9 @@
 package com.stellariver.milky.demo.adapter.controller;
 
+import com.stellariver.milky.common.base.ExceptionType;
+import com.stellariver.milky.common.base.Result;
+import com.stellariver.milky.common.tool.util.Json;
+import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import lombok.NonNull;
 import org.springframework.stereotype.Component;
@@ -25,12 +29,10 @@ public class TokenInterceptor implements HandlerInterceptor {
         if (token != null && TokenUtils.verify(token)){
             return true;
         }
-        return true;
-        //TODO release
-//        response.setContentType("application/json; charset=utf-8");
-//        Result<Object> result = Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("账户密码错误!"), ExceptionType.BIZ);
-//        response.getWriter().append(Json.toJson(result));
-//        return false;
+        response.setContentType("application/json; charset=utf-8");
+        Result<Object> result = Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("账户密码错误!"), ExceptionType.BIZ);
+        response.getWriter().append(Json.toJson(result));
+        return false;
     }
 
 }
