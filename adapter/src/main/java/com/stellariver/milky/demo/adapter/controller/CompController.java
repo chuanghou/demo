@@ -79,38 +79,38 @@ public class CompController {
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);
         Map<MarketType, Map<Status.MarketStatus, Integer>> data = new LinkedHashMap<>();
 
-        Map<Status.MarketStatus, Integer> map0 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialAnnualBidDuration())
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialAnnualResultDuration()).getMap();
+        Map<Status.MarketStatus, Integer> map0 = new LinkedHashMap<>();
+        map0.put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialAnnualBidDuration());
+        map0.put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialAnnualResultDuration());
         data.put(MarketType.INTER_ANNUAL_PROVINCIAL, map0);
 
-        Map<Status.MarketStatus, Integer> map1 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialAnnualBidDuration())
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialAnnualResultDuration()).getMap();
+        Map<Status.MarketStatus, Integer> map1  = new LinkedHashMap<>();
+        map1.put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialAnnualBidDuration());
+        map1.put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialAnnualResultDuration());
         data.put(MarketType.INTRA_ANNUAL_PROVINCIAL, map1);
 
-        Map<Status.MarketStatus, Integer> map2 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialMonthlyBidDuration())
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialMonthlyResultDuration()).getMap();
+        Map<Status.MarketStatus, Integer> map2 = new LinkedHashMap<>();
+        map2.put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialMonthlyBidDuration());
+        map2.put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialMonthlyResultDuration());
         data.put(MarketType.INTER_MONTHLY_PROVINCIAL, map2);
 
-        Map<Status.MarketStatus, Integer> map3 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialMonthlyBidDuration())
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialMonthlyResultDuration()).getMap();
+        Map<Status.MarketStatus, Integer> map3 = new LinkedHashMap<>();
+        map3.put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialMonthlyBidDuration());
+        map3.put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialMonthlyResultDuration());
         data.put(MarketType.INTRA_MONTHLY_PROVINCIAL, map3);
 
-        Map<Status.MarketStatus, Integer> map4 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialSpotBidDuration())
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialSpotResultDuration()).getMap();
+        Map<Status.MarketStatus, Integer> map4 = new LinkedHashMap<>();
+        map4.put(Status.MarketStatus.OPEN, marketSettingDO.getIntraprovincialSpotBidDuration());
+        map4.put(Status.MarketStatus.CLOSE, marketSettingDO.getIntraprovincialSpotResultDuration());
         data.put(MarketType.INTRA_SPOT_PROVINCIAL, map4);
 
-        Map<Status.MarketStatus, Integer> map5 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialSpotBidDuration())
-                .put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialSpotResultDuration()).getMap();
+        Map<Status.MarketStatus, Integer> map5 = new LinkedHashMap<>();
+        map5.put(Status.MarketStatus.OPEN, marketSettingDO.getInterprovincialSpotBidDuration());
+        map5.put(Status.MarketStatus.CLOSE, marketSettingDO.getInterprovincialSpotResultDuration());
         data.put(MarketType.INTER_SPOT_PROVINCIAL, map5);
 
-        Map<Status.MarketStatus, Integer> map6 = StreamMap.<Status.MarketStatus, Integer>init()
-                .put(Status.MarketStatus.OPEN, marketSettingDO.getSettleResultDuration()).getMap();
+        Map<Status.MarketStatus, Integer> map6 = new LinkedHashMap<>();
+        map6.put(Status.MarketStatus.OPEN, marketSettingDO.getSettleResultDuration());
         data.put(MarketType.FINAL_CLEAR, map6);
 
         return Result.success(data);
