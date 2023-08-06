@@ -137,48 +137,47 @@ public class DataController {
     public List<Map<Label, String>> marketData() {
         HashMap<Label, String> result0 = new HashMap<>();
         result0.put(Label.market_profile_locate_province, Province.TRANSFER.getDesc());
-        result0.put(Label.market_profile_locate_province, "xxx");
+        result0.put(Label.market_profile_generator, "xxx");
         result0.put(Label.market_profile_load, "xxx");
         result0.put(Label.market_profile_offer_require_ratio, "xxx");
 
         HashMap<Label, String> result1 = new HashMap<>();
-        result1.put(Label.market_profile_locate_province, Province.TRANSFER.getDesc());
-        result1.put(Label.market_profile_locate_province, "xxx");
+        result1.put(Label.market_profile_locate_province, Province.RECEIVER.getDesc());
+        result1.put(Label.market_profile_generator, "xxx");
         result1.put(Label.market_profile_load, "xxx");
         result1.put(Label.market_profile_offer_require_ratio, "xxx");
         return Arrays.asList(result0, result1);
     }
 
 
-
     @GetMapping("systemParameterRelease")
-    Map<String, Map<String, List<Double>>> systemParameterRelease(@RequestParam String marketTypeValue) {
+    Map<Label, Map<Label, List<Double>>> systemParameterRelease(@RequestParam String marketTypeValue) {
 
         MarketType marketType = MarketType.valueOf(marketTypeValue);
 
         List<SprDO> sprDOs = sprMapper.selectList(null);
 
-        Map<String, Map<String, List<Double>>> result = new HashMap<>();
+        Map<Label, Map<Label, List<Double>>> result = new HashMap<>();
 
         List<SprDO> transferSprDOs = sprDOs.stream()
                 .filter(d -> Kit.eq(d.getProv(), Province.TRANSFER.getDbCode()))
                 .sorted(Comparator.comparing(SprDO::getDt))
                 .collect(Collectors.toList());
 
-        Map<String, List<Double>> transferData = new HashMap<>();
+        Map<Label, List<Double>> transferData = new HashMap<>();
 
-        transferData.put(Label.min_thermal_mw.name(), Collect.transfer(transferSprDOs, SprDO::getMinThermalMw));
-        transferData.put(Label.adjustable_thermal_mw.name(), Collect.transfer(transferSprDOs, SprDO::getAdjustableThermalMw));
+        transferData.put(Label.min_thermal_mw, Collect.transfer(transferSprDOs, SprDO::getMinThermalMw));
+        transferData.put(Label.adjustable_thermal_mw, Collect.transfer(transferSprDOs, SprDO::getAdjustableThermalMw));
 
         if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
-            transferData.put(Label.annual_renewable_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getAnnualRenewableForecast));
-            transferData.put(Label.annual_load_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getAnnualLoadForecast));
+            transferData.put(Label.annual_renewable_forecast, Collect.transfer(transferSprDOs, SprDO::getAnnualRenewableForecast));
+            transferData.put(Label.annual_load_forecast, Collect.transfer(transferSprDOs, SprDO::getAnnualLoadForecast));
         } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
-            transferData.put(Label.annual_renewable_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getDaRenewableForecast));
-            transferData.put(Label.annual_load_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getMonthlyLoadForecast));
+            transferData.put(Label.annual_renewable_forecast, Collect.transfer(transferSprDOs, SprDO::getDaRenewableForecast));
+            transferData.put(Label.annual_load_forecast, Collect.transfer(transferSprDOs, SprDO::getMonthlyLoadForecast));
         } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
-            transferData.put(Label.annual_renewable_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getDaRenewableForecast));
-            transferData.put(Label.annual_load_forecast.name(), Collect.transfer(transferSprDOs, SprDO::getDaLoadForecast));
+            transferData.put(Label.annual_renewable_forecast, Collect.transfer(transferSprDOs, SprDO::getDaRenewableForecast));
+            transferData.put(Label.annual_load_forecast, Collect.transfer(transferSprDOs, SprDO::getDaLoadForecast));
         } else {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
@@ -187,13 +186,11 @@ public class DataController {
         queryWrapper.eq(TpbfsdDO::getRoundId, Round.ONE.getDbCode());
         queryWrapper.eq(TpbfsdDO::getProv, Province.TRANSFER.getDbCode());
 
-        List<TpbfsdDO> transferTpbfsdDOS = tpbfsdMapper.selectList(queryWrapper).stream()
-                .sorted(Comparator.comparing(TpbfsdDO::getPrd))
-                .collect(Collectors.toList());
+        List<TpbfsdDO> transferTpbfsdDOS = tpbfsdMapper.selectList(queryWrapper).stream().sorted(Comparator.comparing(TpbfsdDO::getPrd)).collect(Collectors.toList());
 
-        transferData.put(Label.annual_receive_forecast_mw.name(), Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
+        transferData.put(Label.annual_receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
 
-        result.put(Label.transfer_96_analysis.name(), transferData);
+        result.put(Label.transfer_96_analysis, transferData);
 
 
         List<SprDO> receiveSprDOs = sprDOs.stream()
@@ -201,38 +198,34 @@ public class DataController {
                 .sorted(Comparator.comparing(SprDO::getDt))
                 .collect(Collectors.toList());
 
-        Map<String, List<Double>> receiveData = new HashMap<>();
-        receiveData.put(Label.min_thermal_mw.name(), Collect.transfer(receiveSprDOs, SprDO::getMinThermalMw));
-        receiveData.put(Label.adjustable_thermal_mw.name(), Collect.transfer(receiveSprDOs, SprDO::getAdjustableThermalMw));
+        Map<Label, List<Double>> receiveData = new HashMap<>();
+        receiveData.put(Label.min_thermal_mw, Collect.transfer(receiveSprDOs, SprDO::getMinThermalMw));
+        receiveData.put(Label.adjustable_thermal_mw, Collect.transfer(receiveSprDOs, SprDO::getAdjustableThermalMw));
         if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
-            receiveData.put(Label.annual_renewable_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getAnnualRenewableForecast));
-            receiveData.put(Label.annual_load_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getAnnualLoadForecast));
+            receiveData.put(Label.annual_renewable_forecast, Collect.transfer(receiveSprDOs, SprDO::getAnnualRenewableForecast));
+            receiveData.put(Label.annual_load_forecast, Collect.transfer(receiveSprDOs, SprDO::getAnnualLoadForecast));
         } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
-            receiveData.put(Label.annual_renewable_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getMonthlyRenewableForecast));
-            receiveData.put(Label.annual_load_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getMonthlyLoadForecast));
+            receiveData.put(Label.annual_renewable_forecast, Collect.transfer(receiveSprDOs, SprDO::getMonthlyRenewableForecast));
+            receiveData.put(Label.annual_load_forecast, Collect.transfer(receiveSprDOs, SprDO::getMonthlyLoadForecast));
         } else {
-            receiveData.put(Label.annual_renewable_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getDaRenewableForecast));
-            receiveData.put(Label.annual_load_forecast.name(), Collect.transfer(receiveSprDOs, SprDO::getDaLoadForecast));
+            receiveData.put(Label.annual_renewable_forecast, Collect.transfer(receiveSprDOs, SprDO::getDaRenewableForecast));
+            receiveData.put(Label.annual_load_forecast, Collect.transfer(receiveSprDOs, SprDO::getDaLoadForecast));
         }
 
         queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(TpbfsdDO::getRoundId, Round.ONE.getDbCode());
         queryWrapper.eq(TpbfsdDO::getProv, Province.RECEIVER.getDbCode());
 
-        transferTpbfsdDOS = tpbfsdMapper.selectList(queryWrapper).stream()
-                .sorted(Comparator.comparing(TpbfsdDO::getPrd))
-                .collect(Collectors.toList());
+        transferTpbfsdDOS = tpbfsdMapper.selectList(queryWrapper).stream().sorted(Comparator.comparing(TpbfsdDO::getPrd)).collect(Collectors.toList());
+        receiveData.put(Label.annual_receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
 
-        transferData.put(Label.annual_receive_forecast_mw.name(), Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
+        result.put(Label.receiver_96_analysis, receiveData);
 
-        result.put(Label.receiver_96_analysis.name(), receiveData);
+        Map<Label, List<Double>> linkData = new HashMap<>();
+        linkData.put(Label.receive_target_lower_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMaxAnnualReceivingMw));
+        linkData.put(Label.receive_target_upper_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMinAnnualReceivingMw));
 
-        Map<String, List<Double>> linkData = new HashMap<>();
-        linkData.put(Label.receive_target_lower_limit.name(), Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMaxAnnualReceivingMw));
-
-        linkData.put(Label.receive_target_upper_limit.name(), Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMinAnnualReceivingMw));
-
-        result.put(Label.inter_provincial_linking.name(), linkData);
+        result.put(Label.inter_provincial_linking, linkData);
 
         return result;
     }

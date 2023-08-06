@@ -36,10 +36,6 @@ public enum Label {
     receive_flat_prds("受电省平时段-现货时段"),
     receive_valley_prds("受电省谷时段-现货时段"),
 
-    transfer_96_analysis("送电省96时段供需分析"),
-    receiver_96_analysis("受电省96时段供需分析"),
-    inter_provincial_linking("省间联络线图"),
-
     unit_name("机组名称"),
     prov_of_generator("机组所在省份"),
     node_id_of_generator("机组所在节点"),
@@ -71,6 +67,9 @@ public enum Label {
     market_profile_load("负荷(考虑省间输电)"),
     market_profile_offer_require_ratio("供需比"),
 
+    transfer_96_analysis("送电省24时段供需分析"),
+    receiver_96_analysis("受电省24时段供需分析"),
+    inter_provincial_linking("省间联络线图"),
 
     min_thermal_mw("全省火电最小"),
     annual_renewable_forecast("全省新能源预测"),
@@ -86,12 +85,10 @@ public enum Label {
     blockLoadForecast("该阻塞区负荷预测"),
     blockRenewableForecast("该阻塞区新能源发电预测"),
 
+
     maxPs("该机组最大发电能力"),
-
     generatorForecast("该机组发电预测"),
-
     baseContractMws("该机组基数合同电量"),
-
     loadForecast("该负荷用电预测");
 
     final String desc;
