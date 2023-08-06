@@ -29,6 +29,7 @@ public class TokenInterceptor implements HandlerInterceptor {
         if (token != null && TokenUtils.verify(token)){
             return true;
         }
+
         response.setContentType("application/json; charset=utf-8");
         Result<Object> result = Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("账户密码错误!"), ExceptionType.BIZ);
         response.getWriter().append(Json.toJson(result));
