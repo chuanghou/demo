@@ -38,8 +38,7 @@ public class CompDO extends AbstractMpDO implements BaseDataObject<Long> {
     String marketStatus;
     String priceLimit;
     String transLimit;
-    @TableField(typeHandler = JacksonTypeHandler.class)
-    Map<MarketType, Map<Status.MarketStatus, Duration>> durations;
+    String durations;
     String replenishes;
     String roundCentralizedDeals;
     @Override

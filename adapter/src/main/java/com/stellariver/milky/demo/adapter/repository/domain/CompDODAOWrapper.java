@@ -1,8 +1,12 @@
 package com.stellariver.milky.demo.adapter.repository.domain;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.stellariver.milky.common.tool.common.ConcurrentTool;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.basic.BasicConvertor;
+import com.stellariver.milky.demo.common.MarketType;
+import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.infrastructure.database.entity.CompDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.CompDOMapper;
@@ -14,10 +18,9 @@ import org.mapstruct.Builder;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -65,10 +68,39 @@ public class CompDODAOWrapper implements DAOWrapper<Comp, Long> {
         Convertor INST = Mappers.getMapper(Convertor.class);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
+        @Mapping(source = "durations", target = "durations", ignore = true)
         Comp to(CompDO compDO);
 
         @BeanMapping(builder = @Builder(disableBuilder = true))
+        @Mapping(source = "durations", target = "durations", ignore = true)
         CompDO to(Comp comp);
+
+
+        @AfterMapping
+        default void after(Comp comp, @MappingTarget CompDO compDO) {
+            Map<MarketType, Map<Status.MarketStatus, Duration>> durations = comp.getDurations();
+            HashMap<MarketType, Map<Status.MarketStatus, Long>> rawDurations = new HashMap<>();
+            durations.forEach((mT, map) -> {
+                Map<Status.MarketStatus, Long> subMap = new HashMap<>();
+                map.forEach((k, v) -> subMap.put(k, v.get(ChronoUnit.SECONDS)));
+                rawDurations.put(mT, subMap);
+            });
+            compDO.setDurations(Json.toJson(rawDurations));
+        }
+
+        @AfterMapping
+        default void after(CompDO compDO, @MappingTarget Comp comp) {
+            Map<MarketType, Map<Status.MarketStatus, Long>> rawDurations = Json.parse(compDO.getDurations(),
+                    new TypeReference<Map<MarketType, Map<Status.MarketStatus, Long>>>() {
+                    });
+            HashMap<MarketType, Map<Status.MarketStatus, Duration>> durations = new HashMap<>();
+            rawDurations.forEach((mT, map) -> {
+                Map<Status.MarketStatus, Duration> subMap = new HashMap<>();
+                map.forEach((k, v) -> subMap.put(k, Duration.of(v, ChronoUnit.SECONDS)));
+                durations.put(mT, subMap);
+            });
+            comp.setDurations(durations);
+        }
 
     }
 
