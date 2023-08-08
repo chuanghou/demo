@@ -64,6 +64,8 @@ public class DataController {
         result.put(Label.regulated_interprov_transmission_price, String.format("%.2f", marketSettingDO.getRegulatedInterprovTransmissionPrice()));
 
         result.put(Label.round_id, String.valueOf(marketSettingDO.getRoundId()));
+        result.put(Label.interprov_clearing_mode, marketSettingDO.getInterprov_clearing_mode());
+        result.put(Label.interprov_trading_mode, marketSettingDO.getInterprov_trading_mode());
 
         result.put(Label.sender_peak_prds, TimeFrame.PEAK.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
         result.put(Label.sender_flat_prds, TimeFrame.FLAT.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
@@ -187,10 +189,20 @@ public class DataController {
         queryWrapper.eq(TpbfsdDO::getProv, Province.TRANSFER.getDbCode());
 
         List<TpbfsdDO> transferTpbfsdDOS = tpbfsdMapper.selectList(queryWrapper).stream().sorted(Comparator.comparing(TpbfsdDO::getPrd)).collect(Collectors.toList());
-
-        transferData.put(Label.annual_receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
+        if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
+            transferData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
+        } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
+            transferData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMonthlyReceivingForecastMw));
+        } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
+            transferData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getDaReceivingForecastMw));
+        } else {
+            throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+        }
 
         result.put(Label.transfer_96_analysis, transferData);
+
+
+
 
 
         List<SprDO> receiveSprDOs = sprDOs.stream()
@@ -212,21 +224,37 @@ public class DataController {
             receiveData.put(Label.annual_load_forecast, Collect.transfer(receiveSprDOs, SprDO::getDaLoadForecast));
         }
 
-        queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(TpbfsdDO::getRoundId, Round.ONE.getDbCode());
-        queryWrapper.eq(TpbfsdDO::getProv, Province.RECEIVER.getDbCode());
-
-        transferTpbfsdDOS = tpbfsdMapper.selectList(queryWrapper).stream().sorted(Comparator.comparing(TpbfsdDO::getPrd)).collect(Collectors.toList());
-        receiveData.put(Label.annual_receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
-
+        if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
+            receiveData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
+        } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
+            receiveData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMonthlyReceivingForecastMw));
+        } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
+            receiveData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getDaReceivingForecastMw));
+        } else {
+            throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+        }
         result.put(Label.receiver_96_analysis, receiveData);
 
-        Map<Label, List<Double>> linkData = new HashMap<>();
-        linkData.put(Label.receive_target_lower_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMaxAnnualReceivingMw));
-        linkData.put(Label.receive_target_upper_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMinAnnualReceivingMw));
 
-        result.put(Label.inter_provincial_linking, linkData);
 
+
+        if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL) {
+            Map<Label, List<Double>> linkData = new HashMap<>();
+            linkData.put(Label.receive_target_lower_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMaxAnnualReceivingMw));
+            linkData.put(Label.receive_target_upper_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMinAnnualReceivingMw));
+            result.put(Label.inter_provincial_linking, linkData);
+        } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
+            Map<Label, List<Double>> linkData = new HashMap<>();
+            linkData.put(Label.receive_target_upper_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMaxMonthlyReceivingMw));
+            linkData.put(Label.receive_target_lower_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMinMonthlyReceivingMw));
+            linkData.put(Label.intraprovincial_monthly_tieline_power, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getIntraprovincialMonthlyTielinePower));
+            result.put(Label.inter_provincial_linking, linkData);
+        } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
+            Map<Label, List<Double>> linkData = new HashMap<>();
+            linkData.put(Label.da_receiving_target, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getDaReceivingTarget));
+            linkData.put(Label.intraprovincial_annual_tieline_power, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getIntraprovincialAnnualTielinePower));
+            result.put(Label.inter_provincial_linking, linkData);
+        }
         return result;
     }
 
@@ -262,11 +290,11 @@ public class DataController {
                 loadForecast = subregionParameterDOs.stream().map(SubregionParameterDO::getAnnualLoadForecast).collect(Collectors.toList());
                 renewableForecast = subregionParameterDOs.stream().map(SubregionParameterDO::getAnnualRenewableForecast).collect(Collectors.toList());
             } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL || marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
-                loadForecast = subregionParameterDOs.stream().map(SubregionParameterDO::getAnnualLoadForecast).collect(Collectors.toList());
-                renewableForecast = subregionParameterDOs.stream().map(SubregionParameterDO::getAnnualRenewableForecast).collect(Collectors.toList());
+                loadForecast = subregionParameterDOs.stream().map(SubregionParameterDO::getMonthlyLoadForecast).collect(Collectors.toList());
+                renewableForecast = subregionParameterDOs.stream().map(SubregionParameterDO::getMonthlyRenewableForecast).collect(Collectors.toList());
             } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL){
-                loadForecast = subregionParameterDOs.stream().map(SubregionParameterDO::getAnnualLoadForecast).collect(Collectors.toList());
-                renewableForecast = subregionParameterDOs.stream().map(SubregionParameterDO::getAnnualRenewableForecast).collect(Collectors.toList());
+                loadForecast = subregionParameterDOs.stream().map(SubregionParameterDO::getDaLoadForecast).collect(Collectors.toList());
+                renewableForecast = subregionParameterDOs.stream().map(SubregionParameterDO::getDaRenewableForecast).collect(Collectors.toList());
             } else {
                 throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
             }
@@ -348,7 +376,7 @@ public class DataController {
         GeneratorDO generatorDO = generatorDOMapper.selectById(generatorId);
         Map<String, List<Double>> map = new HashMap<>();
         List<Double> maxPs = new ArrayList<>();
-        IntStream.range(0, 96).forEach(i -> maxPs.add(generatorDO.getMaxP()));
+        IntStream.range(0, 24).forEach(i -> maxPs.add(generatorDO.getMaxP()));
         if (generatorDO.getType() == 1) {
             map.put(Label.maxPs.name(), maxPs);
         } else {
@@ -391,5 +419,35 @@ public class DataController {
         return Pair.of(loadDO.getLoadName(), map);
     }
 
+    final StartupShutdownCostDOMapper startupShutdownCostDOMapper;
+    final ThermalUnitOperatingCostMapper thermalUnitOperatingCostMapper;
+
+    @GetMapping("costOfClassicOfAnnualAndMonthly")
+    public Map<Label, String> costOfClassicOfAnnualAndMonthly(Integer unitId) {
+        Map<Label, String> result = new HashMap<>();
+        LambdaQueryWrapper<StartupShutdownCostDO> eq = new LambdaQueryWrapper<StartupShutdownCostDO>().eq(StartupShutdownCostDO::getUnitId, unitId);
+        StartupShutdownCostDO startupShutdownCostDO = startupShutdownCostDOMapper.selectOne(eq);
+        GeneratorDO generatorDO = generatorDOMapper.selectById(unitId);
+        String value = String.format("%.2f", startupShutdownCostDO.getSpotCostMinoutput() / generatorDO.getMinP());
+        result.put(Label.costOfClassicOfAnnualAndMonthly_basic, value);
+
+        LambdaQueryWrapper<ThermalUnitOperatingCost> eq1 = new LambdaQueryWrapper<ThermalUnitOperatingCost>().eq(ThermalUnitOperatingCost::getUnitId, unitId);
+        List<ThermalUnitOperatingCost> costs = thermalUnitOperatingCostMapper.selectList(eq1);
+        Double costMin = costs.stream().min(Comparator.comparing(ThermalUnitOperatingCost::getSpotCostId)).orElseThrow(RuntimeException::new).getSpotCostMarginalCost();
+        Double costMax = costs.stream().max(Comparator.comparing(ThermalUnitOperatingCost::getSpotCostId)).orElseThrow(RuntimeException::new).getSpotCostMarginalCost();
+        String format = String.format("%s-%s", costMin, costMax);
+        result.put(Label.costOfClassicOfAnnualAndMonthly_range, format);
+        return result;
+    }
+
+    @GetMapping("costOfClassicOfDa")
+    public Map<Label, String> costOfClassicOfDa(Integer unitId) {
+        return null;
+    }
+
+    @GetMapping("costOfRenewable")
+    public Map<Label, String> costOfRenewable(Integer unitId) {
+        return null;
+    }
 
 }

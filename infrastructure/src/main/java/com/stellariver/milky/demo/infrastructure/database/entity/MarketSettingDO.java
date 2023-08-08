@@ -3,11 +3,11 @@ package com.stellariver.milky.demo.infrastructure.database.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.stellariver.milky.common.tool.util.Collect;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -82,8 +82,10 @@ public class MarketSettingDO {
     Double regulatedUserTariff;
     Double regulatedProducerPrice;
     Double regulatedInterprovTransmissionPrice;
-//    String interprov_trading_mode;
-//    String interprov_clearing_mode;
+    @Getter(AccessLevel.NONE)
+    Integer interprov_trading_mode;
+    @Getter(AccessLevel.NONE)
+    Integer interprov_clearing_mode;
 //    String is_setting_default_offer_for_traders;
 //    String paper_id;
     Integer intraprovincialAnnualResultDuration;
@@ -94,7 +96,24 @@ public class MarketSettingDO {
     Integer interprovincialSpotResultDuration;
     Integer settleResultDuration;
 
+    static private Map<Integer, String> map0 = Collect.asMap(
+            1, "政府定价定量",
+            2, "政府定量不定价",
+            3, "政府干预量不定价"
+    );
+
+    public String getInterprov_trading_mode() {
+
+        return map0.get(interprov_trading_mode);
+    }
 
 
+    static private Map<Integer, String> map1 = Collect.asMap(
+            1, "边际统一出清",
+            2, "按匹配对分别出清"
+    );
+    public String getInterprov_clearing_mode() {
+        return map1.get(interprov_clearing_mode);
+    }
 
 }

@@ -27,6 +27,8 @@ public enum Label {
     regulated_interprov_transmission_price("省间交易的政府定价（元/MWh）"),
 
     round_id("当前比赛轮次"),
+    interprov_clearing_mode("省间交易出清方式"),
+    interprov_trading_mode("省间交易组织形式"),
 
     sender_peak_prds("送电省峰时段-现货时段"),
     sender_flat_prds("送电省平时段-现货时段"),
@@ -76,11 +78,14 @@ public enum Label {
     adjustable_thermal_mw("全省火电可调"),
     annual_load_forecast("全省负荷预测"),
 
-    annual_transfer_forecast_mw("全省送电预测"),
-    annual_receive_forecast_mw("全省受电预测"),
+    transfer_forecast_mw("全省送电预测"),
+    receive_forecast_mw("全省受电预测"),
 
-    receive_target_lower_limit("受电目标上限"),
-    receive_target_upper_limit("受电目标下限"),
+    receive_target_upper_limit("受电目标上限"),
+    receive_target_lower_limit("受电目标下限"),
+    intraprovincial_annual_tieline_power("省间年度已成交对应"),
+    da_receiving_target("受电目标"),
+    intraprovincial_monthly_tieline_power("省间年度月度已成交"),
 
     blockLoadForecast("该阻塞区负荷预测"),
     blockRenewableForecast("该阻塞区新能源发电预测"),
@@ -89,7 +94,13 @@ public enum Label {
     maxPs("该机组最大发电能力"),
     generatorForecast("该机组发电预测"),
     baseContractMws("该机组基数合同电量"),
-    loadForecast("该负荷用电预测");
+    loadForecast("该负荷用电预测"),
+
+
+    costOfClassicOfAnnualAndMonthly_basic("最小技术出力成本(元/MWh)"),
+    costOfClassicOfAnnualAndMonthly_range("最小技术出力成本之上运行成本区间(元/MWh)"),
+    costOfRenewable("补贴(元/MWh)");
+
 
     final String desc;
 }
