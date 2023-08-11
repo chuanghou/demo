@@ -99,7 +99,7 @@ public class UnitController {
             Double sum = bid.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum);
             return BidVO.builder().quantity(bid.getQuantity())
                     .price(bid.getPrice())
-                    .cancelable(bid.getQuantity() > sum)
+                    .cancelable(bid.getBidStatus() == BidStatus.NEW_DECELERATED || bid.getBidStatus() == BidStatus.PART_DEAL)
                     .notDeal(bid.getQuantity() - sum)
                     .dealVOs(toDealVOs(bid))
                     .build();
@@ -141,25 +141,16 @@ public class UnitController {
 
     private List<BalanceVO> getBalanceVOs(Unit unit, TimeFrame timeFrame, MarketType marketType) {
         List<Direction> directions;
+        BalanceVO balanceVO0, balanceVO1;
+        Direction generalDirection = unit.getMetaUnit().getUnitType().generalDirection();
+        balanceVO0 = BalanceVO.builder().direction(generalDirection).balance(unit.getBalances().get(timeFrame).get(generalDirection)).build();
         if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
-             directions = Arrays.asList(Direction.SELL, Direction.SELL);
+            double oppositeBalance = unit.getMetaUnit().getCapacity().get(timeFrame).get(generalDirection) - balanceVO0.getBalance();
+            balanceVO1 = BalanceVO.builder().direction(generalDirection.opposite()).balance(oppositeBalance).build();
         } else {
-            directions = Collect.asList(unit.getMetaUnit().getUnitType().generalDirection());
+            balanceVO1 = BalanceVO.builder().direction(generalDirection.opposite()).balance(0D).build();
         }
-        return directions.stream().map(d -> BalanceVO.builder().direction(d).balance(unit.getBalances().get(timeFrame).get(d)).build()).collect(Collectors.toList());
-    }
-
-    @GetMapping("listGeneratorDetails")
-    public Result<List<Unit>> listGeneratorDetails(@RequestParam Long compId, @RequestHeader String token) {
-        Comp comp = domainTunnel.getByAggregateId(Comp.class, compId.toString());
-        String userId = TokenUtils.getUserId(token);
-        LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UnitDO::getCompId, comp.getCompId());
-        queryWrapper.eq(UnitDO::getUserId, userId);
-        queryWrapper.eq(UnitDO::getRoundId, comp.getRoundId());
-        List<UnitDO> unitDOS = unitDOMapper.selectList(queryWrapper);
-        List<Unit> units = Collect.transfer(unitDOS, UnitDAOAdapter.Convertor.INST::to);
-        return Result.success(units);
+        return Collect.asList(balanceVO0, balanceVO1);
     }
 
     private void checkPrice(UnitType unitType, PriceLimit priceLimit, Double price) {
