@@ -1,6 +1,6 @@
 package com.stellariver.milky.demo.domain;
 
-import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.common.enums.UnitType;
 import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;

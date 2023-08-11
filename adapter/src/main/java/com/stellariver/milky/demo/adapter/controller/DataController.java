@@ -10,8 +10,10 @@ import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.Round;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
+import com.stellariver.milky.demo.common.enums.UnitType;
 import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.Unit;
+import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.*;
 import com.stellariver.milky.demo.infrastructure.database.mapper.*;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
@@ -325,15 +327,15 @@ public class DataController {
     final DomainTunnel domainTunnel;
     final RenewableUnitDOMapper renewableUnitDOMapper;
     final UnitDOMapper unitDOMapper;
+    final Tunnel tunnel;
     @GetMapping("listAgentInventory")
     public Map<String, Map<String, List<Double>>> listAgentInventory(@RequestParam @NotBlank String marketTypeValue,
-                                                                     @RequestParam @NotNull Long compId,
                                                                      @RequestHeader @NotBlank String token) {
         MarketType marketType = MarketType.valueOf(marketTypeValue);
         Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
 
         LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UnitDO::getCompId, compId);
+        queryWrapper.eq(UnitDO::getCompId, tunnel.runningComp().getCompId());
         queryWrapper.eq(UnitDO::getUserId, userId);
 
 

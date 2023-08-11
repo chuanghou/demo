@@ -2,7 +2,7 @@ package com.stellariver.milky.demo.adapter.controller;
 
 import com.stellariver.milky.common.base.Enumeration;
 import com.stellariver.milky.demo.basic.Label;
-import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.common.enums.UnitType;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.common.enums.Direction;

@@ -1,7 +1,7 @@
 package com.stellariver.milky.demo.domain;
 
 import com.stellariver.milky.demo.basic.Position;
-import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.common.enums.UnitType;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

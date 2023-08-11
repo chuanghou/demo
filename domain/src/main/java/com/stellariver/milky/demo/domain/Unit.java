@@ -10,7 +10,7 @@ import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.wire.StaticWire;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TypedEnums;
-import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.common.enums.UnitType;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
@@ -30,6 +30,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Clock;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +54,6 @@ public class Unit extends AggregateRoot {
 
     AbstractMetaUnit metaUnit;
 
-    @JsonIgnore
     Map<Long, Bid> bids = new HashMap<>();
 
     @JsonIgnore
@@ -193,6 +194,7 @@ public class Unit extends AggregateRoot {
     @MethodHandler
     public void handle(UnitCommand.RtBidCancelled command, Context context) {
         Bid bid = bids.get(command.getBidId());
+        bid.setCancelledDate(new Date());
         bid.setBidStatus(BidStatus.CANCELLED);
         Map<Direction, Double> timeFrameBalance = balances.get(bid.getTimeFrame());
         Double balance = timeFrameBalance.get(bid.getDirection());

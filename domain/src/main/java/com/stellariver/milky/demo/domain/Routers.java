@@ -302,8 +302,7 @@ public class Routers implements EventRouters {
         if (!(b0 || b1)) {
             return;
         }
-        Message message = Message.builder()
-                .topic(Topic.RT_UNIT).userId(event.getUnit().getUserId().toString()).entity(event.getUnit()).build();
+        Message message = Message.builder().topic(Topic.RT_UNIT).userId(event.getUnit().getUserId().toString()).build();
         tunnel.push(message);
     }
 

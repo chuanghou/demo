@@ -6,7 +6,7 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.BasicConvertor;
-import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.common.enums.UnitType;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.GeneratorMetaUnit;

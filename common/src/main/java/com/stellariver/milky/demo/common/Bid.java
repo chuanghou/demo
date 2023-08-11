@@ -32,6 +32,7 @@ public class Bid {
     Double price;
     Date date;
     List<Deal> deals = new ArrayList<>();
+    Date cancelledDate;
 
     BidStatus bidStatus;
 

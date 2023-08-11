@@ -10,12 +10,18 @@ import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.basic.TypedEnums;
-import com.stellariver.milky.demo.basic.UnitType;
+import com.stellariver.milky.demo.client.vo.BidVO;
+import com.stellariver.milky.demo.client.vo.DealVO;
+import com.stellariver.milky.demo.common.Deal;
+import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.client.po.BidPO;
 import com.stellariver.milky.demo.client.po.CentralizedBidPO;
 import com.stellariver.milky.demo.client.po.RealtimeCancelBidPO;
 import com.stellariver.milky.demo.client.po.RealtimeNewBidPO;
+import com.stellariver.milky.demo.client.vo.BalanceVO;
+import com.stellariver.milky.demo.client.vo.UnitVO;
 import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.PriceLimit;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
@@ -33,8 +39,8 @@ import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author houchuang
@@ -63,7 +69,85 @@ public class UnitController {
     }
 
 
-    final
+    @GetMapping("listUnitTransactions")
+    public Result<List<UnitVO>> listUnitVOs(@RequestParam String marketTypeValue,
+                                          @RequestHeader String token) {
+        Comp comp = tunnel.runningComp();
+        String userId = TokenUtils.getUserId(token);
+        LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UnitDO::getCompId, comp.getCompId());
+        queryWrapper.eq(UnitDO::getUserId, Integer.parseInt(userId));
+        queryWrapper.eq(UnitDO::getRoundId, comp.getRoundId());
+        List<Unit> units = Collect.transfer(unitDOMapper.selectList(queryWrapper), UnitDAOAdapter.Convertor.INST::to);
+        List<UnitVO> unitVOs = Arrays.stream(TimeFrame.values()).map(t -> {
+            return units.stream().map(u -> to(u, MarketType.valueOf(marketTypeValue), t)).collect(Collectors.toList());
+        }).flatMap(Collection::stream).collect(Collectors.toList());
+        return Result.success(unitVOs);
+    }
+
+    private UnitVO to(Unit unit, MarketType marketType, TimeFrame timeFrame) {
+
+        List<BalanceVO> balanceVOs = getBalanceVOs(unit, timeFrame, marketType);
+
+        List<Bid> bids = unit.getBids().values().stream().filter(bid -> {
+            boolean b0 = bid.getTimeFrame() == timeFrame;
+            boolean b1 = bid.getMarketType() == marketType;
+            return b0 && b1;
+        }).collect(Collectors.toList());
+
+        List<BidVO> bidVOs = bids.stream().map(bid -> {
+            Double sum = bid.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum);
+            return BidVO.builder().quantity(bid.getQuantity())
+                    .price(bid.getPrice())
+                    .cancelable(bid.getQuantity() > sum)
+                    .notDeal(bid.getQuantity() - sum)
+                    .dealVOs(toDealVOs(bid))
+                    .build();
+        }).collect(Collectors.toList());
+
+        return UnitVO.builder().unitId(unit.getUnitId())
+                .name(unit.getMetaUnit().getName())
+                .timeFrame(timeFrame)
+                .province(unit.getMetaUnit().getProvince())
+                .unitType(unit.getMetaUnit().getUnitType())
+                .bidVOs(bidVOs)
+                .balanceVOs(balanceVOs)
+                .build();
+    }
+
+    private List<DealVO> toDealVOs(Bid bid) {
+        List<DealVO> dealVOS = new ArrayList<>();
+        for (Deal deal: bid.getDeals()) {
+            DealVO dealVO = DealVO.builder().status("成交")
+                    .date(deal.getDate())
+                    .price(deal.getPrice())
+                    .quantity(deal.getQuantity())
+                    .build();
+            dealVOS.add(dealVO);
+        }
+
+        Double reduce = bid.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum);
+
+        if (bid.getBidStatus() == BidStatus.CANCELLED) {
+            DealVO dealVO = DealVO.builder().status("已撤")
+                    .price(bid.getPrice())
+                    .date(bid.getCancelledDate())
+                    .quantity(bid.getQuantity() - reduce)
+                    .build();
+            dealVOS.add(dealVO);
+        }
+        return dealVOS;
+    }
+
+    private List<BalanceVO> getBalanceVOs(Unit unit, TimeFrame timeFrame, MarketType marketType) {
+        List<Direction> directions;
+        if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
+             directions = Arrays.asList(Direction.SELL, Direction.SELL);
+        } else {
+            directions = Collect.asList(unit.getMetaUnit().getUnitType().generalDirection());
+        }
+        return directions.stream().map(d -> BalanceVO.builder().direction(d).balance(unit.getBalances().get(timeFrame).get(d)).build()).collect(Collectors.toList());
+    }
 
     @GetMapping("listGeneratorDetails")
     public Result<List<Unit>> listGeneratorDetails(@RequestParam Long compId, @RequestHeader String token) {

@@ -223,7 +223,7 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
 
     private void pushRtCompVO() {
         Tunnel tunnel = BeanUtil.getBean(Tunnel.class);
-        Message message = Message.builder().topic(Topic.RT_COMP).entity(rtCompVO).build();
+        Message message = Message.builder().topic(Topic.RT_COMP).build();
         tunnel.cast(message);
     }
 

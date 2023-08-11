@@ -1,6 +1,9 @@
 package com.stellariver.milky.demo.client.vo;
 
-import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.enums.Direction;
+import com.stellariver.milky.demo.common.enums.Province;
+import com.stellariver.milky.demo.common.enums.TimeFrame;
+import com.stellariver.milky.demo.common.enums.UnitType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,22 +21,12 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UnitVO {
 
-    String unitId;
+    Long unitId;
     String name;
-    String compId;
-    String position;
-    String unitType;
-    String userId;
-
-    Double peakBuyBalance;
-    Double peakSellBalance;
-    Double flatBuyBalance;
-    Double flatSellBalance;
-    Double valleyBuyBalance;
-    Double valleySellBalance;
-
-    List<Bid> peakBids;
-    List<Bid> valleyBids;
-    List<Bid> flatBids;
+    UnitType unitType;
+    Province province;
+    TimeFrame timeFrame;
+    List<BalanceVO> balanceVOs;
+    List<BidVO> bidVOs;
 
 }

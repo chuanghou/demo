@@ -1,6 +1,8 @@
 package com.stellariver.milky.demo.adapter.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.stellariver.milky.common.base.BizEx;
+import com.stellariver.milky.common.base.ErrorEnum;
 import com.stellariver.milky.common.base.ExceptionType;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.tool.common.Kit;
@@ -232,9 +234,12 @@ public class CompController {
         if (user.getRole() != Role.ADMIN) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
         }
-        Comp comp = domainTunnel.getByAggregateId(Comp.class, compId.toString());
-        Stage nextStage = Stage.builder().roundId(comp.getRoundId())
-                .marketType(comp.getMarketType()).marketStatus(comp.getMarketStatus()).build().next();
+        Comp runningComp = tunnel.runningComp();
+        BizEx.nullThrow(runningComp, ErrorEnums.PARAM_FORMAT_WRONG.message("当前无运行中的比赛"));
+        boolean equals = runningComp.getCompId().equals(compId);
+        BizEx.falseThrow(equals, ErrorEnums.PARAM_FORMAT_WRONG.message("当前运行比赛为" + runningComp.getCompId()));
+        Stage nextStage = Stage.builder().roundId(runningComp.getRoundId())
+                .marketType(runningComp.getMarketType()).marketStatus(runningComp.getMarketStatus()).build().next();
         CompCommand.Step command = CompCommand.Step.builder()
                 .compId(compId)
                 .nextStage(nextStage)

@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RtProcessorKey {
+public class    RtProcessorKey {
 
     Integer roundId;
     MarketType marketType;
