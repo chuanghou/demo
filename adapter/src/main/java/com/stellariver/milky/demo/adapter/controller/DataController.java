@@ -338,7 +338,7 @@ public class DataController {
 
 
         List<UnitDO> unitDOS = unitDOMapper.selectList(queryWrapper);
-        SysEx.trueThrow(unitDOS.size() == 4, ErrorEnums.SYS_EX);
+        SysEx.falseThrow(unitDOS.size() == 4, ErrorEnums.SYS_EX);
 
         Map<String, Map<String, List<Double>>> result = new HashMap<>();
         Pair<String, Map<String, List<Double>>> mapPair;
