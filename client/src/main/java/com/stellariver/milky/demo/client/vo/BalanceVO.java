@@ -12,6 +12,8 @@ import lombok.experimental.FieldDefaults;
 public class BalanceVO {
 
     Direction direction;
+    Double capacity;
     Double balance;
-
+    Double dealed;
+    Double onMatching;
 }

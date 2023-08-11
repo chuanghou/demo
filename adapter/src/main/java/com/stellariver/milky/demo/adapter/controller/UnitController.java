@@ -143,12 +143,48 @@ public class UnitController {
         List<Direction> directions;
         BalanceVO balanceVO0, balanceVO1;
         Direction generalDirection = unit.getMetaUnit().getUnitType().generalDirection();
-        balanceVO0 = BalanceVO.builder().direction(generalDirection).balance(unit.getBalances().get(timeFrame).get(generalDirection)).build();
+        Double dealed = unit.getBids().values().stream()
+                .filter(bid -> bid.getDirection() == generalDirection)
+                .filter(bid -> bid.getTimeFrame() == timeFrame)
+                .map(Bid::getDeals)
+                .flatMap(Collection::stream).map(Deal::getQuantity).reduce(0D, Double::sum);
+
+        Double onMatching = unit.getBids().values().stream()
+                .filter(bid -> bid.getDirection() == generalDirection)
+                .filter(bid -> bid.getTimeFrame() == timeFrame)
+                .filter(bid -> bid.getBidStatus() != BidStatus.CANCELLED)
+                .map(bid -> bid.getQuantity() - bid.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum))
+                .reduce(0D, Double::sum);
+
+        balanceVO0 = BalanceVO.builder()
+                .direction(generalDirection)
+                .capacity(unit.getMetaUnit().getCapacity().get(timeFrame).get(generalDirection))
+                .dealed(dealed)
+                .onMatching(onMatching)
+                .balance(unit.getBalances().get(timeFrame).get(generalDirection))
+                .build();
         if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
             double oppositeBalance = unit.getMetaUnit().getCapacity().get(timeFrame).get(generalDirection) - balanceVO0.getBalance();
-            balanceVO1 = BalanceVO.builder().direction(generalDirection.opposite()).balance(oppositeBalance).build();
+            dealed = unit.getBids().values().stream()
+                    .filter(bid -> bid.getDirection() == generalDirection.opposite())
+                    .filter(bid -> bid.getTimeFrame() == timeFrame)
+                    .map(Bid::getDeals)
+                    .flatMap(Collection::stream).map(Deal::getQuantity).reduce(0D, Double::sum);
+
+           onMatching = unit.getBids().values().stream()
+                    .filter(bid -> bid.getDirection() == generalDirection.opposite())
+                    .filter(bid -> bid.getTimeFrame() == timeFrame)
+                    .filter(bid -> bid.getBidStatus() != BidStatus.CANCELLED)
+                    .map(bid -> bid.getQuantity() - bid.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum))
+                    .reduce(0D, Double::sum);
+            balanceVO1 = BalanceVO.builder().direction(generalDirection.opposite())
+                    .capacity(0D)
+                    .balance(oppositeBalance)
+                    .dealed(dealed)
+                    .onMatching(onMatching)
+                    .build();
         } else {
-            balanceVO1 = BalanceVO.builder().direction(generalDirection.opposite()).balance(0D).build();
+            balanceVO1 = BalanceVO.builder().direction(generalDirection.opposite()).balance(0D).dealed(0D).capacity(0D).onMatching(0D).build();
         }
         return Collect.asList(balanceVO0, balanceVO1);
     }
