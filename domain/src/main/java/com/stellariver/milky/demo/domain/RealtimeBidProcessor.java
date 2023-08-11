@@ -10,6 +10,7 @@ import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.common.Deal;
+import com.stellariver.milky.demo.common.RtProcessorKey;
 import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
@@ -40,10 +41,11 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
     Double currentPrice;
     final List<Deal> deals = new ArrayList<>();
 
-    final RtCompVO rtCompVO = new RtCompVO();
+    RtCompVO rtCompVO;
 
     public RealtimeBidProcessor(RtProcessorKey rtProcessorKey) {
         this.rtProcessorKey = rtProcessorKey;
+        this.rtCompVO = new RtCompVO(rtProcessorKey);
         disruptor.handleEventsWith(this);
         disruptor.start();
     }
@@ -108,8 +110,6 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
 
     @Override
     public void onEvent(RtBidContainer event, long sequence, boolean endOfBatch) {
-        updateRtCompPushDetail();
-        CompletableFuture.runAsync(this::pushRtCompVO);
         if (event.getNewBid() != null){
             doProcessNewBid(event.getNewBid());
         } else if (event.getCancelBid() != null) {
@@ -120,6 +120,8 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
             throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
         }
         updateRtCompPushDetail();
+        BeanUtil.getBean(Tunnel.class).runningComp().getRtCompVOMap().put(rtProcessorKey, rtCompVO);
+        pushRtCompVO();
     }
 
     private void doClose() {
@@ -211,10 +213,11 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
     }
 
     private void updateRtCompPushDetail() {
-        rtCompVO.setCurrentPrice(currentPrice);
+        rtCompVO.getPrices().add(PriceVO.builder().price(currentPrice).date(new Date()).build());
         rtCompVO.setDeals(new ArrayList<>(deals));
         rtCompVO.setBuyBids(Collect.transfer(new ArrayList<>(buyPriorityQueue), Convertor.INST::to));
         rtCompVO.setSellBids(Collect.transfer(new ArrayList<>(sellPriorityQueue), Convertor.INST::to));
+        // TODO 增加 分批量
         List<MarketAsk> buyMarketAsks = buildMarketAsks(rtCompVO.getBuyBids());
         rtCompVO.setBuyMarketAsks(buyMarketAsks);
         List<MarketAsk> sellMarketAsks = buildMarketAsks(rtCompVO.getSellBids());

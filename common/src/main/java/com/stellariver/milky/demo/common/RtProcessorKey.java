@@ -1,4 +1,4 @@
-package com.stellariver.milky.demo.domain;
+package com.stellariver.milky.demo.common;
 
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.Province;
@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class    RtProcessorKey {
+public class RtProcessorKey {
 
     Integer roundId;
     MarketType marketType;

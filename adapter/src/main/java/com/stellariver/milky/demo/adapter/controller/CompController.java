@@ -10,10 +10,7 @@ import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.common.tool.util.StreamMap;
 import com.stellariver.milky.demo.adapter.repository.domain.CompDODAOWrapper;
-import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.basic.Role;
-import com.stellariver.milky.demo.basic.Stage;
-import com.stellariver.milky.demo.basic.TokenUtils;
+import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.client.po.CompCreatePO;
 import com.stellariver.milky.demo.client.po.CompEditPO;
 import com.stellariver.milky.demo.common.GridLimit;
@@ -258,6 +255,18 @@ public class CompController {
         CompCommand.Close command = CompCommand.Close.builder().compId(compId).build();
         CommandBus.accept(command, new HashMap<>());
         return Result.success();
+    }
+
+
+    @GetMapping("listRtCompVOs")
+    public Result<List<RtCompVO>> listRtCompVOs(Integer roundId, String marketTypeValue) {
+        Comp comp = tunnel.runningComp();
+        List<RtCompVO> rtCompVOs = comp.getRtCompVOMap().values().stream().filter(rtCompVO -> {
+            boolean b0 = Kit.eq(roundId, rtCompVO.getRoundId());
+            boolean b1 = MarketType.valueOf(marketTypeValue) == rtCompVO.getMarketType();
+            return b0 && b1;
+        }).collect(Collectors.toList());
+        return Result.success(rtCompVOs);
     }
 
 

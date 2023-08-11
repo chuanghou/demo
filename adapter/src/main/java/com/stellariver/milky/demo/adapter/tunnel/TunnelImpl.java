@@ -14,7 +14,7 @@ import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.Comp;
-import com.stellariver.milky.demo.domain.RtProcessorKey;
+import com.stellariver.milky.demo.common.RtProcessorKey;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.MarketSettingDO;

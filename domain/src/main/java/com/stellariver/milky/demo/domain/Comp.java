@@ -16,7 +16,6 @@ import com.stellariver.milky.demo.domain.event.CompEvent;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.base.BaseDataObject;
-import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.ConstructorHandler;
 import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
@@ -31,8 +30,6 @@ import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -69,7 +66,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     @JsonIgnore
     Map<RtProcessorKey, RealtimeBidProcessor> rtBidProcessors = new ConcurrentHashMap<>();
 
-    Map<RtProcessorKey, RtCompVO> rtCompVOMap = new HashMap<>();
+    Map<RtProcessorKey, RtCompVO> rtCompVOMap = new ConcurrentHashMap<>();
 
     @Override
     public String getAggregateId() {
@@ -515,6 +512,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         RealtimeBidProcessor realtimeBidProcessor = rtBidProcessors.get(processorKey);
         CancelBid cancelBid = new CancelBid(command.getBidId(), command.getBidDirection());
         realtimeBidProcessor.post(cancelBid);
+        context.publishPlaceHolderEvent(getAggregateId());
     }
 
     @MethodHandler
