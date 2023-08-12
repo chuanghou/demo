@@ -61,18 +61,6 @@ public class CompController {
         return Result.success(comp);
     }
 
-    @GetMapping("listComps")
-    public Result<List<Comp>> listComps() {
-        List<CompDO> compDOs= compDOMapper.selectList(null);
-        List<Comp> comps = Collect.transfer(compDOs, CompDODAOWrapper.Convertor.INST::to)
-                .stream().sorted(Comparator.comparing(Comp::getCompId).reversed()).collect(Collectors.toList());
-        return Result.success(comps);
-    }
-
-    public static void main(String[] args) {
-        System.out.println(TokenUtils.sign("1000"));
-    }
-
     @GetMapping("getDurations")
     public Result<Map<MarketType, Map<Status.MarketStatus, Integer>>> getDurations() {
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);
@@ -225,8 +213,7 @@ public class CompController {
 
 
     @PostMapping("step")
-    public Result<Void> step(@RequestHeader String token,
-                             @RequestParam Long compId) {
+    public Result<Void> step(@RequestHeader String token, @RequestParam Long compId) {
         User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
         if (user.getRole() != Role.ADMIN) {
             return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);

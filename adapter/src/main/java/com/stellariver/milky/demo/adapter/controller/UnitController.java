@@ -277,4 +277,8 @@ public class UnitController {
 
     }
 
+    public static void main(String[] args) {
+        System.out.println(TokenUtils.sign("0"));
+    }
+
 }
