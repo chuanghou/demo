@@ -76,7 +76,7 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
         }
 
         default AbstractMetaUnit to(MetaUnitDO metaUnitDO) {
-            boolean b = Kit.eq(metaUnitDO.getUnitType(), UnitType.GENERATOR);
+            boolean b = Kit.eq(metaUnitDO.getUnitType(), UnitType.GENERATOR.name());
             return b ? Convertor.INST.toGeneratorMetaUnit(metaUnitDO) : Convertor.INST.toLoadMetaUnit(metaUnitDO);
         }
 

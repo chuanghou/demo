@@ -73,6 +73,12 @@ public class CompTest {
 
 
     @Test
+    public void testUnits() throws InterruptedException {
+        String sign = TokenUtils.sign("0");
+        Result<List<Unit>> listResult = unitController.listUnits(sign);
+    }
+
+    @Test
     public void testComp() throws InterruptedException {
         compDOMapper.selectList(null).forEach(compDO -> compDOMapper.deleteById(compDO.getCompId()));
         LoginPO loginPO = LoginPO.builder().userId("1000").password("admin").build();
@@ -211,19 +217,19 @@ public class CompTest {
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
         String user0Token = TokenUtils.sign("0");
-        List<Unit> user0Units = unitController.listUnits(runningComp.getCompId(), user0Token).getData();
+        List<Unit> user0Units = unitController.listUnits(user0Token).getData();
 
         String user1Token = TokenUtils.sign("1");
-        List<Unit> user1Units = unitController.listUnits(runningComp.getCompId(), user1Token).getData();
+        List<Unit> user1Units = unitController.listUnits(user1Token).getData();
 
         String user2Token = TokenUtils.sign("2");
-        List<Unit> user2Units = unitController.listUnits(runningComp.getCompId(), user2Token).getData();
+        List<Unit> user2Units = unitController.listUnits( user2Token).getData();
 
         String user3Token = TokenUtils.sign("3");
-        List<Unit> user3Units = unitController.listUnits(runningComp.getCompId(), user3Token).getData();
+        List<Unit> user3Units = unitController.listUnits(user3Token).getData();
 
         String user4Token = TokenUtils.sign("4");
-        List<Unit> user4Units = unitController.listUnits(runningComp.getCompId(), user4Token).getData();
+        List<Unit> user4Units = unitController.listUnits(user4Token).getData();
 
 
         List<Unit> units0 = user0Units.stream().filter(unit -> {

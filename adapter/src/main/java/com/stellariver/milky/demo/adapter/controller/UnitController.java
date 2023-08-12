@@ -56,8 +56,9 @@ public class UnitController {
     final Tunnel tunnel;
 
     @GetMapping("listUnits")
-    public Result<List<Unit>> listUnits(@RequestParam Long compId, @RequestHeader String token) {
-        Comp comp = domainTunnel.getByAggregateId(Comp.class, compId.toString());
+    public Result<List<Unit>> listUnits(@RequestHeader String token) {
+        Comp comp = tunnel.runningComp();
+        BizEx.nullThrow(comp, ErrorEnums.PARAM_FORMAT_WRONG.message("当前无运行竞赛"));
         String userId = TokenUtils.getUserId(token);
         LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UnitDO::getCompId, comp.getCompId());
