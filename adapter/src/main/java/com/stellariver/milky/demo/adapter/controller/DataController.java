@@ -47,7 +47,7 @@ public class DataController {
     @GetMapping("marketAnnouncement")
     public Map<Label, String> marketAnnouncement() {
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1L);
-        Map<Label, String> result = new HashMap<>();
+        Map<Label, String> result = new LinkedHashMap<>();
         result.put(Label.offer_price_cap, String.format("%.2f", marketSettingDO.getOfferPriceCap()));
         result.put(Label.offer_price_floor, String.format("%.2f", marketSettingDO.getOfferPriceFloor()));
         result.put(Label.bid_price_cap, String.format("%.2f", marketSettingDO.getBidPriceCap()));
@@ -85,7 +85,7 @@ public class DataController {
      */
     @GetMapping("agentData")
     public Map<Label, String> agentData(String unitType, @Nullable String generatorType, Integer sourceId) {
-        Map<Label, String> result = new HashMap<>();
+        Map<Label, String> result = new LinkedHashMap<>();
         if (UnitType.valueOf(unitType) == UnitType.GENERATOR) {
             GeneratorDO generatorDO = generatorDOMapper.selectById(sourceId);
             if (GeneratorType.valueOf(generatorType) == GeneratorType.CLASSIC) {
@@ -139,13 +139,13 @@ public class DataController {
      */
     @GetMapping("marketProfile")
     public List<Map<Label, String>> marketData() {
-        HashMap<Label, String> result0 = new HashMap<>();
+        LinkedHashMap<Label, String> result0 = new LinkedHashMap<>();
         result0.put(Label.market_profile_locate_province, Province.TRANSFER.getDesc());
         result0.put(Label.market_profile_generator, "xxx");
         result0.put(Label.market_profile_load, "xxx");
         result0.put(Label.market_profile_offer_require_ratio, "xxx");
 
-        HashMap<Label, String> result1 = new HashMap<>();
+        LinkedHashMap<Label, String> result1 = new LinkedHashMap<>();
         result1.put(Label.market_profile_locate_province, Province.RECEIVER.getDesc());
         result1.put(Label.market_profile_generator, "xxx");
         result1.put(Label.market_profile_load, "xxx");
@@ -161,14 +161,14 @@ public class DataController {
 
         List<SprDO> sprDOs = sprMapper.selectList(null);
 
-        Map<Label, Map<Label, List<Double>>> result = new HashMap<>();
+        Map<Label, Map<Label, List<Double>>> result = new LinkedHashMap<>();
 
         List<SprDO> transferSprDOs = sprDOs.stream()
                 .filter(d -> Kit.eq(d.getProv(), Province.TRANSFER.getDbCode()))
                 .sorted(Comparator.comparing(SprDO::getDt))
                 .collect(Collectors.toList());
 
-        Map<Label, List<Double>> transferData = new HashMap<>();
+        Map<Label, List<Double>> transferData = new LinkedHashMap<>();
 
         transferData.put(Label.min_thermal_mw, Collect.transfer(transferSprDOs, SprDO::getMinThermalMw));
         transferData.put(Label.adjustable_thermal_mw, Collect.transfer(transferSprDOs, SprDO::getAdjustableThermalMw));
@@ -212,7 +212,7 @@ public class DataController {
                 .sorted(Comparator.comparing(SprDO::getDt))
                 .collect(Collectors.toList());
 
-        Map<Label, List<Double>> receiveData = new HashMap<>();
+        Map<Label, List<Double>> receiveData = new LinkedHashMap<>();
         receiveData.put(Label.min_thermal_mw, Collect.transfer(receiveSprDOs, SprDO::getMinThermalMw));
         receiveData.put(Label.adjustable_thermal_mw, Collect.transfer(receiveSprDOs, SprDO::getAdjustableThermalMw));
         if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
@@ -241,18 +241,18 @@ public class DataController {
 
 
         if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL) {
-            Map<Label, List<Double>> linkData = new HashMap<>();
+            Map<Label, List<Double>> linkData = new LinkedHashMap<>();
             linkData.put(Label.receive_target_lower_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMaxAnnualReceivingMw));
             linkData.put(Label.receive_target_upper_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMinAnnualReceivingMw));
             result.put(Label.inter_provincial_linking, linkData);
         } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
-            Map<Label, List<Double>> linkData = new HashMap<>();
+            Map<Label, List<Double>> linkData = new LinkedHashMap<>();
             linkData.put(Label.receive_target_upper_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMaxMonthlyReceivingMw));
             linkData.put(Label.receive_target_lower_limit, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMinMonthlyReceivingMw));
             linkData.put(Label.intraprovincial_monthly_tieline_power, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getIntraprovincialMonthlyTielinePower));
             result.put(Label.inter_provincial_linking, linkData);
         } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
-            Map<Label, List<Double>> linkData = new HashMap<>();
+            Map<Label, List<Double>> linkData = new LinkedHashMap<>();
             linkData.put(Label.da_receiving_target, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getDaReceivingTarget));
             linkData.put(Label.intraprovincial_annual_tieline_power, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getIntraprovincialAnnualTielinePower));
             result.put(Label.inter_provincial_linking, linkData);
@@ -269,7 +269,7 @@ public class DataController {
     public Map<String, Block> listBlockThermalUnit(String marketTypeValue) {
         MarketType marketType = MarketType.valueOf(marketTypeValue);
         List<SubregionBasicDO> subregionBasicDOs = subregionBasicMapper.selectList(null);
-        Map<String, Block> blockMap = new HashMap<>();
+        Map<String, Block> blockMap = new LinkedHashMap<>();
         for (SubregionBasicDO subregionBasicDO : subregionBasicDOs) {
             String name = Kit.enumOfMightEx(Province::getDbCode, subregionBasicDO.getProv()).getDesc() + subregionBasicDO.getSubregionName();
 
@@ -301,7 +301,7 @@ public class DataController {
                 throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
             }
 
-            Map<String, List<Double>> lineChart = new HashMap<>();
+            Map<String, List<Double>> lineChart = new LinkedHashMap<>();
             lineChart.put(Label.blockLoadForecast.name(), loadForecast);
             lineChart.put(Label.blockRenewableForecast.name(), renewableForecast);
 
@@ -342,7 +342,7 @@ public class DataController {
         List<UnitDO> unitDOS = unitDOMapper.selectList(queryWrapper);
         SysEx.falseThrow(unitDOS.size() == 4, ErrorEnums.SYS_EX);
 
-        Map<String, Map<String, List<Double>>> result = new HashMap<>();
+        Map<String, Map<String, List<Double>>> result = new LinkedHashMap<>();
         Pair<String, Map<String, List<Double>>> mapPair;
 
         List<Unit> units = Collect.transfer(unitDOS, UnitDAOAdapter.Convertor.INST::to);
@@ -376,7 +376,7 @@ public class DataController {
 
     private Pair<String, Map<String, List<Double>>> loadGenerator(Integer generatorId, MarketType marketType) {
         GeneratorDO generatorDO = generatorDOMapper.selectById(generatorId);
-        Map<String, List<Double>> map = new HashMap<>();
+        Map<String, List<Double>> map = new LinkedHashMap<>();
         List<Double> maxPs = new ArrayList<>();
         IntStream.range(0, 24).forEach(i -> maxPs.add(generatorDO.getMaxP()));
         if (generatorDO.getType() == 1) {
@@ -411,7 +411,7 @@ public class DataController {
     final LoadForecastMapper loadForecastMapper;
     private Pair<String, Map<String, List<Double>>> loadLoad(Integer loadId) {
         LoadDO loadDO = loadDOMapper.selectById(loadId);
-        Map<String, List<Double>> map = new HashMap<>();
+        Map<String, List<Double>> map = new LinkedHashMap<>();
         LambdaQueryWrapper<LoadForecastDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(LoadForecastDO::getLoadId, loadId);
         List<Double> baseMws = loadForecastMapper.selectList(queryWrapper).stream()
@@ -426,7 +426,7 @@ public class DataController {
 
     @GetMapping("costOfClassicOfAnnualAndMonthly")
     public Map<Label, String> costOfClassicOfAnnualAndMonthly(Integer unitId) {
-        Map<Label, String> result = new HashMap<>();
+        Map<Label, String> result = new LinkedHashMap<>();
         LambdaQueryWrapper<StartupShutdownCostDO> eq = new LambdaQueryWrapper<StartupShutdownCostDO>().eq(StartupShutdownCostDO::getUnitId, unitId);
         StartupShutdownCostDO startupShutdownCostDO = startupShutdownCostDOMapper.selectOne(eq);
         GeneratorDO generatorDO = generatorDOMapper.selectById(unitId);
