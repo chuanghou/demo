@@ -25,6 +25,7 @@ import org.mapstruct.factory.Mappers;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -217,11 +218,36 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
         rtCompVO.setDeals(new ArrayList<>(deals));
         rtCompVO.setBuyBids(Collect.transfer(new ArrayList<>(buyPriorityQueue), Convertor.INST::to));
         rtCompVO.setSellBids(Collect.transfer(new ArrayList<>(sellPriorityQueue), Convertor.INST::to));
-        // TODO 增加 分批量
         List<MarketAsk> buyMarketAsks = buildMarketAsks(rtCompVO.getBuyBids());
         rtCompVO.setBuyMarketAsks(buyMarketAsks);
         List<MarketAsk> sellMarketAsks = buildMarketAsks(rtCompVO.getSellBids());
         rtCompVO.setSellMarketAsks(sellMarketAsks);
+
+        List<NewBid> sBuyBids = rtCompVO.getBuyBids().stream().sorted(Comparator.comparing(NewBid::getPrice)).collect(Collectors.toList());
+
+        for (NewBid sBuyBid : sBuyBids) {
+            rtCompVO.getBuyVolumes().forEach(volumeVO -> {
+                Double price = sBuyBid.getPrice();
+                if (price >= volumeVO.getLeft() && price <volumeVO.getRight()) {
+                    double v = volumeVO.getValue() + sBuyBid.getQuantity();
+                    volumeVO.setValue(v);
+                }
+            });
+        }
+
+
+        List<NewBid> sSellBids = rtCompVO.getSellBids().stream().sorted(Comparator.comparing(NewBid::getPrice)).collect(Collectors.toList());
+
+        for (NewBid sSellBid : sSellBids) {
+            rtCompVO.getBuyVolumes().forEach(volumeVO -> {
+                Double price = sSellBid.getPrice();
+                if (price >= volumeVO.getLeft() && price <volumeVO.getRight()) {
+                    double v = volumeVO.getValue() + sSellBid.getQuantity();
+                    volumeVO.setValue(v);
+                }
+            });
+        }
+
     }
 
     private void pushRtCompVO() {
