@@ -14,6 +14,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import java.util.stream.IntStream;
  * @see AnnotationValidateAspect
  */
 @Aspect
+@Component
 public class RpcAspect {
 
     static private final Logger log = Logger.getLogger(RpcAspect.class);
