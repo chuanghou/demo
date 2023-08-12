@@ -2,10 +2,7 @@ package com.stellariver.milky.demo;
 
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.util.Json;
-import com.stellariver.milky.demo.basic.MarketAsk;
-import com.stellariver.milky.demo.basic.PriceVO;
-import com.stellariver.milky.demo.basic.RtCompVO;
-import com.stellariver.milky.demo.basic.VolumeVO;
+import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.client.vo.BalanceVO;
 import com.stellariver.milky.demo.client.vo.BidVO;
 import com.stellariver.milky.demo.client.vo.DealVO;
@@ -14,6 +11,7 @@ import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.common.RtProcessorKey;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -78,5 +76,23 @@ public class MyTest {
                 .build();
 
         System.out.println(Json.toJson(Arrays.asList(unitVO, unitVO)));
+
+
+
+        Map<TimeFrame, CentralizedDeals> centralizedDealsMap = new HashMap<>();
+
+        PointLine pointLine = PointLine.builder().bidId(100L).unitId(100L).leftX(1000D).rightX(1000D).y(1000D).direction(Direction.BUY).quantity(1000D)
+                .price(1000D).width(1000D).build();
+
+        CentralizedDeals build3 = CentralizedDeals.builder().dealAveragePrice(100D)
+                .buyBidQuantityTotal(1000D)
+                .sellBidQuantityTotal(10000D)
+                .interPoint(Pair.of(1000D, 1000D))
+                .dealQuantityTotal(1000D)
+                .buyPointLines(Collect.asList(pointLine, pointLine))
+                .sellPointLines(Collect.asList(pointLine, pointLine))
+
+                .build();
+        System.out.println(Json.toJson(build3));
     }
 }

@@ -269,6 +269,14 @@ public class CompController {
         return Result.success(rtCompVOs);
     }
 
+    @GetMapping("listCentralizedDeals")
+    public Result<Map<TimeFrame, CentralizedDeals>> listCentralizedDeals(Integer roundId, String marketTypeValue) {
+        Comp comp = tunnel.runningComp();
+        List<Map<MarketType, Map<TimeFrame, CentralizedDeals>>> roundCentralizedDeals = comp.getRoundCentralizedDeals();
+        Map<TimeFrame, CentralizedDeals> centralizedDealsMap = roundCentralizedDeals.get(roundId).get(MarketType.valueOf(marketTypeValue));
+        return Result.success(centralizedDealsMap) ;
+    }
+
 
 
 }
