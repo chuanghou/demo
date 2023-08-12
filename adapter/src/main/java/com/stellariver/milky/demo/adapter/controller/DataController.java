@@ -6,6 +6,8 @@ import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.basic.*;
+import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.Round;
@@ -27,9 +29,12 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static com.stellariver.milky.demo.basic.Label.generatorDiffDeals;
 
 
 @RestController
@@ -329,7 +334,7 @@ public class DataController {
     final UnitDOMapper unitDOMapper;
     final Tunnel tunnel;
     @GetMapping("listAgentInventory")
-    public Map<String, Map<String, List<Double>>> listAgentInventory(@RequestParam @NotBlank String marketTypeValue,
+    public Map<String, Map<Label, List<Double>>> listAgentInventory(@RequestParam @NotBlank String marketTypeValue,
                                                                      @RequestHeader @NotBlank String token) {
         MarketType marketType = MarketType.valueOf(marketTypeValue);
         Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
@@ -342,31 +347,21 @@ public class DataController {
         List<UnitDO> unitDOS = unitDOMapper.selectList(queryWrapper);
         SysEx.falseThrow(unitDOS.size() == 4, ErrorEnums.SYS_EX);
 
-        Map<String, Map<String, List<Double>>> result = new LinkedHashMap<>();
-        Pair<String, Map<String, List<Double>>> mapPair;
+        Map<String, Map<Label, List<Double>>> result = new LinkedHashMap<>();
+        Pair<String, Map<Label, List<Double>>> mapPair;
 
         List<Unit> units = Collect.transfer(unitDOS, UnitDAOAdapter.Convertor.INST::to);
-        List<List<AbstractMetaUnit>> metaUnits = units.stream().map(Unit::getMetaUnit).collect(Collect.select(
-                u -> Kit.eq(u.getUnitType(), UnitType.GENERATOR),
-                u -> Kit.eq(u.getUnitType(), UnitType.LOAD)
+        List<List<Unit>> groupUnits = units.stream().collect(Collect.select(
+                u -> Kit.eq(u.getMetaUnit().getUnitType(), UnitType.GENERATOR),
+                u -> Kit.eq(u.getMetaUnit().getUnitType(), UnitType.LOAD)
         ));
 
-        Integer sourceId = metaUnits.get(0).get(0).getSourceId();
-        mapPair = loadGenerator(sourceId, marketType);
-        result.put(mapPair.getKey(), mapPair.getValue());
-
-        sourceId = metaUnits.get(0).get(1).getSourceId();
-
-        mapPair = loadGenerator(sourceId, marketType);
-        result.put(mapPair.getKey(), mapPair.getValue());
-
-        sourceId = metaUnits.get(1).get(0).getSourceId();
-        mapPair = loadLoad(sourceId);
-        result.put(mapPair.getKey(), mapPair.getValue());
-
-        sourceId = metaUnits.get(1).get(1).getSourceId();
-        mapPair = loadLoad(sourceId);
-        result.put(mapPair.getKey(), mapPair.getValue());
+        groupUnits.get(0).stream().map(u -> loadGenerator(u, marketType)).forEach(p -> {
+            result.put(p.getKey(), p.getValue());
+        });
+        groupUnits.get(1).stream().map(u -> loadLoad(u, marketType)).forEach(p -> {
+            result.put(p.getKey(), p.getValue());
+        });
 
         return result;
     }
@@ -374,13 +369,17 @@ public class DataController {
 
 
 
-    private Pair<String, Map<String, List<Double>>> loadGenerator(Integer generatorId, MarketType marketType) {
+    private Pair<String, Map<Label, List<Double>>> loadGenerator(Unit unit, MarketType marketType) {
+        Map<Label, List<Double>> map = new LinkedHashMap<>();
+        Integer generatorId = unit.getMetaUnit().getSourceId();
         GeneratorDO generatorDO = generatorDOMapper.selectById(generatorId);
-        Map<String, List<Double>> map = new LinkedHashMap<>();
-        List<Double> maxPs = new ArrayList<>();
-        IntStream.range(0, 24).forEach(i -> maxPs.add(generatorDO.getMaxP()));
-        if (generatorDO.getType() == 1) {
-            map.put(Label.maxPs.name(), maxPs);
+        GeneratorType generatorType = Kit.enumOfMightEx(GeneratorType::getDbCode, generatorDO.getType());
+
+        if (generatorType == GeneratorType.CLASSIC) {
+            List<Double> maxPs = new ArrayList<>();
+            IntStream.range(0, 24).forEach(i -> maxPs.add(generatorDO.getMaxP()));
+            map.put(Label.maxPs, maxPs);
+            map.put(Label.generatorInventoryUpperLimit, maxPs);
         } else {
             LambdaQueryWrapper<RenewableUnitDO> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(RenewableUnitDO::getUnitId, generatorId);
@@ -397,27 +396,141 @@ public class DataController {
             } else {
                 throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
             }
-            map.put(Label.generatorForecast.name(), generatorForecast);
+            map.put(Label.generatorForecast, generatorForecast);
+            map.put(Label.generatorInventoryUpperLimit, generatorForecast);
         }
-        LambdaQueryWrapper<GeneratorOutputStateDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(GeneratorOutputStateDO::getUnitId, generatorId);
-        List<Double> baseContractMws = generatorOutputStateMapper.selectList(queryWrapper).stream()
+
+        LambdaQueryWrapper<GeneratorOutputStateDO> queryWrapper0 = new LambdaQueryWrapper<>();
+        queryWrapper0.eq(GeneratorOutputStateDO::getUnitId, generatorId);
+        List<Double> baseContractMws = generatorOutputStateMapper.selectList(queryWrapper0).stream()
                 .sorted(Comparator.comparing(GeneratorOutputStateDO::getPrd))
                 .map(GeneratorOutputStateDO::getBaseMw).collect(Collectors.toList());
-        map.put(Label.baseContractMws.name(), baseContractMws);
+        map.put(Label.baseContractMws, baseContractMws);
+        if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL) {
+            map.put(generatorDiffDeals, baseContractMws);
+        } else if (marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
+            List<Double> deals0 = resolveDeals(unit, MarketType.INTER_ANNUAL_PROVINCIAL);
+            List<Double> collect = IntStream.range(0, 24).mapToDouble(i -> deals0.get(i) + baseContractMws.get(i))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            map.put(Label.generatorDiffDeals, collect);
+            map.put(Label.generatorInterProvinceAnnualDeal, deals0);
+        } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
+            List<Double> deals0 = resolveDeals(unit, MarketType.INTER_ANNUAL_PROVINCIAL);
+            List<Double> deals1 = resolveDeals(unit, MarketType.INTRA_ANNUAL_PROVINCIAL);
+            List<Double> collect = IntStream.range(0, 24).mapToDouble(i -> deals0.get(i) + deals1.get(i) + baseContractMws.get(i))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            map.put(Label.generatorDiffDeals, collect);
+            map.put(Label.generatorInterProvinceAnnualDeal, deals0);
+            map.put(Label.generatorIntraProvinceAnnualDeal, deals1);
+        } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
+            List<Double> deals0 = resolveDeals(unit, MarketType.INTER_ANNUAL_PROVINCIAL);
+            List<Double> deals1 = resolveDeals(unit, MarketType.INTRA_ANNUAL_PROVINCIAL);
+            List<Double> deals2 = resolveDeals(unit, MarketType.INTER_MONTHLY_PROVINCIAL);
+            List<Double> collect = IntStream.range(0, 24).mapToDouble(i -> deals0.get(i) + deals1.get(i) + deals2.get(i) + baseContractMws.get(i))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            map.put(Label.generatorDiffDeals, collect);
+            map.put(Label.generatorInterProvinceAnnualDeal, deals0);
+            map.put(Label.generatorIntraProvinceAnnualDeal, deals1);
+            map.put(Label.generatorInterProvinceMonthlyDeal, deals2);
+        } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
+            List<Double> deals0 = resolveDeals(unit, MarketType.INTER_ANNUAL_PROVINCIAL);
+            List<Double> deals1 = resolveDeals(unit, MarketType.INTRA_ANNUAL_PROVINCIAL);
+            List<Double> deals2 = resolveDeals(unit, MarketType.INTER_MONTHLY_PROVINCIAL);
+            List<Double> deals3 = resolveDeals(unit, MarketType.INTRA_MONTHLY_PROVINCIAL);
+            List<Double> collect = IntStream.range(0, 24).mapToDouble(i -> deals0.get(i) + deals1.get(i) + deals2.get(i) + deals3.get(i) + baseContractMws.get(i))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            map.put(Label.generatorDiffDeals, collect);
+            map.put(Label.generatorInterProvinceAnnualDeal, deals0);
+            map.put(Label.generatorIntraProvinceAnnualDeal, deals1);
+            map.put(Label.generatorInterProvinceMonthlyDeal, deals2);
+            map.put(Label.generatorIntraProvinceMonthlyDeal, deals3);
+        }
+
         return Pair.of(generatorDO.getUnitName(), map);
     }
 
+    List<Double> resolveDeals(Unit unit, MarketType marketType) {
+        List<Double> deals = new ArrayList<>(24);
+        unit.getBids().values().stream()
+                .filter(bid -> bid.getMarketType() ==marketType)
+                .collect(Collectors.groupingBy(Bid::getTimeFrame))
+                .forEach(((t, bids) -> {
+                    Double aDouble = bidDealTotal(bids);
+                    t.getPrds().forEach(prd -> deals.set(prd, aDouble));
+                }));
+        return deals;
+    }
+
+    Double bidDealTotal(List<Bid> bids) {
+        return bids.stream().flatMap(bid -> bid.getDeals().stream()).map(Deal::getQuantity).reduce(0D, Double::sum);
+    }
+
+
     final LoadForecastMapper loadForecastMapper;
-    private Pair<String, Map<String, List<Double>>> loadLoad(Integer loadId) {
-        LoadDO loadDO = loadDOMapper.selectById(loadId);
-        Map<String, List<Double>> map = new LinkedHashMap<>();
+    private Pair<String, Map<Label, List<Double>>> loadLoad(Unit unit, MarketType marketType) {
+        Integer sourceId = unit.getMetaUnit().getSourceId();
+        LoadDO loadDO = loadDOMapper.selectById(sourceId);
+        Map<Label, List<Double>> map = new LinkedHashMap<>();
         LambdaQueryWrapper<LoadForecastDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(LoadForecastDO::getLoadId, loadId);
-        List<Double> baseMws = loadForecastMapper.selectList(queryWrapper).stream()
-                .sorted(Comparator.comparing(LoadForecastDO::getPrd))
-                .map(LoadForecastDO::getAnnualForecast).collect(Collectors.toList());
-        map.put(Label.loadForecast.name(), baseMws);
+        queryWrapper.eq(LoadForecastDO::getLoadId, sourceId);
+        List<LoadForecastDO> loadForecastDOs = loadForecastMapper.selectList(queryWrapper).stream()
+                .sorted(Comparator.comparing(LoadForecastDO::getPrd)).collect(Collectors.toList());
+        if(marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
+            List<Double> collect = loadForecastDOs.stream().map(LoadForecastDO::getAnnualForecast).collect(Collectors.toList());
+            map.put(Label.loadForecast, collect);
+            map.put(Label.loadInventoryUpperLimit, collect);
+        } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL || marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
+            List<Double> collect = loadForecastDOs.stream().map(LoadForecastDO::getMonthlyForecast).collect(Collectors.toList());
+            map.put(Label.loadForecast, collect);
+            map.put(Label.loadInventoryUpperLimit, collect);
+        } else {
+            List<Double> collect = loadForecastDOs.stream().map(LoadForecastDO::getDaForecast).collect(Collectors.toList());
+            map.put(Label.loadForecast, collect);
+            map.put(Label.loadInventoryUpperLimit, collect);
+        }
+
+        List<Double> loadDiffDeals = IntStream.range(0, 24).mapToDouble(i -> 0D)
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+        if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL) {
+            map.put(Label.loadDiffDeals, loadDiffDeals);
+        } else if (marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
+            List<Double> deals0 = resolveDeals(unit, MarketType.INTER_ANNUAL_PROVINCIAL);
+            List<Double> collect = IntStream.range(0, 24).mapToDouble(i -> deals0.get(i) + loadDiffDeals.get(i))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            map.put(Label.loadDiffDeals, collect);
+            map.put(Label.loadInterProvinceAnnualDeal, deals0);
+        } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
+            List<Double> deals0 = resolveDeals(unit, MarketType.INTER_ANNUAL_PROVINCIAL);
+            List<Double> deals1 = resolveDeals(unit, MarketType.INTRA_ANNUAL_PROVINCIAL);
+            List<Double> collect = IntStream.range(0, 24).mapToDouble(i -> deals0.get(i) + deals1.get(i) + loadDiffDeals.get(i))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            map.put(Label.loadDiffDeals, collect);
+            map.put(Label.loadInterProvinceAnnualDeal, deals0);
+            map.put(Label.loadIntraProvinceAnnualDeal, deals1);
+        } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
+            List<Double> deals0 = resolveDeals(unit, MarketType.INTER_ANNUAL_PROVINCIAL);
+            List<Double> deals1 = resolveDeals(unit, MarketType.INTRA_ANNUAL_PROVINCIAL);
+            List<Double> deals2 = resolveDeals(unit, MarketType.INTER_MONTHLY_PROVINCIAL);
+            List<Double> collect = IntStream.range(0, 24).mapToDouble(i -> deals0.get(i) + deals1.get(i) + deals2.get(i) + loadDiffDeals.get(i))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            map.put(Label.loadDiffDeals, collect);
+            map.put(Label.loadInterProvinceAnnualDeal, deals0);
+            map.put(Label.loadIntraProvinceAnnualDeal, deals1);
+            map.put(Label.loadInterProvinceMonthlyDeal, deals2);
+        } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
+            List<Double> deals0 = resolveDeals(unit, MarketType.INTER_ANNUAL_PROVINCIAL);
+            List<Double> deals1 = resolveDeals(unit, MarketType.INTRA_ANNUAL_PROVINCIAL);
+            List<Double> deals2 = resolveDeals(unit, MarketType.INTER_MONTHLY_PROVINCIAL);
+            List<Double> deals3 = resolveDeals(unit, MarketType.INTRA_MONTHLY_PROVINCIAL);
+            List<Double> collect = IntStream.range(0, 24).mapToDouble(i -> deals0.get(i) + deals1.get(i) + deals2.get(i) + deals3.get(i) + loadDiffDeals.get(i))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+            map.put(Label.loadDiffDeals, collect);
+            map.put(Label.loadInterProvinceAnnualDeal, deals0);
+            map.put(Label.loadIntraProvinceAnnualDeal, deals1);
+            map.put(Label.loadInterProvinceMonthlyDeal, deals2);
+            map.put(Label.loadIntraProvinceMonthlyDeal, deals3);
+        }
+
         return Pair.of(loadDO.getLoadName(), map);
     }
 

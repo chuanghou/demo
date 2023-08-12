@@ -91,11 +91,28 @@ public enum Label {
     blockRenewableForecast("该阻塞区新能源发电预测"),
 
 
-    maxPs("该机组最大发电能力"),
-    generatorForecast("该机组发电预测"),
-    baseContractMws("该机组基数合同电量"),
-    loadForecast("该负荷用电预测"),
+    maxPs("该机组最大发电能力"),             // classic
+    generatorForecast("该机组发电预测"),     // renewable;
 
+    generatorInventoryUpperLimit("该机组持仓量上限"),
+
+
+    baseContractMws("该机组基数合同电量"),
+    generatorDiffDeals("该机组差价合约已成交"),
+
+    generatorInterProvinceAnnualDeal("该机组省间年度已成交"),
+    generatorIntraProvinceAnnualDeal("该机组省内年度已成交"),
+    generatorInterProvinceMonthlyDeal("该机组省间月度已成交"),
+    generatorIntraProvinceMonthlyDeal("该机组省内月度已成交"),
+
+    loadForecast("该负荷用电预测"),
+    loadInventoryUpperLimit("该负荷持仓量上限"),
+
+    loadDiffDeals("该负荷差价合约已成交"),
+    loadInterProvinceAnnualDeal("该负荷省间年度已成交"),
+    loadIntraProvinceAnnualDeal("该负荷省内年度已成交"),
+    loadInterProvinceMonthlyDeal("该负荷省间月度已成交"),
+    loadIntraProvinceMonthlyDeal("该负荷省内月度已成交"),
 
     costOfClassicOfAnnualAndMonthly_basic("最小技术出力成本(元/MWh)"),
     costOfClassicOfAnnualAndMonthly_range("最小技术出力成本之上运行成本区间(元/MWh)"),
