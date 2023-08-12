@@ -13,8 +13,7 @@ import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.Round;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.common.enums.UnitType;
-import com.stellariver.milky.demo.domain.AbstractMetaUnit;
-import com.stellariver.milky.demo.domain.Unit;
+import com.stellariver.milky.demo.domain.*;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.*;
 import com.stellariver.milky.demo.infrastructure.database.mapper.*;
@@ -50,37 +49,45 @@ public class DataController {
      * 市场公告
      */
     @GetMapping("marketAnnouncement")
-    public Map<Label, String> marketAnnouncement() {
+    public Map<String, Map<Label, String>> marketAnnouncement() {
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1L);
-        Map<Label, String> result = new LinkedHashMap<>();
-        result.put(Label.offer_price_cap, String.format("%.2f", marketSettingDO.getOfferPriceCap()));
-        result.put(Label.offer_price_floor, String.format("%.2f", marketSettingDO.getOfferPriceFloor()));
-        result.put(Label.bid_price_cap, String.format("%.2f", marketSettingDO.getBidPriceCap()));
-        result.put(Label.bid_price_floor, String.format("%.2f", marketSettingDO.getBidPriceCap()));
+        Map<String, Map<Label, String>> result = new LinkedHashMap<>();
 
-        result.put(Label.load_annual_max_forecast_err, String.format("%.2f", marketSettingDO.getLoadAnnualMaxForecastErr()));
-        result.put(Label.load_monthly_max_forecast_err, String.format("%.2f", marketSettingDO.getLoadMonthlyMaxForecastErr()));
-        result.put(Label.load_da_max_forecast_err, String.format("%.2f", marketSettingDO.getLoadDaMaxForecastErr()));
-        result.put(Label.renewable_annual_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewableAnnualMaxForecastErr()));
-        result.put(Label.renewable_monthly_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewableMonthlyMaxForecastErr()));
-        result.put(Label.renewable_da_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewableDaMaxForecastErr()));
+        Map<Label, String> result1 = new LinkedHashMap<>();
+        result1.put(Label.offer_price_cap, String.format("%.2f", marketSettingDO.getOfferPriceCap()));
+        result1.put(Label.offer_price_floor, String.format("%.2f", marketSettingDO.getOfferPriceFloor()));
+        result1.put(Label.bid_price_cap, String.format("%.2f", marketSettingDO.getBidPriceCap()));
+        result1.put(Label.bid_price_floor, String.format("%.2f", marketSettingDO.getBidPriceCap()));
+        result.put("全市场报价上下限", result1);
 
-        result.put(Label.transmission_and_distribution_tariff, String.format("%.2f", marketSettingDO.getTransmissionAndDistributionTariff()));
-        result.put(Label.regulated_user_tariff, String.format("%.2f", marketSettingDO.getRegulatedUserTariff()));
-        result.put(Label.regulated_producer_price, String.format("%.2f", marketSettingDO.getRegulatedProducerPrice()));
-        result.put(Label.regulated_interprov_transmission_price, String.format("%.2f", marketSettingDO.getRegulatedInterprovTransmissionPrice()));
+        Map<Label, String> result2 = new LinkedHashMap<>();
+        result2.put(Label.load_annual_max_forecast_err, String.format("%.2f", marketSettingDO.getLoadAnnualMaxForecastErr()));
+        result2.put(Label.load_monthly_max_forecast_err, String.format("%.2f", marketSettingDO.getLoadMonthlyMaxForecastErr()));
+        result2.put(Label.load_da_max_forecast_err, String.format("%.2f", marketSettingDO.getLoadDaMaxForecastErr()));
+        result2.put(Label.renewable_annual_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewableAnnualMaxForecastErr()));
+        result2.put(Label.renewable_monthly_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewableMonthlyMaxForecastErr()));
+        result2.put(Label.renewable_da_max_forecast_err, String.format("%.2f", marketSettingDO.getRenewableDaMaxForecastErr()));
+        result.put("负荷与新能源发电预测偏差", result2);
 
-        result.put(Label.round_id, String.valueOf(marketSettingDO.getRoundId()));
-        result.put(Label.interprov_clearing_mode, marketSettingDO.getInterprov_clearing_mode());
-        result.put(Label.interprov_trading_mode, marketSettingDO.getInterprov_trading_mode());
+        Map<Label, String> result3 = new LinkedHashMap<>();
+        result3.put(Label.transmission_and_distribution_tariff, String.format("%.2f", marketSettingDO.getTransmissionAndDistributionTariff()));
+        result3.put(Label.regulated_user_tariff, String.format("%.2f", marketSettingDO.getRegulatedUserTariff()));
+        result3.put(Label.regulated_producer_price, String.format("%.2f", marketSettingDO.getRegulatedProducerPrice()));
+        result3.put(Label.regulated_interprov_transmission_price, String.format("%.2f", marketSettingDO.getRegulatedInterprovTransmissionPrice()));
+        result.put("各类非市场化定价", result3);
 
-        result.put(Label.sender_peak_prds, TimeFrame.PEAK.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
-        result.put(Label.sender_flat_prds, TimeFrame.FLAT.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
-        result.put(Label.sender_valley_prds, TimeFrame.VALLEY.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
+        Map<Label, String> result4 = new LinkedHashMap<>();
+        result4.put(Label.round_id, String.valueOf(marketSettingDO.getRoundId()));
+        result4.put(Label.interprov_clearing_mode, marketSettingDO.getInterprov_clearing_mode());
+        result4.put(Label.interprov_trading_mode, marketSettingDO.getInterprov_trading_mode());
+        result.put("市场状态定义", result4);
 
-        result.put(Label.receive_peak_prds, TimeFrame.PEAK.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
-        result.put(Label.receive_flat_prds, TimeFrame.FLAT.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
-        result.put(Label.receive_valley_prds,TimeFrame.VALLEY.getPrds().stream().map(Object::toString).collect(Collectors.joining(", ")));
+        Map<Label, String> result5 = new LinkedHashMap<>();
+        result5.put(Label.sender_peak_prds, "06:00-09:00; 15:00-23:00");
+        result5.put(Label.sender_flat_prds, "00:00-05:00");
+        result5.put(Label.sender_valley_prds, "10:00-14:00");
+        result.put("峰平谷定义", result5);
+
 
         return result;
     }
@@ -144,8 +151,33 @@ public class DataController {
      */
     @GetMapping("marketProfile")
     public List<Map<Label, String>> marketData() {
+
         LinkedHashMap<Label, String> result0 = new LinkedHashMap<>();
         result0.put(Label.market_profile_locate_province, Province.TRANSFER.getDesc());
+
+        Comp comp = tunnel.runningComp();
+        Long compId = comp.getCompId();
+        Integer roundId = comp.getRoundId();
+
+        LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UnitDO::getCompId, comp.getCompId());
+        queryWrapper.eq(UnitDO::getRoundId, comp.getRoundId());
+        List<Unit> units = Collect.transfer(unitDOMapper.selectList(queryWrapper), UnitDAOAdapter.Convertor.INST::to);
+        List<GeneratorMetaUnit> generatorMetaUnits = units.stream().filter(u -> u.getMetaUnit().getUnitType() == UnitType.GENERATOR)
+                .map(u -> (GeneratorMetaUnit) u.getMetaUnit())
+                .collect(Collectors.toList());
+        List<LoadMetaUnit> loadMetaUnits = units.stream()
+                .filter(u -> u.getMetaUnit().getUnitType() == UnitType.LOAD)
+                .map(u -> (LoadMetaUnit) u.getMetaUnit())
+                .collect(Collectors.toList());
+
+        Province province = Province.TRANSFER;
+        List<GeneratorMetaUnit> classicMetaUnits = generatorMetaUnits.stream().filter(u -> u.getGeneratorType() == GeneratorType.CLASSIC).collect(Collectors.toList());
+        classicMetaUnits.stream().filter(u -> u.getProvince() == province).collect(Collectors.groupingBy(GeneratorMetaUnit::getCapacity));
+        List<GeneratorMetaUnit> renewableMetaUnits = generatorMetaUnits.stream().filter(u -> u.getGeneratorType() == GeneratorType.RENEWABLE).collect(Collectors.toList());
+
+
+
         result0.put(Label.market_profile_generator, "xxx");
         result0.put(Label.market_profile_load, "xxx");
         result0.put(Label.market_profile_offer_require_ratio, "xxx");
@@ -200,10 +232,8 @@ public class DataController {
             transferData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
         } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
             transferData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMonthlyReceivingForecastMw));
-        } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
-            transferData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getDaReceivingForecastMw));
         } else {
-            throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+            transferData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getDaReceivingForecastMw));
         }
 
         result.put(Label.transfer_96_analysis, transferData);
@@ -235,10 +265,8 @@ public class DataController {
             receiveData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getAnnualReceivingForecastMw));
         } else if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
             receiveData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getMonthlyReceivingForecastMw));
-        } else if (marketType == MarketType.INTRA_SPOT_PROVINCIAL || marketType == MarketType.INTER_SPOT_PROVINCIAL) {
-            receiveData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getDaReceivingForecastMw));
         } else {
-            throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+            receiveData.put(Label.receive_forecast_mw, Collect.transfer(transferTpbfsdDOS, TpbfsdDO::getDaReceivingForecastMw));
         }
         result.put(Label.receiver_96_analysis, receiveData);
 
@@ -340,7 +368,9 @@ public class DataController {
         Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
 
         LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UnitDO::getCompId, tunnel.runningComp().getCompId());
+        Comp comp = tunnel.runningComp();
+        queryWrapper.eq(UnitDO::getCompId, comp.getCompId());
+        queryWrapper.eq(UnitDO::getRoundId, comp.getRoundId());
         queryWrapper.eq(UnitDO::getUserId, userId);
 
 

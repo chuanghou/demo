@@ -28,5 +28,10 @@ public class MetaUnitDO {
     Integer sourceId;
     String capacity;
     String generatorType; // only uniType is generator, this field is not null
+    Double volume;
+    String nameType;
 
 }
+
+
+
