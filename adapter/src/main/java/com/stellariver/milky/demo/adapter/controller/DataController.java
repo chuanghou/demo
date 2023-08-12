@@ -44,6 +44,7 @@ public class DataController {
     final SprMapper sprMapper;
     final TpbfsdMapper tpbfsdMapper;
     final MarketSettingMapper marketSettingMapper;
+    final MetaUnitDOMapper metaUnitDOMapper;
 
     /**
      * 市场公告
@@ -150,7 +151,9 @@ public class DataController {
      * 市场概况
      */
     @GetMapping("marketProfile")
-    public List<Map<Label, String>> marketData() {
+    public List<Map<Label, String>> marketData(@RequestParam("marketTypeValue") String marketTypeValue) {
+
+        MarketType marketType = MarketType.valueOf(marketTypeValue);
 
         LinkedHashMap<Label, String> result0 = new LinkedHashMap<>();
         result0.put(Label.market_profile_locate_province, Province.TRANSFER.getDesc());
@@ -162,31 +165,50 @@ public class DataController {
         LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UnitDO::getCompId, comp.getCompId());
         queryWrapper.eq(UnitDO::getRoundId, comp.getRoundId());
-        List<Unit> units = Collect.transfer(unitDOMapper.selectList(queryWrapper), UnitDAOAdapter.Convertor.INST::to);
-        List<GeneratorMetaUnit> generatorMetaUnits = units.stream().filter(u -> u.getMetaUnit().getUnitType() == UnitType.GENERATOR)
-                .map(u -> (GeneratorMetaUnit) u.getMetaUnit())
-                .collect(Collectors.toList());
-        List<LoadMetaUnit> loadMetaUnits = units.stream()
-                .filter(u -> u.getMetaUnit().getUnitType() == UnitType.LOAD)
-                .map(u -> (LoadMetaUnit) u.getMetaUnit())
-                .collect(Collectors.toList());
+        List<Integer> metaUnitIds = Collect.transfer(unitDOMapper.selectList(queryWrapper), UnitDAOAdapter.Convertor.INST::to)
+                .stream().map(u -> u.getMetaUnit().getMetaUnitId()).collect(Collectors.toList());
 
-        Province province = Province.TRANSFER;
-        List<GeneratorMetaUnit> classicMetaUnits = generatorMetaUnits.stream().filter(u -> u.getGeneratorType() == GeneratorType.CLASSIC).collect(Collectors.toList());
-        classicMetaUnits.stream().filter(u -> u.getProvince() == province).collect(Collectors.groupingBy(GeneratorMetaUnit::getCapacity));
-        List<GeneratorMetaUnit> renewableMetaUnits = generatorMetaUnits.stream().filter(u -> u.getGeneratorType() == GeneratorType.RENEWABLE).collect(Collectors.toList());
+        List<MetaUnitDO> metaUnitDOs = metaUnitDOMapper.selectBatchIds(metaUnitIds);
+        String transferInfo = metaUnitDOs.stream().filter(m -> m.getUnitType().equals(UnitType.GENERATOR.name()))
+                .filter(m -> m.getProvince().equals(Province.TRANSFER.name()))
+                .collect(Collectors.groupingBy(MetaUnitDO::getNameType))
+                .entrySet().stream().map(e -> e.getKey() + e.getValue().size() + "台")
+                .collect(Collectors.joining("\n"));
+        result0.put(Label.market_profile_generator, transferInfo);
 
 
+        List<SprDO> sprDOs = sprMapper.selectList(null);
+        List<SprDO> transferSprDOs = sprDOs.stream().filter(sprDO -> sprDO.getProv().equals(Province.TRANSFER.getDbCode())).collect(Collectors.toList());
+        if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
+            Double max = transferSprDOs.stream().max(Comparator.comparing(SprDO::getAnnualLoadForecast)).map(SprDO::getAnnualLoadForecast).orElse(0D);
+            Double min = transferSprDOs.stream().min(Comparator.comparing(SprDO::getAnnualLoadForecast)).map(SprDO::getAnnualLoadForecast).orElse(0D);
+            String value = String.format("全天最高负荷%sMW\n全天最低负荷%sMW", max, min);
+            result0.put(Label.market_profile_load, value);
+        } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL || marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
+            Double max = transferSprDOs.stream().max(Comparator.comparing(SprDO::getMonthlyLoadForecast)).map(SprDO::getAnnualLoadForecast).orElse(0D);
+            Double min = transferSprDOs.stream().min(Comparator.comparing(SprDO::getMonthlyLoadForecast)).map(SprDO::getAnnualLoadForecast).orElse(0D);
+            String value = String.format("全天最高负荷%sMW\n全天最低负荷%sMW", max, min);
+            result0.put(Label.market_profile_load, value);
+        } else {
+            Double max = transferSprDOs.stream().max(Comparator.comparing(SprDO::getDaLoadForecast)).map(SprDO::getAnnualLoadForecast).orElse(0D);
+            Double min = transferSprDOs.stream().min(Comparator.comparing(SprDO::getDaLoadForecast)).map(SprDO::getAnnualLoadForecast).orElse(0D);
+            String value = String.format("全天最高负荷%sMW\n全天最低负荷%sMW", max, min);
+            result0.put(Label.market_profile_load, value);
+        }
 
-        result0.put(Label.market_profile_generator, "xxx");
-        result0.put(Label.market_profile_load, "xxx");
-        result0.put(Label.market_profile_offer_require_ratio, "xxx");
+
 
         LinkedHashMap<Label, String> result1 = new LinkedHashMap<>();
+        transferInfo = metaUnitDOs.stream().filter(m -> m.getUnitType().equals(UnitType.GENERATOR.name()))
+                .filter(m -> m.getProvince().equals(Province.RECEIVER.name()))
+                .collect(Collectors.groupingBy(MetaUnitDO::getNameType))
+                .entrySet().stream().map(e -> e.getKey() + e.getValue().size() + "台")
+                .collect(Collectors.joining("\n"));
         result1.put(Label.market_profile_locate_province, Province.RECEIVER.getDesc());
-        result1.put(Label.market_profile_generator, "xxx");
+        result1.put(Label.market_profile_generator, transferInfo);
+
+
         result1.put(Label.market_profile_load, "xxx");
-        result1.put(Label.market_profile_offer_require_ratio, "xxx");
         return Arrays.asList(result0, result1);
     }
 
