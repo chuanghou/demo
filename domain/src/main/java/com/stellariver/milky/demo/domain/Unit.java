@@ -158,8 +158,9 @@ public class Unit extends AggregateRoot {
                 Direction direction = command.getBid().getDirection();
                 UnitType unitType = metaUnit.getUnitType();
                 if (direction.opposite() == unitType.generalDirection()){
-                    Double originalBalance = balances.get(bid.getTimeFrame()).remove(unitType.generalDirection());
-                    balances.get(bid.getTimeFrame()).put(direction, originalBalance);
+                    Double originalBalance = balances.get(bid.getTimeFrame()).get(unitType.generalDirection());
+                    Double capacity = metaUnit.getCapacity().get(bid.getTimeFrame()).get(unitType.generalDirection());
+                    balances.get(bid.getTimeFrame()).put(direction, capacity - originalBalance);
                 }
             }
             Direction stageFourDirection = stageFourDirections.get(bid.getTimeFrame());

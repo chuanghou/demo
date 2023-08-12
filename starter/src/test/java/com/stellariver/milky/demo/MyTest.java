@@ -43,8 +43,8 @@ public class MyTest {
                 .build();
         System.out.println(Json.toJson(Arrays.asList(build, build)));
 
-        BalanceVO balanceVO0 = BalanceVO.builder().direction(Direction.BUY).balance(100D).onMatching(100D).dealed(100D).build();
-        BalanceVO balanceVO1 = BalanceVO.builder().direction(Direction.SELL).balance(100D).onMatching(100D).dealed(100D).build();
+
+        BalanceVO balanceVO1 = BalanceVO.builder().directions(Collect.asList(Direction.SELL)).onMatching(100D).dealed(100D).build();
 
         DealVO dealVO = DealVO.builder().status("成交")
                 .date(new Date())
@@ -65,7 +65,7 @@ public class MyTest {
                 .timeFrame(TimeFrame.PEAK)
                 .unitType(UnitType.GENERATOR)
                 .province(Province.TRANSFER)
-                .balanceVOs(Arrays.asList(balanceVO0, balanceVO1))
+                .balanceVO(balanceVO1)
                 .bidVOs(Collect.asList(build1, build1))
                 .build();
 

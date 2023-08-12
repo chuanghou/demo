@@ -26,7 +26,7 @@ public class UnitVO {
     UnitType unitType;
     Province province;
     TimeFrame timeFrame;
-    List<BalanceVO> balanceVOs;
+    BalanceVO balanceVO;
     List<BidVO> bidVOs;
 
 }
