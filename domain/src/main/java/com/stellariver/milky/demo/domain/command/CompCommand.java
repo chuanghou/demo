@@ -102,6 +102,23 @@ public class CompCommand {
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class Review extends Command {
+
+        Long compId;
+
+        @Override
+        public String getAggregateId() {
+            return compId.toString();
+        }
+
+    }
+
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Edit extends Command {
 
         Long compId;

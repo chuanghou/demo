@@ -76,7 +76,9 @@ public class UnitController {
         String userId = TokenUtils.getUserId(token);
         LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UnitDO::getCompId, comp.getCompId());
-        queryWrapper.eq(UnitDO::getUserId, Integer.parseInt(userId));
+        if (!comp.getReview()) {
+            queryWrapper.eq(UnitDO::getUserId, Integer.parseInt(userId));
+        }
         queryWrapper.eq(UnitDO::getRoundId, comp.getRoundId());
         List<Unit> units = Collect.transfer(unitDOMapper.selectList(queryWrapper), UnitDAOAdapter.Convertor.INST::to);
         List<UnitVO> unitVOs = Arrays.stream(TimeFrame.values()).map(t -> {

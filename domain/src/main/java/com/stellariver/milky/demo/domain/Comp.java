@@ -56,6 +56,8 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     Map<Stage, Date> endTime;
 
+    Boolean review;
+
     @JsonIgnore
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
     @JsonIgnore
@@ -116,6 +118,12 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     @MethodHandler
     public void update(CompCommand.TimeLine timeLine, Context context) {
         this.endTime = timeLine.getEndTime();
+        context.publishPlaceHolderEvent(getAggregateId());
+    }
+
+    @MethodHandler
+    public void update(CompCommand.Review review, Context context) {
+        this.review = true;
         context.publishPlaceHolderEvent(getAggregateId());
     }
 
