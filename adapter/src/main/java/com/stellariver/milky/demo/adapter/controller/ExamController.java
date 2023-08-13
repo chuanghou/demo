@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class ExamController {
         });
         BizEx.nullThrow(tunnel.runningComp(), ErrorEnums.PARAM_FORMAT_WRONG.message("请联系管理员开启比赛!"));
         int paperNo = tunnel.runningComp().getPaperNo() - 1;
-        questionVOs = questionVOs.stream().filter(q -> q.getUid() % 5 == paperNo).collect(Collectors.toList());
+        questionVOs = questionVOs.stream().filter(q -> q.getUid() % 5 == paperNo).sorted(Comparator.comparing(QuestionVO::getQuestionType)).collect(Collectors.toList());
         return Result.success(questionVOs);
     }
 
