@@ -35,6 +35,7 @@ import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.*;
@@ -102,6 +103,7 @@ public class UnitController {
         List<BidVO> bidVOs = bids.stream().map(bid -> {
             Double sum = bid.getDeals().stream().map(Deal::getQuantity).reduce(0D, Double::sum);
             return BidVO.builder().quantity(bid.getQuantity())
+                    .date(DateFormatUtils.format(bid.getDate(), "HH:mm:ss", TimeZone.getTimeZone("GMT+8")))
                     .price(bid.getPrice())
                     .cancelable(bid.getBidStatus() == BidStatus.NEW_DECELERATED || bid.getBidStatus() == BidStatus.PART_DEAL)
                     .notDeal(bid.getQuantity() - sum)
@@ -119,11 +121,12 @@ public class UnitController {
                 .build();
     }
 
+
     private List<DealVO> toDealVOs(Bid bid) {
         List<DealVO> dealVOS = new ArrayList<>();
         for (Deal deal: bid.getDeals()) {
             DealVO dealVO = DealVO.builder().status("成交")
-                    .date(deal.getDate())
+                    .date(DateFormatUtils.format(deal.getDate(), "HH:mm:ss", TimeZone.getTimeZone("GMT+8")))
                     .price(deal.getPrice())
                     .quantity(deal.getQuantity())
                     .build();
@@ -135,7 +138,7 @@ public class UnitController {
         if (bid.getBidStatus() == BidStatus.CANCELLED) {
             DealVO dealVO = DealVO.builder().status("已撤")
                     .price(bid.getPrice())
-                    .date(bid.getCancelledDate())
+                    .date(DateFormatUtils.format(bid.getCancelledDate(), "HH:mm:ss", TimeZone.getTimeZone("GMT+8")))
                     .quantity(bid.getQuantity() - reduce)
                     .build();
             dealVOS.add(dealVO);

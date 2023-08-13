@@ -15,6 +15,7 @@ import java.util.List;
 public class BidVO {
 
     Double quantity;
+    String date;
     Double price;
     Double notDeal;
     Boolean cancelable;

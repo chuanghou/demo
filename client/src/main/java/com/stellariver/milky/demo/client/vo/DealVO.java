@@ -19,5 +19,5 @@ public class DealVO {
     String status;
     Double price;
     Double quantity;
-    Date date;
+    String date;
 }
