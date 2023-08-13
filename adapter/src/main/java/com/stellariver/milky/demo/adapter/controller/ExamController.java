@@ -11,9 +11,7 @@ import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import com.stellariver.milky.demo.infrastructure.database.entity.QuestionDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.QuestionDOMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,7 +39,7 @@ public class ExamController {
     }
 
     @GetMapping("submitAnswers")
-    public void submitAnswers(List<AnswerPO> answerPOs) {
+    public void submitAnswers(@RequestBody List<AnswerPO> answerPOs, @RequestHeader String token) {
 
     }
 
