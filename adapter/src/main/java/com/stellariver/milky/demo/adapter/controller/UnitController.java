@@ -63,6 +63,9 @@ public class UnitController {
         LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UnitDO::getCompId, comp.getCompId());
         queryWrapper.eq(UnitDO::getUserId, userId);
+        if (comp.getReview() == null) {
+            queryWrapper.eq(UnitDO::getUserId, Integer.parseInt(userId));
+        }
         queryWrapper.eq(UnitDO::getRoundId, comp.getRoundId());
         List<UnitDO> unitDOS = unitDOMapper.selectList(queryWrapper);
         List<Unit> units = Collect.transfer(unitDOS, UnitDAOAdapter.Convertor.INST::to);
@@ -77,9 +80,7 @@ public class UnitController {
         String userId = TokenUtils.getUserId(token);
         LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UnitDO::getCompId, comp.getCompId());
-        if (!Kit.eq(comp.getReview(), true)) {
-            queryWrapper.eq(UnitDO::getUserId, Integer.parseInt(userId));
-        }
+        queryWrapper.eq(UnitDO::getUserId, Integer.parseInt(userId));
         queryWrapper.eq(UnitDO::getRoundId, comp.getRoundId());
         List<Unit> units = Collect.transfer(unitDOMapper.selectList(queryWrapper), UnitDAOAdapter.Convertor.INST::to);
         List<UnitVO> unitVOs = Arrays.stream(TimeFrame.values()).map(t -> {
@@ -276,10 +277,6 @@ public class UnitController {
             bid.setMarketType(BeanUtil.getBean(Tunnel.class).runningComp().getMarketType());
         }
 
-    }
-
-    public static void main(String[] args) {
-        System.out.println(TokenUtils.sign("0"));
     }
 
 }
