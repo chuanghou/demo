@@ -36,4 +36,9 @@ public class TokenInterceptor implements HandlerInterceptor {
         return false;
     }
 
+    public static void main(String[] args) {
+        System.out.println(TokenUtils.sign("0"));
+        System.out.println(TokenUtils.sign("1000"));
+    }
+
 }

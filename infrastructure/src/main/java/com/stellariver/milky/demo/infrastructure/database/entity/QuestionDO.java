@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Data
 @Builder
-@TableName("demo_deal")
+@TableName("examination_questions")
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)

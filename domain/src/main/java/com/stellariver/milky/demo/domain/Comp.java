@@ -58,7 +58,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     Boolean review;
 
-    Integer paperNo = 0;
+    Integer paperNo = 1;
 
     @JsonIgnore
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
