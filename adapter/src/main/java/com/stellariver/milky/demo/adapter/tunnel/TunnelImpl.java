@@ -7,6 +7,7 @@ import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.adapter.repository.domain.CompDODAOWrapper;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.adapter.websocket.WsHandler;
+import com.stellariver.milky.demo.basic.CentralizedDeals;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.Message;
 import com.stellariver.milky.demo.basic.RtCompVO;
@@ -120,22 +121,55 @@ public class TunnelImpl implements Tunnel {
 
     final TieLineDOMapper tieLineDOMapper;
     @Override
-    public void writeReplenishes(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes) {
-        LambdaQueryWrapper<TieLinePowerDO> queryWrapper = new LambdaQueryWrapper<TieLinePowerDO>().eq(TieLinePowerDO::getRound_id, roundId);
+    public void tieLinePower(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes, Map<TimeFrame, CentralizedDeals> centralizedDealsMap) {
+        LambdaQueryWrapper<TieLinePowerDO> queryWrapper = new LambdaQueryWrapper<TieLinePowerDO>().eq(TieLinePowerDO::getRoundId, roundId);
         List<TieLinePowerDO> tieLinePowerDOs = tieLineDOMapper.selectList(queryWrapper);
         Map<Integer, TieLinePowerDO> map = Collect.toMapMightEx(tieLinePowerDOs, TieLinePowerDO::getPrd);
         replenishes.forEach((t, r) -> {
             Set<Integer> prds = new HashSet<>(t.getPrds());
             if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL) {
-                prds.forEach(prd -> map.get(prd).setAnnual_nonmarket_tieline_power(r));
+                prds.forEach(prd -> map.get(prd).setAnnualNonmarketTielinePower(r));
             } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
-                prds.forEach(prd -> map.get(prd).setMonthly_nonmarket_tieline_power(r));
+                prds.forEach(prd -> map.get(prd).setMonthlyTielinePower(r));
+                prds.forEach(prd -> map.get(prd).setMonthlyMarketTielinePower(r));
+                prds.forEach(prd -> map.get(prd).setMonthlyNonmarketTielinePower(r));
             } else if (marketType == MarketType.INTER_SPOT_PROVINCIAL) {
-                prds.forEach(prd -> map.get(prd).setDa_nonmarket_tieline_power(r));
+                prds.forEach(prd -> map.get(prd).setDaTielinePower(r));
+                prds.forEach(prd -> map.get(prd).setDaMarketTielinePower(r));
+                prds.forEach(prd -> map.get(prd).setDaNonmarketTielinePower(r));
             } else {
                 throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
             }
         });
+
+        centralizedDealsMap.forEach((t, r) -> {
+            Set<Integer> prds = new HashSet<>(t.getPrds());
+            if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL) {
+                prds.forEach(prd -> map.get(prd).setAnnualMarketTielinePower(r.getDealQuantityTotal()));
+
+                prds.forEach(prd -> {
+                    double v = map.get(prd).getAnnualMarketTielinePower() + map.get(prd).getAnnualNonmarketTielinePower();
+                    map.get(prd).setAnnualTielinePower(v);
+                });
+            } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
+                prds.forEach(prd -> map.get(prd).setMonthlyMarketTielinePower(r.getDealQuantityTotal()));
+                prds.forEach(prd -> {
+                    double v = map.get(prd).getMonthlyMarketTielinePower() + map.get(prd).getMonthlyNonmarketTielinePower();
+                    map.get(prd).setMonthlyTielinePower(v);
+                });
+
+            } else if (marketType == MarketType.INTER_SPOT_PROVINCIAL) {
+                prds.forEach(prd -> map.get(prd).setDaTielinePower(r.getDealQuantityTotal()));
+                prds.forEach(prd -> {
+                    double v = map.get(prd).getDaMarketTielinePower() + map.get(prd).getDaNonmarketTielinePower();
+                    map.get(prd).setDaTielinePower(v);
+                });
+            } else {
+                throw new SysEx(ErrorEnums.UNREACHABLE_CODE);
+            }
+        });
+
+
         tieLinePowerDOs.forEach(tieLineDOMapper::updateById);
     }
 

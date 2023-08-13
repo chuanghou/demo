@@ -1,19 +1,20 @@
-package com.stellariver.milky.demo.client.po;
+package com.stellariver.milky.demo.common;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.List;
-import java.util.Set;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AnswerPO {
+public class ExamScoreVO {
 
-    Long id;
-    Set<String> choices;
+    Integer score;
+    List<QuestionVO> questionVOs;
 
 }
+
+

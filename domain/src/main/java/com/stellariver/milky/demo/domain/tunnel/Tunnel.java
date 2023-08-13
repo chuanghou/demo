@@ -1,5 +1,6 @@
 package com.stellariver.milky.demo.domain.tunnel;
 
+import com.stellariver.milky.demo.basic.CentralizedDeals;
 import com.stellariver.milky.demo.basic.Message;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
@@ -34,7 +35,7 @@ public interface Tunnel {
 
     void updateRoundIdForMarketSetting(Integer roundId);
 
-    void writeReplenishes(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes);
+    void tieLinePower(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes, Map<TimeFrame, CentralizedDeals> centralizedDealsMap);
 
     void cast(Message message);
 }

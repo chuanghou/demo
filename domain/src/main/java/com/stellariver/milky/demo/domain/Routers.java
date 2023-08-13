@@ -38,7 +38,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 
@@ -267,7 +266,8 @@ public class Routers implements EventRouters {
     public void routeForReplenishes(CompEvent.Cleared event, Context context) {
         Comp comp = tunnel.runningComp();
         Map<TimeFrame, Double> replenishes = event.getReplenishes();
-        tunnel.writeReplenishes(comp.getRoundId(), comp.getMarketType(), replenishes);
+        Map<TimeFrame, CentralizedDeals> centralizedDealsMap = event.getCentralizedDealsMap();
+        tunnel.tieLinePower(comp.getRoundId(), comp.getMarketType(), replenishes, centralizedDealsMap);
     }
 
     @EventRouter
