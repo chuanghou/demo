@@ -12,5 +12,5 @@ import java.util.Date;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PriceVO {
     Double price;
-    Date date;
+    String date;
 }

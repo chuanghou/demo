@@ -19,6 +19,7 @@ import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
@@ -214,7 +215,9 @@ public class RealtimeBidProcessor implements EventHandler<RtBidContainer> {
     }
 
     private void updateRtCompPushDetail() {
-        rtCompVO.getPrices().add(PriceVO.builder().price(currentPrice).date(new Date()).build());
+        rtCompVO.getPrices().add(PriceVO.builder().price(currentPrice)
+                .date(DateFormatUtils.format(new Date(), "HH:mm:ss", TimeZone.getTimeZone("GMT+8")))
+                .build());
         rtCompVO.setDeals(new ArrayList<>(deals));
         rtCompVO.setBuyBids(Collect.transfer(new ArrayList<>(buyPriorityQueue), Convertor.INST::to));
         rtCompVO.setSellBids(Collect.transfer(new ArrayList<>(sellPriorityQueue), Convertor.INST::to));

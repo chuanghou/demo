@@ -11,6 +11,7 @@ import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.common.RtProcessorKey;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +24,9 @@ public class MyTest {
         NewBid newBid = NewBid.builder().bidId(11L).direction(Direction.BUY).price(100D).quantity(100D).marketType(MarketType.INTER_ANNUAL_PROVINCIAL).province(Province.TRANSFER).build();
         Deal deal = Deal.builder().date(new Date()).dealId(1111L).unitId(344L).price(3455D).quantity(12432423D).build();
         MarketAsk marketAsk = MarketAsk.builder().quantity(123D).price(24D).build();
-        PriceVO build2 = PriceVO.builder().price(34D).date(new Date()).build();
+        PriceVO build2 = PriceVO.builder().price(34D)
+                .date(DateFormatUtils.format(deal.getDate(), "HH:mm:ss", TimeZone.getTimeZone("GMT+8")))
+                .build();
 
         VolumeVO volumeVO0 = VolumeVO.builder().left(0D).right(200D).value(222D).build();
         VolumeVO volumeVO1 = VolumeVO.builder().left(200D).right(400D).value(222D).build();
@@ -53,7 +56,6 @@ public class MyTest {
                 .directions(Collect.asList(Direction.SELL)).onMatching(100D).dealed(100D).build();
 
         DealVO dealVO = DealVO.builder().status("成交")
-                .date(new Date())
                 .price(100D)
                 .quantity(100D)
                 .build();

@@ -1,0 +1,183 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v2.7.7)
+
+
+=====msg: HV000001: Hibernate Validator 6.2.5.Final
+==header: 14:54:37.719 [background-preinit-INFO ] org.hibernate.validator.internal.util.Version:21  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Starting MilkyDemoApplication using Java 1.8.0_382 on DESKTOP-K0KOEV3 with PID 8203 (/mnt/c/Users/houch/IdeaProjects/demo/bin/starter-1.0.0-SNAPSHOT.jar started by root in /mnt/c/Users/houch/IdeaProjects/demo)
+==header: 14:54:37.753 [main-INFO ] com.stellariver.milky.demo.MilkyDemoApplication:55  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: No active profile set, falling back to 1 default profile: "default"
+==header: 14:54:37.756 [main-INFO ] com.stellariver.milky.demo.MilkyDemoApplication:631 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Tomcat initialized with port(s): 443 (https) 80 (http)
+==header: 14:54:39.042 [main-INFO ] org.springframework.boot.web.embedded.tomcat.TomcatWebServer:108 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Initializing ProtocolHandler ["https-jsse-nio-443"]
+==header: 14:54:39.052 [main-INFO ] org.apache.coyote.http11.Http11NioProtocol:173 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Initializing ProtocolHandler ["http-nio-80"]
+==header: 14:54:39.053 [main-INFO ] org.apache.coyote.http11.Http11NioProtocol:173 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Starting service [Tomcat]
+==header: 14:54:39.057 [main-INFO ] org.apache.catalina.core.StandardService:173 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Starting Servlet engine: [Apache Tomcat/9.0.70]
+==header: 14:54:39.058 [main-INFO ] org.apache.catalina.core.StandardEngine:173 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Initializing Spring embedded WebApplicationContext
+==header: 14:54:39.152 [main-INFO ] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/]:173 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Root WebApplicationContext: initialization completed in 1360 ms
+==header: 14:54:39.152 [main-INFO ] org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext:292 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Init DruidDataSource
+==header: 14:54:39.244 [main-INFO ] com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure:55  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: {dataSource-1} inited
+==header: 14:54:39.367 [main-INFO ] com.alibaba.druid.pool.DruidDataSource:985 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Property 'mapperLocations' was specified but matching resources are not found.
+==header: 14:54:39.487 [main-WARN ] com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean:44  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+ _ _   |_  _ _|_. ___ _ |    _ 
+| | |\/|_)(_| | |_\  |_)||_|_\ 
+     /               |         
+                        3.5.1 
+
+=====msg: Can not find table primary key in Class: "com.stellariver.milky.demo.infrastructure.database.entity.TransLineLimitDO".
+==header: 14:54:39.837 [main-WARN ] com.baomidou.mybatisplus.core.metadata.TableInfoHelper:342 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: class com.stellariver.milky.demo.infrastructure.database.entity.TransLineLimitDO ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+==header: 14:54:39.837 [main-WARN ] com.baomidou.mybatisplus.core.injector.DefaultSqlInjector:56  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Can not find table primary key in Class: "com.stellariver.milky.demo.infrastructure.database.entity.SubregionBasicDO".
+==header: 14:54:39.957 [main-WARN ] com.baomidou.mybatisplus.core.metadata.TableInfoHelper:342 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: class com.stellariver.milky.demo.infrastructure.database.entity.SubregionBasicDO ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+==header: 14:54:39.957 [main-WARN ] com.baomidou.mybatisplus.core.injector.DefaultSqlInjector:56  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Can not find table primary key in Class: "com.stellariver.milky.demo.infrastructure.database.entity.ThermalUnitCostDO".
+==header: 14:54:39.976 [main-WARN ] com.baomidou.mybatisplus.core.metadata.TableInfoHelper:342 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: class com.stellariver.milky.demo.infrastructure.database.entity.ThermalUnitCostDO ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+==header: 14:54:39.976 [main-WARN ] com.baomidou.mybatisplus.core.injector.DefaultSqlInjector:56  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Can not find table primary key in Class: "com.stellariver.milky.demo.infrastructure.database.entity.SubregionParameterDO".
+==header: 14:54:40.000 [main-WARN ] com.baomidou.mybatisplus.core.metadata.TableInfoHelper:342 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: class com.stellariver.milky.demo.infrastructure.database.entity.SubregionParameterDO ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+==header: 14:54:40.000 [main-WARN ] com.baomidou.mybatisplus.core.injector.DefaultSqlInjector:56  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Can not find table primary key in Class: "com.stellariver.milky.demo.infrastructure.database.entity.RenewableUnitDO".
+==header: 14:54:40.113 [main-WARN ] com.baomidou.mybatisplus.core.metadata.TableInfoHelper:342 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: class com.stellariver.milky.demo.infrastructure.database.entity.RenewableUnitDO ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+==header: 14:54:40.114 [main-WARN ] com.baomidou.mybatisplus.core.injector.DefaultSqlInjector:56  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Can not find table primary key in Class: "com.stellariver.milky.demo.infrastructure.database.entity.LoadForecastDO".
+==header: 14:54:40.140 [main-WARN ] com.baomidou.mybatisplus.core.metadata.TableInfoHelper:342 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: class com.stellariver.milky.demo.infrastructure.database.entity.LoadForecastDO ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+==header: 14:54:40.141 [main-WARN ] com.baomidou.mybatisplus.core.injector.DefaultSqlInjector:56  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Reflections took 76 ms to scan 8 urls, producing 106 keys and 311 values 
+==header: 14:54:40.450 [main-INFO ] org.reflections.Reflections:232 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Reflections took 27 ms to scan 8 urls, producing 120 keys and 369 values 
+==header: 14:54:40.528 [main-INFO ] org.reflections.Reflections:232 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Adding welcome page: ServletContext resource [/index.html]
+==header: 14:54:40.733 [main-INFO ] org.springframework.boot.autoconfigure.web.servlet.WelcomePageHandlerMapping:53  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Can not find table primary key in Class: "com.stellariver.milky.demo.infrastructure.database.entity.Prv".
+==header: 14:54:40.936 [main-WARN ] com.baomidou.mybatisplus.core.metadata.TableInfoHelper:342 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: class com.stellariver.milky.demo.infrastructure.database.entity.Prv ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+==header: 14:54:40.937 [main-WARN ] com.baomidou.mybatisplus.core.injector.DefaultSqlInjector:56  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Starting ProtocolHandler ["https-jsse-nio-443"]
+==header: 14:54:40.971 [main-INFO ] org.apache.coyote.http11.Http11NioProtocol:173 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Starting ProtocolHandler ["http-nio-80"]
+==header: 14:54:41.186 [main-INFO ] org.apache.coyote.http11.Http11NioProtocol:173 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Tomcat started on port(s): 443 (https) 80 (http) with context path ''
+==header: 14:54:41.191 [main-INFO ] org.springframework.boot.web.embedded.tomcat.TomcatWebServer:220 : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
+
+=====msg: Started MilkyDemoApplication in 3.831 seconds (JVM running for 4.551)
+==header: 14:54:41.200 [main-INFO ] com.stellariver.milky.demo.MilkyDemoApplication:61  : [success:] [cost:] [result:]
+===milky: [class:] [method:] [line:]
+====args: [arg0:] [arg1:] [arg2:] [arg3:] [arg4:] [arg5:]
