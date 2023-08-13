@@ -18,10 +18,7 @@ import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.common.RtProcessorKey;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
-import com.stellariver.milky.demo.infrastructure.database.entity.MarketSettingDO;
-import com.stellariver.milky.demo.infrastructure.database.entity.MetaUnitDO;
-import com.stellariver.milky.demo.infrastructure.database.entity.TieLinePowerDO;
-import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
+import com.stellariver.milky.demo.infrastructure.database.entity.*;
 import com.stellariver.milky.demo.infrastructure.database.mapper.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -177,13 +174,35 @@ public class TunnelImpl implements Tunnel {
     @Override
     public void stackDiagram(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes, Map<TimeFrame, CentralizedDeals> centralizedDealsMap) {
 
+        LambdaQueryWrapper<TpbfsdDO> queryWrapper = new LambdaQueryWrapper<TpbfsdDO>().eq(TpbfsdDO::getRoundId, roundId);
+        List<TpbfsdDO> tpbfsdDOs = tpbfsdMapper.selectList(queryWrapper);
+        Map<Integer, TpbfsdDO> map = Collect.toMapMightEx(tpbfsdDOs, TpbfsdDO::getPrd);
 
         if (marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
-
+            Arrays.stream(TimeFrame.values()).forEach(t -> {
+                Double replenish = replenishes.get(t);
+                Double dealQuantityTotal = centralizedDealsMap.get(t).getDealQuantityTotal();
+                t.getPrds().forEach(prd -> {
+                    double deal = replenish + dealQuantityTotal;
+                    map.get(prd).setIntraprovincialAnnualTielinePower(deal);
+                    double max = Math.max(deal, map.get(prd).getMinMonthlyReceivingMw());
+                    map.get(prd).setMonthlyReceivingForecastMw(max);
+                });
+            });
         } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
-
+            Arrays.stream(TimeFrame.values()).forEach(t -> {
+                Double replenish = replenishes.get(t);
+                Double dealQuantityTotal = centralizedDealsMap.get(t).getDealQuantityTotal();
+                t.getPrds().forEach(prd -> {
+                    double deal = replenish + dealQuantityTotal;
+                    map.get(prd).setIntraprovincialMonthlyTielinePower(deal);
+                    double max = Math.max(deal, map.get(prd).getDaReceivingTarget());
+                    map.get(prd).setDaReceivingForecastMw(max);
+                });
+            });
         }
 
+        tpbfsdDOs.forEach(tpbfsdMapper::updateById);
     }
 
     @Override
