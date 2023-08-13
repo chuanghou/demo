@@ -10,16 +10,13 @@ import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.basic.TypedEnums;
-import com.stellariver.milky.demo.client.vo.BidVO;
-import com.stellariver.milky.demo.client.vo.DealVO;
+import com.stellariver.milky.demo.client.vo.*;
 import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.enums.*;
 import com.stellariver.milky.demo.client.po.BidPO;
 import com.stellariver.milky.demo.client.po.CentralizedBidPO;
 import com.stellariver.milky.demo.client.po.RealtimeCancelBidPO;
 import com.stellariver.milky.demo.client.po.RealtimeNewBidPO;
-import com.stellariver.milky.demo.client.vo.BalanceVO;
-import com.stellariver.milky.demo.client.vo.UnitVO;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.PriceLimit;
@@ -92,7 +89,7 @@ public class UnitController {
 
     private UnitVO to(Unit unit, MarketType marketType, TimeFrame timeFrame) {
 
-        BalanceVO balanceVO = getBalanceVO(unit, timeFrame, marketType);
+        CapacityVO capacityVO = getCapacityVO(unit, timeFrame, marketType);
 
         List<Bid> bids = unit.getBids().values().stream().filter(bid -> {
             boolean b0 = bid.getTimeFrame() == timeFrame;
@@ -117,7 +114,7 @@ public class UnitController {
                 .province(unit.getMetaUnit().getProvince())
                 .unitType(unit.getMetaUnit().getUnitType())
                 .bidVOs(bidVOs)
-                .balanceVO(balanceVO)
+                .capacityVO(capacityVO)
                 .build();
     }
 
@@ -146,16 +143,42 @@ public class UnitController {
         return dealVOS;
     }
 
-    private BalanceVO getBalanceVO(Unit unit, TimeFrame timeFrame, MarketType marketType) {
-        List<Direction> directions = new ArrayList<>();
-        BalanceVO balanceVO0;
+    private CapacityVO getCapacityVO(Unit unit, TimeFrame timeFrame, MarketType marketType) {
+
+        List<BalanceVO> balanceVOs = new ArrayList<>();
         Direction generalDirection = unit.getMetaUnit().getUnitType().generalDirection();
+        if (marketType != MarketType.INTRA_MONTHLY_PROVINCIAL) {
+            Double aDouble = unit.getBalances().get(timeFrame).get(generalDirection);
+            BalanceVO generalBalanceVO = BalanceVO.builder().direction(generalDirection).balance(aDouble).build();
+            balanceVOs.add(generalBalanceVO);
 
-        directions.add(generalDirection);
-        if (marketType == MarketType.INTRA_MONTHLY_PROVINCIAL) {
-            directions.add(generalDirection.opposite());
+        } else {
+            List<Bid> gBids = unit.getBids().values().stream().filter(b -> b.getDirection() == generalDirection).collect(Collectors.toList());
+            List<Bid> oBids = unit.getBids().values().stream().filter(b -> b.getDirection() == generalDirection.opposite()).collect(Collectors.toList());
+
+            Double gDealQuantity0 = gBids.stream().filter(b -> b.getBidStatus() == BidStatus.CANCELLED)
+                    .flatMap(b -> b.getDeals().stream()).map(Deal::getQuantity).reduce(0D, Double::sum);
+            Double gDealQuantity1 = gBids.stream().filter(b -> b.getBidStatus() != BidStatus.CANCELLED).map(Bid::getQuantity).reduce(0D, Double::sum);
+
+            double gDealQuantity = gDealQuantity0 + gDealQuantity1;
+
+            Double oDealQuantity0 = oBids.stream().filter(b -> b.getBidStatus() == BidStatus.CANCELLED)
+                    .flatMap(b -> b.getDeals().stream()).map(Deal::getQuantity).reduce(0D, Double::sum);
+            Double oDealQuantity1 = oBids.stream().filter(b -> b.getBidStatus() != BidStatus.CANCELLED).map(Bid::getQuantity).reduce(0D, Double::sum);
+
+            double oDealQuantity = oDealQuantity0 + oDealQuantity1;
+
+            Double aDouble = unit.getMetaUnit().getCapacity().get(timeFrame).get(generalDirection);
+
+            double gBalance = aDouble - gDealQuantity + oDealQuantity;
+
+            double oBalance = aDouble - oDealQuantity + gDealQuantity;
+
+            BalanceVO gBalanceVO = BalanceVO.builder().direction(generalDirection).balance(gBalance).build();
+            BalanceVO oBalanceVO = BalanceVO.builder().direction(generalDirection.opposite()).balance(oBalance).build();
+            balanceVOs.add(gBalanceVO);
+            balanceVOs.add(oBalanceVO);
         }
-
 
         Double dealed = unit.getBids().values().stream()
                 .filter(bid -> bid.getDirection() == generalDirection)
@@ -186,8 +209,8 @@ public class UnitController {
                 .reduce(0D, Double::sum);
 
 
-        return BalanceVO.builder()
-                .directions(directions)
+        return CapacityVO.builder()
+                .balanceVOs(balanceVOs)
                 .capacity(unit.getMetaUnit().getCapacity().get(timeFrame).get(generalDirection))
                 .dealed(dealed)
                 .onMatching(Math.max(onMatching0, onMatching1))

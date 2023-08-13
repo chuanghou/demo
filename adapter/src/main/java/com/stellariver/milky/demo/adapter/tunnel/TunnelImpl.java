@@ -173,6 +173,19 @@ public class TunnelImpl implements Tunnel {
         tieLinePowerDOs.forEach(tieLineDOMapper::updateById);
     }
 
+    final TpbfsdMapper tpbfsdMapper;
+    @Override
+    public void stackDiagram(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes, Map<TimeFrame, CentralizedDeals> centralizedDealsMap) {
+
+
+        if (marketType == MarketType.INTRA_ANNUAL_PROVINCIAL) {
+
+        } else if (marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
+
+        }
+
+    }
+
     @Override
     public void cast(Message message) {
         WsHandler.cast(message);

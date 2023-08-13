@@ -263,11 +263,12 @@ public class Routers implements EventRouters {
     }
 
     @EventRouter
-    public void routeForReplenishes(CompEvent.Cleared event, Context context) {
+    public void routeForWriteBackDB(CompEvent.Cleared event, Context context) {
         Comp comp = tunnel.runningComp();
         Map<TimeFrame, Double> replenishes = event.getReplenishes();
         Map<TimeFrame, CentralizedDeals> centralizedDealsMap = event.getCentralizedDealsMap();
         tunnel.tieLinePower(comp.getRoundId(), comp.getMarketType(), replenishes, centralizedDealsMap);
+        tunnel.stackDiagram(comp.getRoundId(), comp.getMarketType(), replenishes, centralizedDealsMap);
     }
 
     @EventRouter

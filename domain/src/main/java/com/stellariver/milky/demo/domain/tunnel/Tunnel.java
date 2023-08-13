@@ -37,5 +37,7 @@ public interface Tunnel {
 
     void tieLinePower(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes, Map<TimeFrame, CentralizedDeals> centralizedDealsMap);
 
+    void stackDiagram(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes, Map<TimeFrame, CentralizedDeals> centralizedDealsMap);
+
     void cast(Message message);
 }

@@ -1,20 +1,16 @@
 package com.stellariver.milky.demo.client.vo;
 
 import com.stellariver.milky.demo.common.enums.Direction;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@NoArgsConstructor
 public class BalanceVO {
-
-    List<Direction> directions;
-    Double capacity;
-    Double dealed;
-    Double onMatching;
+    Direction direction;
+    Double balance;
 }

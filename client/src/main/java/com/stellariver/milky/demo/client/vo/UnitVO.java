@@ -1,6 +1,5 @@
 package com.stellariver.milky.demo.client.vo;
 
-import com.stellariver.milky.demo.common.enums.Direction;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.common.enums.UnitType;
@@ -26,7 +25,7 @@ public class UnitVO {
     UnitType unitType;
     Province province;
     TimeFrame timeFrame;
-    BalanceVO balanceVO;
+    CapacityVO capacityVO;
     List<BidVO> bidVOs;
 
 }

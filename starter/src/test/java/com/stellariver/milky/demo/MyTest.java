@@ -3,14 +3,10 @@ package com.stellariver.milky.demo;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.basic.*;
-import com.stellariver.milky.demo.client.vo.BalanceVO;
-import com.stellariver.milky.demo.client.vo.BidVO;
-import com.stellariver.milky.demo.client.vo.DealVO;
-import com.stellariver.milky.demo.client.vo.UnitVO;
+import com.stellariver.milky.demo.client.vo.*;
 import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.*;
-import com.stellariver.milky.demo.common.RtProcessorKey;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -52,8 +48,10 @@ public class MyTest {
         System.out.println(Json.toJson(Arrays.asList(build, build)));
 
 
-        BalanceVO balanceVO1 = BalanceVO.builder().capacity(1000D)
-                .directions(Collect.asList(Direction.SELL)).onMatching(100D).dealed(100D).build();
+        BalanceVO build00 = BalanceVO.builder().balance(100D).direction(Direction.BUY).build();
+        BalanceVO build01 = BalanceVO.builder().balance(100D).direction(Direction.SELL).build();
+        CapacityVO capacityVO1 = CapacityVO.builder().capacity(1000D)
+                .balanceVOs(Collect.asList(build00, build01)).onMatching(100D).dealed(100D).build();
 
         DealVO dealVO = DealVO.builder().status("成交")
                 .price(100D)
@@ -73,7 +71,7 @@ public class MyTest {
                 .timeFrame(TimeFrame.PEAK)
                 .unitType(UnitType.GENERATOR)
                 .province(Province.TRANSFER)
-                .balanceVO(balanceVO1)
+                .capacityVO(capacityVO1)
                 .bidVOs(Collect.asList(build1, build1))
                 .build();
 
