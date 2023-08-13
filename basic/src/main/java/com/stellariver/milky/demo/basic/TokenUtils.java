@@ -27,6 +27,7 @@ public class TokenUtils {
 
     public static void main(String[] args) {
         System.out.println(TokenUtils.sign("0"));
+        System.out.println(TokenUtils.sign("1000"));
     }
     @SneakyThrows
     public static Boolean verify(String token){
