@@ -77,7 +77,7 @@ public class UnitController {
         String userId = TokenUtils.getUserId(token);
         LambdaQueryWrapper<UnitDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UnitDO::getCompId, comp.getCompId());
-        if (!comp.getReview()) {
+        if (!Kit.eq(comp.getReview(), true)) {
             queryWrapper.eq(UnitDO::getUserId, Integer.parseInt(userId));
         }
         queryWrapper.eq(UnitDO::getRoundId, comp.getRoundId());
