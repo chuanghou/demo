@@ -38,7 +38,7 @@ public class ExamController {
         return Result.success(questionVOs);
     }
 
-    @GetMapping("submitAnswers")
+    @PostMapping("submitAnswers")
     public void submitAnswers(@RequestBody List<AnswerPO> answerPOs, @RequestHeader String token) {
 
     }
