@@ -8,6 +8,7 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.adapter.controller.CompController;
+import com.stellariver.milky.demo.adapter.controller.ExamController;
 import com.stellariver.milky.demo.adapter.controller.UnitController;
 import com.stellariver.milky.demo.adapter.controller.UserController;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
@@ -71,11 +72,14 @@ public class CompTest {
     @Autowired
     MetaUnitDOMapper metaUnitDOMapper;
 
+    @Autowired
+    ExamController examController;
+
 
     @Test
     public void testUnits() throws InterruptedException {
         String sign = TokenUtils.sign("0");
-        Result<List<Unit>> listResult = unitController.listUnits(sign);
+        examController.getExamVO(sign);
     }
 
     @Test

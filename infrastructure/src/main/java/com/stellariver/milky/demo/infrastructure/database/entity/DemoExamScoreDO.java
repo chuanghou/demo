@@ -13,11 +13,12 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@TableName("demo_exam_score")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DemoExamScore {
+public class DemoExamScoreDO {
 
   Long compId;
   Integer userId;
-  ExamScore examScore;
+  String examScore;
 
 }
