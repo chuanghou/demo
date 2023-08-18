@@ -33,38 +33,15 @@ public class ExamController {
 
     final QuestionDOMapper questionDOMapper;
 
-    @GetMapping("listQuestions")
-    public Result<List<QuestionVO>> listQuestions() {
-        List<QuestionDO> questionDOs = questionDOMapper.selectList(null);
-        List<QuestionVO> questionVOs = Collect.transfer(questionDOs, q -> {
-            Map<String, Object> rawOptions = Json.parseMap(q.getOptions(), String.class, Object.class);
-            HashMap<String, Object> options = new HashMap<>();
-            rawOptions.entrySet().stream().filter(e -> !((e.getValue() instanceof String) && ((StringUtils.isBlank((String) e.getValue())))))
-                            .forEach(e -> options.put(e.getKey(), e.getValue()));
-            return QuestionVO.builder().id(q.getId())
-                    .ratio(Kit.enumOfMightEx(QuestionType::getDbCode, q.getType()).getRatio())
-                    .question(q.getName())
-                    .options(options)
-                    .questionType(Kit.enumOfMightEx(QuestionType::getDbCode, q.getType()))
-                    .uid(q.getUid())
-                    .build();
-        });
-        BizEx.nullThrow(tunnel.runningComp(), ErrorEnums.PARAM_FORMAT_WRONG.message("请联系管理员开启比赛!"));
-        int paperNo = tunnel.runningComp().getPaperNo() - 1;
-        questionVOs = questionVOs.stream().filter(q -> q.getUid() % 5 == paperNo).sorted(Comparator.comparing(QuestionVO::getQuestionType)).collect(Collectors.toList());
-        return Result.success(questionVOs);
-    }
-
-    @PostMapping("submitAnswers")
-    public Result<ExamScoreVO> submitAnswers(@RequestBody List<AnswerPO> answerPOs, @RequestHeader String token) {
-
+    @GetMapping("getExamVO")
+    public Result<DemoExamScore> getExamVO(@RequestHeader String token) {
         Long compId = tunnel.runningComp().getCompId();
         Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
 
         LambdaQueryWrapper<DemoExamScore> eq = new LambdaQueryWrapper<DemoExamScore>().eq(DemoExamScore::getCompId, compId).eq(DemoExamScore::getUserId, userId);
         DemoExamScore demoExamScore = demoExamScoreMapper.selectOne(eq);
         if (demoExamScore != null) {
-            return Result.success(demoExamScore.getScore());
+            return Result.success(demoExamScore);
         }
 
         List<QuestionDO> questionDOs = questionDOMapper.selectList(null);
@@ -72,34 +49,56 @@ public class ExamController {
         questionDOs = questionDOs.stream().filter(q -> q.getUid() % 5 == paperNo)
                 .sorted(Comparator.comparing(QuestionDO::getType)).collect(Collectors.toList());
 
-        Map<Long, Set<String>> map = Collect.toMap(answerPOs, AnswerPO::getId, AnswerPO::getChoices);
         List<QuestionVO> questionVOs = Collect.transfer(questionDOs, q -> {
             Map<String, Object> rawOptions = Json.parseMap(q.getOptions(), String.class, Object.class);
             HashMap<String, Object> options = new HashMap<>();
             rawOptions.entrySet().stream().filter(e -> !((e.getValue() instanceof String) && ((StringUtils.isBlank((String) e.getValue())))))
                     .forEach(e -> options.put(e.getKey(), e.getValue()));
-            List<String> as = new ArrayList<>();
-            for (char c : q.getAnswers().toCharArray()) {
-                as.add(String.valueOf(c));
-            }
             return QuestionVO.builder().id(q.getId())
                     .ratio(Kit.enumOfMightEx(QuestionType::getDbCode, q.getType()).getRatio())
                     .question(q.getName())
                     .options(options)
                     .questionType(Kit.enumOfMightEx(QuestionType::getDbCode, q.getType()))
                     .uid(q.getUid())
-                    .answers(new HashSet<>(as))
-                    .choices(Kit.whenNull(map.get(q.getId()), new HashSet<>()))
                     .build();
         });
 
+        ExamScoreVO examScoreVO = ExamScoreVO.builder().questionVOs(questionVOs).build();
+        demoExamScore = DemoExamScore.builder().compId(compId).userId(userId).score(examScoreVO).build();
+        return Result.success(demoExamScore);
+    }
+
+    @PostMapping("submitAnswers")
+    public Result<Void> submitAnswers(@RequestBody List<AnswerPO> answerPOs, @RequestHeader String token) {
+
+        Long compId = tunnel.runningComp().getCompId();
+        Integer userId = Integer.parseInt(TokenUtils.getUserId(token));
+
+        List<QuestionDO> questionDOs = questionDOMapper.selectList(null);
+        int paperNo = tunnel.runningComp().getPaperNo() - 1;
+        questionDOs = questionDOs.stream().filter(q -> q.getUid() % 5 == paperNo)
+                .sorted(Comparator.comparing(QuestionDO::getType)).collect(Collectors.toList());
+
+        List<QuestionVO> questionVOs = Collect.transfer(questionDOs, q -> {
+            Map<String, Object> rawOptions = Json.parseMap(q.getOptions(), String.class, Object.class);
+            HashMap<String, Object> options = new HashMap<>();
+            rawOptions.entrySet().stream().filter(e -> !((e.getValue() instanceof String) && ((StringUtils.isBlank((String) e.getValue())))))
+                    .forEach(e -> options.put(e.getKey(), e.getValue()));
+            return QuestionVO.builder().id(q.getId())
+                    .ratio(Kit.enumOfMightEx(QuestionType::getDbCode, q.getType()).getRatio())
+                    .question(q.getName())
+                    .options(options)
+                    .questionType(Kit.enumOfMightEx(QuestionType::getDbCode, q.getType()))
+                    .uid(q.getUid())
+                    .build();
+        });
 
         Integer score = questionVOs.stream()
                 .map(q -> (q.getAnswers().equals(q.getChoices()) ? 1 : 0) * q.getRatio()).reduce(0, Integer::sum);
         ExamScoreVO examScoreVO = ExamScoreVO.builder().score(score).questionVOs(questionVOs).build();
-        demoExamScore = DemoExamScore.builder().compId(compId).userId(userId).score(examScoreVO).build();
+        DemoExamScore demoExamScore = DemoExamScore.builder().compId(compId).userId(userId).score(examScoreVO).build();
         demoExamScoreMapper.insert(demoExamScore);
-        return Result.success(examScoreVO);
+        return Result.success();
     }
 
     final DemoExamScoreMapper demoExamScoreMapper;
