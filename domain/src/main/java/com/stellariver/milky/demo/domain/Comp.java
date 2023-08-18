@@ -129,7 +129,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     @MethodHandler
     public void start(CompCommand.StartUpView startUpView, Context context) {
-        logIn.put(startUpView.getUserId(), Boolean.FALSE);
+        logIn.put(startUpView.getUserId(), Boolean.TRUE);
         context.publishPlaceHolderEvent(getAggregateId());
     }
 
@@ -144,6 +144,8 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         this.review = true;
         context.publishPlaceHolderEvent(getAggregateId());
     }
+
+
 
     @MethodHandler
     public void handle(CompCommand.Step command, Context context) {
