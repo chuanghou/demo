@@ -10,7 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ExamScoreVO {
+public class ExamScore {
 
     Integer score;
     List<QuestionVO> questionVOs;

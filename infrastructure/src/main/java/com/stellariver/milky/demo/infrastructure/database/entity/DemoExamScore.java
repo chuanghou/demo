@@ -3,7 +3,7 @@ package com.stellariver.milky.demo.infrastructure.database.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import com.stellariver.milky.demo.common.ExamScoreVO;
+import com.stellariver.milky.demo.common.ExamScore;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -18,6 +18,6 @@ public class DemoExamScore {
   Long compId;
   Integer userId;
   @TableField(typeHandler = JacksonTypeHandler.class)
-  ExamScoreVO examScoreVO;
+  ExamScore examScore;
 
 }

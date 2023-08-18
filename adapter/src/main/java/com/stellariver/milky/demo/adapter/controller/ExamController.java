@@ -7,7 +7,7 @@ import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.client.po.AnswerPO;
-import com.stellariver.milky.demo.common.ExamScoreVO;
+import com.stellariver.milky.demo.common.ExamScore;
 import com.stellariver.milky.demo.common.QuestionVO;
 import com.stellariver.milky.demo.common.enums.QuestionType;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
@@ -61,8 +61,8 @@ public class ExamController {
                     .build();
         });
 
-        ExamScoreVO examScoreVO = ExamScoreVO.builder().questionVOs(questionVOs).build();
-        demoExamScore = DemoExamScore.builder().compId(compId).userId(userId).examScoreVO(examScoreVO).build();
+        ExamScore examScore = ExamScore.builder().questionVOs(questionVOs).build();
+        demoExamScore = DemoExamScore.builder().compId(compId).userId(userId).examScore(examScore).build();
         return Result.success(demoExamScore);
     }
 
@@ -100,8 +100,8 @@ public class ExamController {
 
         Integer score = questionVOs.stream()
                 .map(q -> (q.getAnswers().equals(q.getChoices()) ? 1 : 0) * q.getRatio()).reduce(0, Integer::sum);
-        ExamScoreVO examScoreVO = ExamScoreVO.builder().score(score).questionVOs(questionVOs).build();
-        DemoExamScore demoExamScore = DemoExamScore.builder().compId(compId).userId(userId).examScoreVO(examScoreVO).build();
+        ExamScore examScore = ExamScore.builder().score(score).questionVOs(questionVOs).build();
+        DemoExamScore demoExamScore = DemoExamScore.builder().compId(compId).userId(userId).examScore(examScore).build();
         demoExamScoreMapper.insert(demoExamScore);
         return Result.success();
     }
