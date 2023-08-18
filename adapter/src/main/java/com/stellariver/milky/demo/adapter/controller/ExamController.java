@@ -79,15 +79,22 @@ public class ExamController {
         questionDOs = questionDOs.stream().filter(q -> q.getUid() % 5 == paperNo)
                 .sorted(Comparator.comparing(QuestionDO::getType)).collect(Collectors.toList());
 
+        Map<Long, Set<String>> map = Collect.toMap(answerPOs, AnswerPO::getId, AnswerPO::getChoices);
         List<QuestionVO> questionVOs = Collect.transfer(questionDOs, q -> {
             Map<String, Object> rawOptions = Json.parseMap(q.getOptions(), String.class, Object.class);
             HashMap<String, Object> options = new HashMap<>();
             rawOptions.entrySet().stream().filter(e -> !((e.getValue() instanceof String) && ((StringUtils.isBlank((String) e.getValue())))))
                     .forEach(e -> options.put(e.getKey(), e.getValue()));
+            Set<String> as = new HashSet<>();
+            for (char c : q.getAnswers().toCharArray()) {
+                as.add(String.valueOf(c));
+            }
             return QuestionVO.builder().id(q.getId())
                     .ratio(Kit.enumOfMightEx(QuestionType::getDbCode, q.getType()).getRatio())
                     .question(q.getName())
                     .options(options)
+                    .answers(as)
+                    .choices(map.getOrDefault(q.getId(), new HashSet<>()))
                     .questionType(Kit.enumOfMightEx(QuestionType::getDbCode, q.getType()))
                     .uid(q.getUid())
                     .build();

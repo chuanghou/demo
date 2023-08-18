@@ -2,13 +2,13 @@ package com.stellariver.milky.demo.adapter.repository.domain;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.stellariver.milky.common.tool.common.ConcurrentTool;
+import com.stellariver.milky.common.tool.executor.ThreadLocalTransferableExecutor;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.infrastructure.database.entity.BidDO;
 import com.stellariver.milky.demo.infrastructure.database.entity.UnitDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.BidDOMapper;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UnitDOMapper;
 import com.stellariver.milky.domain.support.dependency.DAOWrapper;
-import com.stellariver.milky.domain.support.util.ThreadLocalTransferableExecutor;
 import lombok.AccessLevel;
 import lombok.CustomLog;
 import lombok.NonNull;
