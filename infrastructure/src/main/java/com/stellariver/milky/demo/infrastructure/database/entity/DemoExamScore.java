@@ -7,8 +7,6 @@ import com.stellariver.milky.demo.common.ExamScoreVO;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Date;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,6 +18,6 @@ public class DemoExamScore {
   Long compId;
   Integer userId;
   @TableField(typeHandler = JacksonTypeHandler.class)
-  ExamScoreVO score;
+  ExamScoreVO examScoreVO;
 
 }
