@@ -76,6 +76,25 @@ public class CompCommand {
 
     }
 
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class StartUpView extends Command {
+
+        Long compId;
+
+        Integer userId;
+
+        @Override
+        public String getAggregateId() {
+            return compId.toString();
+        }
+
+    }
+
 
     @Data
     @SuperBuilder

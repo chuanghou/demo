@@ -61,6 +61,15 @@ public class CompController {
         return Result.success(comp);
     }
 
+    @PostMapping("startUpView")
+    public Result<Void> startUpView(@RequestHeader String token) {
+        Comp comp = tunnel.runningComp();
+        CompCommand.StartUpView command = CompCommand.StartUpView.builder()
+                .compId(comp.getCompId()).userId(Integer.parseInt(TokenUtils.getUserId(token))).build();
+        CommandBus.accept(command, new HashMap<>());
+        return Result.success();
+    }
+
     @GetMapping("getDurations")
     public Result<Map<MarketType, Map<Status.MarketStatus, Integer>>> getDurations() {
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);

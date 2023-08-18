@@ -60,6 +60,8 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
 
     Integer paperNo = 1;
 
+    Map<Integer, Boolean> logIn = new ConcurrentHashMap<>();
+
     @JsonIgnore
     List<Map<MarketType, Map<TimeFrame, Double>>> replenishes = new ArrayList<>();
     @JsonIgnore
@@ -92,6 +94,14 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         comp.setReplenishes(new ArrayList<>());
         comp.setUserTotal(create.getAgentTotal());
 
+        Map<Integer, Boolean> logInMap = new ConcurrentHashMap<>();
+
+        IntStream.range(0, create.getAgentTotal()).forEach(userId -> {
+            logInMap.put(userId, Boolean.FALSE);
+        });
+
+       comp.setLogIn(logInMap);
+
         IntStream.range(0, comp.getRoundTotal()).forEach(roundId -> {
             Map<MarketType, Map<TimeFrame, Double>> map = Collect.asMap(
                     MarketType.INTER_ANNUAL_PROVINCIAL, new HashMap<>(),
@@ -115,6 +125,12 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
         marketStatus = Status.MarketStatus.OPEN;
         CompEvent.Started started = CompEvent.Started.builder().compId(compId).build();
         context.publish(started);
+    }
+
+    @MethodHandler
+    public void start(CompCommand.StartUpView startUpView, Context context) {
+        logIn.put(startUpView.getUserId(), Boolean.FALSE);
+        context.publishPlaceHolderEvent(getAggregateId());
     }
 
     @MethodHandler
