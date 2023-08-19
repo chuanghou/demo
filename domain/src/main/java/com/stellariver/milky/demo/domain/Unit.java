@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.stellariver.milky.common.base.ErrorEnumsBase.PARAM_FORMAT_WRONG;
 
@@ -55,6 +56,8 @@ public class Unit extends AggregateRoot {
     AbstractMetaUnit metaUnit;
 
     Map<Long, Bid> bids = new HashMap<>();
+
+    Map<MarketType, String> bidPOs = new ConcurrentHashMap<>();
 
     @JsonIgnore
     ListMultimap<MarketType, Bid> centralizedBids = ArrayListMultimap.create();
@@ -88,7 +91,7 @@ public class Unit extends AggregateRoot {
     @MethodHandler
     public void handle(UnitCommand.CentralizedBid command, Context context) {
         MarketType marketType = context.getMetaData(TypedEnums.STAGE.class);
-
+        bidPOs.put(marketType, command.getBidPOs());
         if (marketType == MarketType.INTER_ANNUAL_PROVINCIAL || marketType == MarketType.INTER_MONTHLY_PROVINCIAL) {
             UnitType unitType = metaUnit.getUnitType();
             Province province = metaUnit.getProvince();

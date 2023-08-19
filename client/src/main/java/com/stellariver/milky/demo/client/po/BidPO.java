@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 
 @Data
 @Builder
@@ -16,6 +17,8 @@ import javax.validation.constraints.Positive;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BidPO {
 
+    @NotNull @PositiveOrZero
+    Integer section;
     @NotNull @OfEnum(enumType = TimeFrame.class)
     String timeFrame;
     @NotNull @OfEnum(enumType = Direction.class)

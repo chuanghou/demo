@@ -109,6 +109,8 @@ public class UnitCommand {
 
         List<Bid> bids;
 
+        String bidPOs;
+
         @Override
         public String getAggregateId() {
             return unitId.toString();

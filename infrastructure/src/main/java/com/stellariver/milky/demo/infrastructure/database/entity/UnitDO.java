@@ -35,6 +35,9 @@ public class UnitDO extends AbstractMpDO implements BaseDataObject<Long> {
     String province;    // for query
     String unitType;    // for query
 
+    @TableField("bid_pos")
+    String bidPOs;
+
     String centralizedBids;
     String stageFourDirections;
     String balances;

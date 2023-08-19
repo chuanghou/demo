@@ -72,7 +72,13 @@ public interface BasicConvertor {
         return Json.toJson(replenishes);
     }
 
+    default String fromBidPOs(Map<MarketType, String> bidPOs) {
+        return Json.toJson(bidPOs);
+    }
 
+    default Map<MarketType, String> toBidPOs(String value) {
+        return Json.parse(value, new TypeReference<Map<MarketType, String>>() {});
+    }
 
     default ListMultimap<MarketType, Bid> toCentralizedBids(String value) {
         Map<MarketType, List<Bid>> parseMap = Json.parse(value, new TypeReference<Map<MarketType, List<Bid>>>() {});

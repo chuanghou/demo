@@ -6,6 +6,7 @@ import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.common.Typed;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TokenUtils;
@@ -32,6 +33,7 @@ import com.stellariver.milky.spring.partner.UniqueIdBuilder;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
@@ -246,10 +248,30 @@ public class UnitController {
         });
 
         Map<Class<? extends Typed<?>>, Object> parameters = Collect.asMap(TypedEnums.STAGE.class, comp.getMarketType());
-        UnitCommand.CentralizedBid command = UnitCommand.CentralizedBid.builder().unitId(centralizedBidPO.getUnitId()).bids(bids).build();
+        UnitCommand.CentralizedBid command = UnitCommand.CentralizedBid.builder()
+                .unitId(centralizedBidPO.getUnitId())
+                .bids(bids)
+                .bidPOs(Json.toJson(centralizedBidPO.getBids()))
+                .build();
         CommandBus.accept(command, parameters);
         return Result.success();
     }
+
+
+    @GetMapping("getBidPOs")
+    public Result<List<BidPO>> getBidPOs(@RequestParam Long unitId,
+                                         @RequestParam String marketTypeValue,
+                                         @RequestHeader("token") String token) {
+        Unit unit = domainTunnel.getByAggregateId(Unit.class, String.valueOf(unitId));
+        MarketType marketType = MarketType.valueOf(marketTypeValue);
+        String s = unit.getBidPOs().get(marketType);
+        if (StringUtils.isBlank(s)) {
+            return Result.success();
+        }
+        List<BidPO> bidPOs = Json.parseList(s, BidPO.class);
+        return Result.success(bidPOs);
+    }
+
 
     @PostMapping("realtimeNewBid")
     public Result<Void> realtimeNewBid(@RequestBody RealtimeNewBidPO realtimeNewBidPO, @RequestHeader("token") String token) {
