@@ -612,7 +612,7 @@ public class DataController {
         Map<Label, String> result = new LinkedHashMap<>();
         LambdaQueryWrapper<StartupShutdownCostDO> eq = new LambdaQueryWrapper<StartupShutdownCostDO>().eq(StartupShutdownCostDO::getUnitId, sourceId);
         StartupShutdownCostDO startupShutdownCostDO = startupShutdownCostDOMapper.selectOne(eq);
-        GeneratorDO generatorDO = generatorDOMapper.selectById(unitId);
+        GeneratorDO generatorDO = generatorDOMapper.selectById(sourceId);
         String value = String.format("%.2f", startupShutdownCostDO.getSpotCostMinoutput() / generatorDO.getMinP());
         result.put(Label.costOfClassicOfAnnualAndMonthly_basic, value);
 

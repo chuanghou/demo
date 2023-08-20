@@ -172,7 +172,7 @@ public class TunnelImpl implements Tunnel {
 
     final TpbfsdMapper tpbfsdMapper;
     @Override
-    public void stackDiagram(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes, Map<TimeFrame, CentralizedDeals> centralizedDealsMap) {
+    public void   stackDiagram(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes, Map<TimeFrame, CentralizedDeals> centralizedDealsMap) {
 
         LambdaQueryWrapper<TpbfsdDO> queryWrapper = new LambdaQueryWrapper<TpbfsdDO>().eq(TpbfsdDO::getRoundId, roundId);
         List<TpbfsdDO> tpbfsdDOs = tpbfsdMapper.selectList(queryWrapper);
