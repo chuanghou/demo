@@ -589,8 +589,24 @@ public class DataController {
     final StartupShutdownCostDOMapper startupShutdownCostDOMapper;
     final ThermalUnitOperatingCostMapper thermalUnitOperatingCostMapper;
 
-    @GetMapping("costOfClassicOfAnnualAndMonthly")
-    public Map<Label, String> costOfClassicOfAnnualAndMonthly(Long unitId) {
+    @GetMapping("costOfGenerator")
+    public Map<Label, Map<Label, String>> costOfGenerator(Long unitId){
+        Unit unit = domainTunnel.getByAggregateId(Unit.class, unitId.toString());
+        Map<Label, Map<Label, String>> result = new LinkedHashMap<>();
+        if (unit.getMetaUnit().getUnitType() == UnitType.GENERATOR) {
+            boolean b = ((GeneratorMetaUnit) unit.getMetaUnit()).getGeneratorType() == GeneratorType.CLASSIC;
+            if (b) {
+                Map<Label, String> labelStringMap = costOfClassic(unitId);
+                result.put(Label.classGeneratorCost, labelStringMap);
+            } else  {
+                Map<Label, String> labelStringMap = costOfRenewable(unitId);
+                result.put(Label.renewableGeneratorCost, labelStringMap);
+            }
+        }
+        return result;
+    }
+
+    public Map<Label, String> costOfClassic(Long unitId) {
         Unit unit = domainTunnel.getByAggregateId(Unit.class, String.valueOf(unitId));
         Integer sourceId = unit.getMetaUnit().getSourceId();
         Map<Label, String> result = new LinkedHashMap<>();
@@ -609,8 +625,7 @@ public class DataController {
         return result;
     }
 
-    @GetMapping("costOfRenewable")
-    public Map<Label, String> costOfRenewable(Integer unitId) {
+    public Map<Label, String> costOfRenewable(Long unitId) {
         Map<Label, String> result = new LinkedHashMap<>();
         SprDO sprDO = sprMapper.selectList(null).get(0);
         String format = String.format("%.2f", sprDO.getRenewableGovernmentSubsidy());

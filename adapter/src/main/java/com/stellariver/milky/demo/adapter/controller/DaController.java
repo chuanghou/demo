@@ -76,7 +76,7 @@ public class DaController {
                 subResult.put(Label.initHrUp, String.valueOf(unitInitState.getInitHrUp()));
                 subResult.put(Label.initHrDn, String.valueOf(unitInitState.getInitHrDn()));
 
-                String cost = dataController.costOfClassicOfAnnualAndMonthly(generatorUnit.getUnitId()).get(Label.costOfClassicOfAnnualAndMonthly_basic);
+                String cost = dataController.costOfClassic(generatorUnit.getUnitId()).get(Label.costOfClassicOfAnnualAndMonthly_basic);
                 subResult.put(Label.costOfClassicOfAnnualAndMonthly_basic, cost);
 
                 GeneratorDO generatorDO = generatorDOMapper.selectById(metaUnit.getSourceId());
