@@ -1,6 +1,7 @@
 package com.stellariver.milky.demo.domain.command;
 
 import com.stellariver.milky.demo.common.Bid;
+import com.stellariver.milky.demo.common.DaBid;
 import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.domain.AbstractMetaUnit;
@@ -212,6 +213,24 @@ public class UnitCommand {
         Long unitId;
         Long bidId;
         Double remainder;
+
+        @Override
+        public String getAggregateId() {
+            return unitId.toString();
+        }
+    }
+
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class DaBidDeclare extends Command {
+
+        Long unitId;
+        List<DaBid> daBids;
+        List<Double> daForecastBid;
 
         @Override
         public String getAggregateId() {

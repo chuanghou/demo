@@ -10,6 +10,7 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TypedEnums;
+import com.stellariver.milky.demo.common.DaBid;
 import com.stellariver.milky.demo.common.enums.UnitType;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
@@ -29,12 +30,10 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.time.Clock;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.stellariver.milky.common.base.ErrorEnumsBase.PARAM_FORMAT_WRONG;
@@ -65,6 +64,10 @@ public class Unit extends AggregateRoot {
     Map<TimeFrame, Direction> stageFourDirections = new HashMap<>();
 
     Map<TimeFrame, Map<Direction, Double>> balances = new HashMap<>();
+
+
+    List<DaBid> daBids = new ArrayList<>();
+    List<Double> daForecastBid = new ArrayList<>();
 
     @StaticWire
     static private UniqueIdBuilder uniqueIdBuilder;
@@ -203,6 +206,13 @@ public class Unit extends AggregateRoot {
         Map<Direction, Double> timeFrameBalance = balances.get(bid.getTimeFrame());
         Double balance = timeFrameBalance.get(bid.getDirection());
         timeFrameBalance.put(bid.getDirection(), balance + command.getRemainder());
+        context.publishPlaceHolderEvent(getAggregateId());
+    }
+
+    @MethodHandler
+    public void handle(UnitCommand.DaBidDeclare command, Context context) {
+        daBids = command.getDaBids();
+        daForecastBid = command.getDaForecastBid();
         context.publishPlaceHolderEvent(getAggregateId());
     }
 

@@ -590,9 +590,11 @@ public class DataController {
     final ThermalUnitOperatingCostMapper thermalUnitOperatingCostMapper;
 
     @GetMapping("costOfClassicOfAnnualAndMonthly")
-    public Map<Label, String> costOfClassicOfAnnualAndMonthly(Integer unitId) {
+    public Map<Label, String> costOfClassicOfAnnualAndMonthly(Long unitId) {
+        Unit unit = domainTunnel.getByAggregateId(Unit.class, String.valueOf(unitId));
+        Integer sourceId = unit.getMetaUnit().getSourceId();
         Map<Label, String> result = new LinkedHashMap<>();
-        LambdaQueryWrapper<StartupShutdownCostDO> eq = new LambdaQueryWrapper<StartupShutdownCostDO>().eq(StartupShutdownCostDO::getUnitId, unitId);
+        LambdaQueryWrapper<StartupShutdownCostDO> eq = new LambdaQueryWrapper<StartupShutdownCostDO>().eq(StartupShutdownCostDO::getUnitId, sourceId);
         StartupShutdownCostDO startupShutdownCostDO = startupShutdownCostDOMapper.selectOne(eq);
         GeneratorDO generatorDO = generatorDOMapper.selectById(unitId);
         String value = String.format("%.2f", startupShutdownCostDO.getSpotCostMinoutput() / generatorDO.getMinP());
@@ -607,14 +609,13 @@ public class DataController {
         return result;
     }
 
-    @GetMapping("costOfClassicOfDa")
-    public Map<Label, String> costOfClassicOfDa(Integer unitId) {
-        return null;
-    }
-
     @GetMapping("costOfRenewable")
     public Map<Label, String> costOfRenewable(Integer unitId) {
-        return null;
+        Map<Label, String> result = new LinkedHashMap<>();
+        SprDO sprDO = sprMapper.selectList(null).get(0);
+        String format = String.format("%.2f", sprDO.getRenewableGovernmentSubsidy());
+        result.put(Label.costOfRenewable,format);
+        return result;
     }
 
 }

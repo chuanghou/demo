@@ -116,7 +116,18 @@ public enum Label {
 
     costOfClassicOfAnnualAndMonthly_basic("最小技术出力成本(元/MWh)"),
     costOfClassicOfAnnualAndMonthly_range("最小技术出力成本之上运行成本区间(元/MWh)"),
-    costOfRenewable("补贴(元/MWh)");
+    costOfRenewable("补贴(元/MWh)"),
+
+    classGeneratorCost("火电机组成本"),
+    initState("初始状态"),
+    initOutput("初始出力(MW)"),
+    initHrUp("初始已运行时间（h)"),
+    initHrDn("初始已停机时间（h)"),
+    coldStartupCost("冷启动费用（元）"),
+    warmStartupCost("温启动费用（元）"),
+    hotStartupCost("热启动费用（元）"),
+
+    renewableGeneratorCost("新能源机组成本");
 
 
     final String desc;

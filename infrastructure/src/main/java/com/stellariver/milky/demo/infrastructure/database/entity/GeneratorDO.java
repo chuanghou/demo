@@ -27,9 +27,9 @@ public class GeneratorDO {
     Double minOnDuration;
     Double rampUpRate;
     Double rampDnRate;
-//    String cold_startup_cost;
-//    String warm_startup_cost;
-//    String hot_startup_cost;
+    Double coldStartupCost;
+    Double warmStartupCost;
+    Double hotStartupCost;
     Double hotStartupTime;
     Double warmStartupTime;
 //    String t_to_MWh;

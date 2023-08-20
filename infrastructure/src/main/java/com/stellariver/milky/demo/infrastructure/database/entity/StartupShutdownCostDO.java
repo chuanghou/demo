@@ -1,5 +1,7 @@
 package com.stellariver.milky.demo.infrastructure.database.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -18,6 +20,7 @@ public class StartupShutdownCostDO {
   Double spotCostMinoutput;
   Double shutdownCurveCost;
   Double startupCurveCost;
+  @TableId(type = IdType.INPUT)
   Integer unitId;
 
 }
