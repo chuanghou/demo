@@ -616,7 +616,7 @@ public class DataController {
         String value = String.format("%.2f", startupShutdownCostDO.getSpotCostMinoutput() / generatorDO.getMinP());
         result.put(Label.costOfClassicOfAnnualAndMonthly_basic, value);
 
-        LambdaQueryWrapper<ThermalUnitOperatingCost> eq1 = new LambdaQueryWrapper<ThermalUnitOperatingCost>().eq(ThermalUnitOperatingCost::getUnitId, unitId);
+        LambdaQueryWrapper<ThermalUnitOperatingCost> eq1 = new LambdaQueryWrapper<ThermalUnitOperatingCost>().eq(ThermalUnitOperatingCost::getUnitId, sourceId);
         List<ThermalUnitOperatingCost> costs = thermalUnitOperatingCostMapper.selectList(eq1);
         Double costMin = costs.stream().min(Comparator.comparing(ThermalUnitOperatingCost::getSpotCostId)).orElseThrow(RuntimeException::new).getSpotCostMarginalCost();
         Double costMax = costs.stream().max(Comparator.comparing(ThermalUnitOperatingCost::getSpotCostId)).orElseThrow(RuntimeException::new).getSpotCostMarginalCost();
