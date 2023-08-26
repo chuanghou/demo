@@ -12,7 +12,7 @@ import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.GeneratorType;
 import com.stellariver.milky.demo.basic.Label;
 import com.stellariver.milky.demo.basic.TokenUtils;
-import com.stellariver.milky.demo.common.DaBid;
+import com.stellariver.milky.demo.common.NormalDaBid;
 import com.stellariver.milky.demo.common.enums.UnitType;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.GeneratorMetaUnit;
@@ -26,6 +26,7 @@ import com.stellariver.milky.domain.support.command.CommandBus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.web.bind.annotation.*;
 
@@ -107,18 +108,18 @@ public class DaController {
             daBidVO.setMax(daBidVO.getMax());
             List<Triple<Double, Double, Double>> triples = buildCostLine(unitId);
             daBidVO.setDaCostLines(triples);
-            List<DaBid> daBids = unit.getDaBids();
-            daBidVO.setDaBids(daBids);
+            List<NormalDaBid> normalDaBids = unit.getNormalDaBids();
+            daBidVO.setNormalDaBids(normalDaBids);
             GeneratorType generatorType = ((GeneratorMetaUnit) unit.getMetaUnit()).getGeneratorType();
             if (generatorType == GeneratorType.RENEWABLE) {
-                daBidVO.setForecastBids(unit.getDaForecastBid());
+                daBidVO.setForecastBids(unit.getDaForecastBids());
                 LambdaQueryWrapper<RenewableUnitDO> eq = new LambdaQueryWrapper<RenewableUnitDO>().eq(RenewableUnitDO::getUnitId, unit.getMetaUnit().getSourceId());
                 List<Double> daForecasts = renewableUnitDOMapper.selectList(eq).stream()
                         .sorted(Comparator.comparing(RenewableUnitDO::getPrd)).map(RenewableUnitDO::getDaForecast).collect(Collectors.toList());
                 daBidVO.setForecastQuantities(daForecasts);
             }
         } else {
-            daBidVO.setForecastBids(unit.getDaForecastBid());
+            daBidVO.setForecastBids(unit.getDaForecastBids());
             LambdaQueryWrapper<LoadForecastDO> eq = new LambdaQueryWrapper<LoadForecastDO>().eq(LoadForecastDO::getLoadId, unit.getMetaUnit().getSourceId());
             List<Double> daForecasts = loadForecastMapper.selectList(eq).stream().sorted(Comparator.comparing(LoadForecastDO::getPrd)).map(LoadForecastDO::getDaForecast).collect(Collectors.toList());
             daBidVO.setForecastQuantities(daForecasts);
@@ -180,17 +181,64 @@ public class DaController {
         return triples;
     }
 
+    final IntraDaOfferMapper intraDaOfferMapper;
+    final InterDaOfferMapper interDaOfferMapper;
+    final IntraDaGeneratorForecastBidMapper generatorBidMapper;
+    final IntraDaLoadForecastBidMapper loadBidMapper;
 
     @PostMapping("submitDaBid")
     public Result<Void> submitDaBid(@RequestBody DaBidPO daBidPO) {
 
         UnitCommand.DaBidDeclare command = UnitCommand.DaBidDeclare.builder()
-                .daBids(daBidPO.getDaBids())
-                .daForecastBid(daBidPO.getDaForecastBid())
+                .normalDaBids(daBidPO.getNormalDaBids())
+                .daForecastBids(daBidPO.getForecastDaBids())
                 .unitId(daBidPO.getUnitId())
                 .build();
-
         CommandBus.accept(command, new HashMap<>());
+        int dbRoundId = tunnel.runningComp().getRoundId() + 1;
+        Unit unit = domainTunnel.getByAggregateId(Unit.class, daBidPO.getUnitId().toString());
+        Integer sourceId = unit.getMetaUnit().getSourceId();
+
+        if (Collect.isNotEmpty(daBidPO.getNormalDaBids())) {
+            LambdaQueryWrapper<IntraDaUO> intraDaUOLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            intraDaUOLambdaQueryWrapper.eq(IntraDaUO::getRoundId, dbRoundId);
+            intraDaUOLambdaQueryWrapper.eq(IntraDaUO::getUnitId, sourceId);
+            for (int i = 0; i < daBidPO.getNormalDaBids().size(); i++) {
+                NormalDaBid normalDaBid = daBidPO.getNormalDaBids().get(i);
+                IntraDaUO intraDaUO = new IntraDaUO();
+                intraDaUO.setRoundId(dbRoundId);
+                intraDaUO.setUnitId(sourceId);
+                intraDaUO.setOfferId(i + 1);
+                intraDaUO.setOfferMw(normalDaBid.getRight() - normalDaBid.getLeft());
+                intraDaUO.setOfferPrice(normalDaBid.getPrice());
+                intraDaOfferMapper.update(intraDaUO, intraDaUOLambdaQueryWrapper);
+            }
+        }
+
+        if (Collect.isNotEmpty(daBidPO.getForecastDaBids())) {
+            if (unit.getMetaUnit().getUnitType() == UnitType.GENERATOR) {
+                for (int i = 0; i < daBidPO.getForecastDaBids().size(); i++) {
+                    IntraDaGeneratorForecastBid intraDaGeneratorForecastBid = new IntraDaGeneratorForecastBid();
+                    LambdaQueryWrapper<IntraDaGeneratorForecastBid> queryWrapper = new LambdaQueryWrapper<>();
+                    queryWrapper.eq(IntraDaGeneratorForecastBid::getRoundId, dbRoundId);
+                    queryWrapper.eq(IntraDaGeneratorForecastBid::getUnitId, sourceId);
+                    queryWrapper.eq(IntraDaGeneratorForecastBid::getPrd, i);
+                    intraDaGeneratorForecastBid.setForecastMw(daBidPO.getForecastDaBids().get(i));
+                    generatorBidMapper.update(intraDaGeneratorForecastBid, queryWrapper);
+                }
+            } else {
+                for (int i = 0; i < daBidPO.getForecastDaBids().size(); i++) {
+                    IntraDaLoadForecastBid intraDaLoadForecastBid = new IntraDaLoadForecastBid();
+                    LambdaQueryWrapper<IntraDaLoadForecastBid> queryWrapper = new LambdaQueryWrapper<>();
+                    queryWrapper.eq(IntraDaLoadForecastBid::getRoundId, dbRoundId);
+                    queryWrapper.eq(IntraDaLoadForecastBid::getLoadId, sourceId);
+                    queryWrapper.eq(IntraDaLoadForecastBid::getPrd, i);
+                    intraDaLoadForecastBid.setBidMw(daBidPO.getForecastDaBids().get(i));
+                    loadBidMapper.update(intraDaLoadForecastBid, queryWrapper);
+                }
+            }
+        }
+
         return Result.success();
     }
 

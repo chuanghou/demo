@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.stellariver.milky.demo.common.ForecastDaBid;
+import com.stellariver.milky.demo.common.NormalDaBid;
 import com.stellariver.milky.domain.support.base.BaseDataObject;
 import com.stellariver.milky.infrastructure.base.database.AbstractMpDO;
 import lombok.*;
@@ -19,7 +21,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("demo_unit")
+@TableName(value = "demo_unit", autoResultMap = true)
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -44,6 +46,9 @@ public class UnitDO extends AbstractMpDO implements BaseDataObject<Long> {
 
     @TableField(exist = false)
     List<BidDO> bidDOs;
+
+    List<NormalDaBid> normalDaBids;
+    List<Double> forecastDaBids;
 
     @Override
     public Long getPrimaryId() {

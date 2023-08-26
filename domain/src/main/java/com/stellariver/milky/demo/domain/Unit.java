@@ -10,7 +10,7 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.TypedEnums;
-import com.stellariver.milky.demo.common.DaBid;
+import com.stellariver.milky.demo.common.NormalDaBid;
 import com.stellariver.milky.demo.common.enums.UnitType;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
@@ -30,9 +30,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Triple;
 
-import java.time.Clock;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -66,8 +64,8 @@ public class Unit extends AggregateRoot {
     Map<TimeFrame, Map<Direction, Double>> balances = new HashMap<>();
 
 
-    List<DaBid> daBids = new ArrayList<>();
-    List<Double> daForecastBid = new ArrayList<>();
+    List<NormalDaBid> normalDaBids;
+    List<Double> daForecastBids;
 
     @StaticWire
     static private UniqueIdBuilder uniqueIdBuilder;
@@ -211,8 +209,8 @@ public class Unit extends AggregateRoot {
 
     @MethodHandler
     public void handle(UnitCommand.DaBidDeclare command, Context context) {
-        daBids = command.getDaBids();
-        daForecastBid = command.getDaForecastBid();
+        normalDaBids = command.getNormalDaBids();
+        daForecastBids = command.getDaForecastBids();
         context.publishPlaceHolderEvent(getAggregateId());
     }
 

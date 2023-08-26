@@ -1,6 +1,6 @@
 package com.stellariver.milky.demo.adapter.vo;
 
-import com.stellariver.milky.demo.common.DaBid;
+import com.stellariver.milky.demo.common.NormalDaBid;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.tuple.Triple;
@@ -17,7 +17,7 @@ public class DaBidVO {
     Double min;
     Double max;
     
-    List<DaBid> daBids;
+    List<NormalDaBid> normalDaBids;
     List<Triple<Double, Double, Double>> daCostLines;
 
     List<Double> forecastQuantities;

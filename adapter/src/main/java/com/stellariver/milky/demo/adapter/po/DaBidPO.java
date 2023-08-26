@@ -1,6 +1,7 @@
 package com.stellariver.milky.demo.adapter.po;
 
-import com.stellariver.milky.demo.common.DaBid;
+import com.stellariver.milky.demo.common.ForecastDaBid;
+import com.stellariver.milky.demo.common.NormalDaBid;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -15,8 +16,8 @@ public class DaBidPO {
 
     Long unitId;
 
-    List<DaBid> daBids;
+    List<NormalDaBid> normalDaBids;
 
-    List<Double> daForecastBid;
+    List<Double> forecastDaBids;
 
 }
