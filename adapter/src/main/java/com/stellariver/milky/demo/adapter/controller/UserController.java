@@ -59,7 +59,7 @@ public class UserController {
         return PageResult.success(userVOS);
     }
 
-    @PostMapping("getUser")
+    @GetMapping("getUser")
     public Result<UserVO> getUser(@RequestHeader("token") String token) {
         UserDO userDO = userDOMapper.selectById(Integer.parseInt(TokenUtils.getUserId(token)));
         return Result.success(Convertor.INST.to(userDO));
