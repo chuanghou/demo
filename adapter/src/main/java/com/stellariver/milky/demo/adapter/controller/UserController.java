@@ -6,6 +6,7 @@ import com.stellariver.milky.demo.basic.LogIn;
 import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.client.po.UserAddPO;
+import com.stellariver.milky.demo.client.po.UserEditPO;
 import com.stellariver.milky.demo.client.vo.LogInVO;
 import com.stellariver.milky.demo.client.vo.UserVO;
 import com.stellariver.milky.demo.domain.User;
@@ -56,6 +57,21 @@ public class UserController {
         List<UserDO> userDOs = userDOMapper.selectList(null);
         List<UserVO> userVOS = userDOs.stream().map(Convertor.INST::to).collect(Collectors.toList());
         return PageResult.success(userVOS);
+    }
+
+    @PostMapping("getUser")
+    public Result<UserVO> getUser(@RequestHeader("token") String token) {
+        UserDO userDO = userDOMapper.selectById(Integer.parseInt(TokenUtils.getUserId(token)));
+        return Result.success(Convertor.INST.to(userDO));
+    }
+
+    @PostMapping("edit")
+    public Result<Void> edit(@RequestHeader("token") String token, @RequestBody UserEditPO userEditPO) {
+        UserDO userDO = userDOMapper.selectById(Integer.parseInt(TokenUtils.getUserId(token)));
+        userDO.setName(userEditPO.getName());
+        userDO.setPassword(userEditPO.getNewPassword());
+        userDOMapper.updateById(userDO);
+        return Result.success();
     }
 
 

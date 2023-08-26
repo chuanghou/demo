@@ -185,6 +185,7 @@ public class DaController {
     final InterDaOfferMapper interDaOfferMapper;
     final IntraDaGeneratorForecastBidMapper generatorBidMapper;
     final IntraDaLoadForecastBidMapper loadBidMapper;
+    final MarketSettingMapper marketSettingMapper;
 
     @PostMapping("submitDaBid")
     public Result<Void> submitDaBid(@RequestBody DaBidPO daBidPO) {
@@ -227,14 +228,22 @@ public class DaController {
                     generatorBidMapper.update(intraDaGeneratorForecastBid, queryWrapper);
                 }
             } else {
+                MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);
+                Double bidPriceCap = marketSettingDO.getBidPriceCap();
+                Integer spotNumBidSegs = marketSettingDO.getSpotNumBidSegs();
                 for (int i = 0; i < daBidPO.getForecastDaBids().size(); i++) {
                     IntraDaLoadForecastBid intraDaLoadForecastBid = new IntraDaLoadForecastBid();
-                    LambdaQueryWrapper<IntraDaLoadForecastBid> queryWrapper = new LambdaQueryWrapper<>();
-                    queryWrapper.eq(IntraDaLoadForecastBid::getRoundId, dbRoundId);
-                    queryWrapper.eq(IntraDaLoadForecastBid::getLoadId, sourceId);
-                    queryWrapper.eq(IntraDaLoadForecastBid::getPrd, i);
-                    intraDaLoadForecastBid.setBidMw(daBidPO.getForecastDaBids().get(i));
-                    loadBidMapper.update(intraDaLoadForecastBid, queryWrapper);
+                    intraDaLoadForecastBid.setBidPrice(bidPriceCap);
+                    double mw = daBidPO.getForecastDaBids().get(i) / spotNumBidSegs;
+                    intraDaLoadForecastBid.setBidMw(mw);
+                    for (int j = 0; j < spotNumBidSegs; j++) {
+                        LambdaQueryWrapper<IntraDaLoadForecastBid> queryWrapper = new LambdaQueryWrapper<>();
+                        queryWrapper.eq(IntraDaLoadForecastBid::getRoundId, dbRoundId);
+                        queryWrapper.eq(IntraDaLoadForecastBid::getLoadId, sourceId);
+                        queryWrapper.eq(IntraDaLoadForecastBid::getPrd, i);
+                        queryWrapper.eq(IntraDaLoadForecastBid::getBidId, j + 1);
+                        loadBidMapper.update(intraDaLoadForecastBid, queryWrapper);
+                    }
                 }
             }
         }

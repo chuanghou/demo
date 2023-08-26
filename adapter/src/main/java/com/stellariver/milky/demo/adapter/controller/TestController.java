@@ -1,15 +1,15 @@
 package com.stellariver.milky.demo.adapter.controller;
 
+import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.demo.basic.Message;
+import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.basic.Topic;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @Slf4j
@@ -23,10 +23,10 @@ public class TestController {
     final Tunnel tunnel;
 
     @GetMapping("push")
-    public void push(String value) {
-        log.info(value);
-        Message message = Message.builder().userId("0").topic(Topic.RT_COMP).entity(value).build();
+    public Result<Void> push(@RequestHeader String token, @RequestParam String topic) {
+        Message message = Message.builder().userId(TokenUtils.getUserId(token)).topic(Topic.valueOf(topic)).entity(topic).build();
         tunnel.push(message);
+        return Result.success();
     }
 
 }

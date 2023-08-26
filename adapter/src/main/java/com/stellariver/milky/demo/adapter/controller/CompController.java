@@ -135,6 +135,8 @@ public class CompController {
         }
         Long compId = uniqueIdBuilder.get();
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);
+        marketSettingDO.setRoundId(1);
+        marketSettingMapper.updateById(marketSettingDO);
         GridLimit generatorPriceLimit = GridLimit.builder().low(marketSettingDO.getOfferPriceFloor()).high(marketSettingDO.getOfferPriceCap()).build();
         GridLimit loadPriceLimit = GridLimit.builder().low(marketSettingDO.getBidPriceFloor()).high(marketSettingDO.getBidPriceCap()).build();
         PriceLimit priceLimit = PriceLimit.builder().generatorPriceLimit(generatorPriceLimit).loadPriceLimit(loadPriceLimit).build();

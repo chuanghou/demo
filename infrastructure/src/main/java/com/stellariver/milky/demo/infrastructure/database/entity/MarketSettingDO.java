@@ -50,7 +50,7 @@ public class MarketSettingDO {
 //    String forward_num_offer_segs;
 //    String forward_num_bid_segs;
 //    String spot_num_offer_segs;
-//    String spot_num_bid_segs;
+    Integer spotNumBidSegs;
 //    String thermal_forecast_confidence;
 //    String load_forecast_confidence;
 //    String renewable_annual_forecast_confidence;

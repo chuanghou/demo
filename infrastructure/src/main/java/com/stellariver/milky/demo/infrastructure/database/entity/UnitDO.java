@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.stellariver.milky.demo.common.ForecastDaBid;
 import com.stellariver.milky.demo.common.NormalDaBid;
 import com.stellariver.milky.domain.support.base.BaseDataObject;
@@ -46,8 +47,9 @@ public class UnitDO extends AbstractMpDO implements BaseDataObject<Long> {
 
     @TableField(exist = false)
     List<BidDO> bidDOs;
-
+    @TableField(typeHandler = JacksonTypeHandler.class)
     List<NormalDaBid> normalDaBids;
+    @TableField(typeHandler = JacksonTypeHandler.class)
     List<Double> forecastDaBids;
 
     @Override
