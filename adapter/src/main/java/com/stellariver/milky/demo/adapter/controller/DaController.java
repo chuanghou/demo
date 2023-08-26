@@ -13,6 +13,7 @@ import com.stellariver.milky.demo.basic.GeneratorType;
 import com.stellariver.milky.demo.basic.Label;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.common.NormalDaBid;
+import com.stellariver.milky.demo.common.Section;
 import com.stellariver.milky.demo.common.enums.UnitType;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.GeneratorMetaUnit;
@@ -99,14 +100,14 @@ public class DaController {
     final LoadForecastMapper loadForecastMapper;
 
     @GetMapping("getDaBidVO")
-    public DaBidVO getDaBidVO(@RequestParam Long unitId) {
+    public Result<DaBidVO> getDaBidVO(@RequestParam Long unitId) {
         DaBidVO daBidVO = new DaBidVO();
         Unit unit = domainTunnel.getByAggregateId(Unit.class, unitId.toString());
         if (unit.getMetaUnit().getUnitType() == UnitType.GENERATOR) {
             GeneratorDO generatorDO = generatorDOMapper.selectById(unit.getMetaUnit().getSourceId());
             daBidVO.setMin(generatorDO.getMinP());
             daBidVO.setMax(daBidVO.getMax());
-            List<Triple<Double, Double, Double>> triples = buildCostLine(unitId);
+            List<Section> triples = buildCostLine(unitId);
             daBidVO.setDaCostLines(triples);
             List<NormalDaBid> normalDaBids = unit.getNormalDaBids();
             daBidVO.setNormalDaBids(normalDaBids);
@@ -125,17 +126,17 @@ public class DaController {
             daBidVO.setForecastQuantities(daForecasts);
         }
 
-        return daBidVO;
+        return Result.success(daBidVO);
     }
 
     final ThermalUnitOperatingCostMapper costMapper;
     final StartupShutdownCostDOMapper startupShutdownCostDOMapper;
 
     @GetMapping("calculateSectionPrice")
-    public Double calculateSectionPrice(@RequestBody SectionPO sectionPO) {
-        List<Triple<Double, Double, Double>> triples = buildCostLine(sectionPO.getUnitId());
+    public Result<Double> calculateSectionPrice(@RequestBody SectionPO sectionPO) {
+        List<Section> triples = buildCostLine(sectionPO.getUnitId());
         double volume = 0D;
-        for (Triple<Double, Double, Double> triple : triples) {
+        for (Section triple : triples) {
             if (triple.getRight() <= sectionPO.getLeft()) {
                 continue;
             }
@@ -144,14 +145,15 @@ public class DaController {
             }
             double maxLeft = Math.max(sectionPO.getLeft(), triple.getLeft());
             double maxRight = Math.min(sectionPO.getRight(), triple.getRight());
-            volume += (maxRight - maxLeft) * triple.getMiddle();
+            volume += (maxRight - maxLeft) * triple.getValue();
         }
-        return volume * sectionPO.getRatio() /(sectionPO.getRight() - sectionPO.getLeft());
+        Double price = volume * sectionPO.getRatio() /(sectionPO.getRight() - sectionPO.getLeft());
+        return Result.success(price);
     }
 
 
-    private List<Triple<Double, Double, Double>> buildCostLine(Long unitId) {
-        List<Triple<Double, Double, Double>> triples = new ArrayList<>();
+    private List<Section> buildCostLine(Long unitId) {
+        List<Section> triples = new ArrayList<>();
         Unit unit = domainTunnel.getByAggregateId(Unit.class, unitId.toString());
         Integer sourceId = unit.getMetaUnit().getSourceId();
         LambdaQueryWrapper<ThermalUnitOperatingCost> eq = new LambdaQueryWrapper<ThermalUnitOperatingCost>().eq(ThermalUnitOperatingCost::getUnitId, sourceId);
@@ -164,18 +166,18 @@ public class DaController {
             double basePrice = startupShutdownCostDO.getSpotCostMinoutput() / minP;
             double left = 0D;
             double right = minP;
-            Triple<Double, Double, Double> triple = Triple.of(left, right, basePrice);
+            Section triple = new Section(left,basePrice, right);
             triples.add(triple);
             for (ThermalUnitOperatingCost thermalUnitOperatingCost : thermalUnitOperatingCosts) {
                 left = right;
                 right = right + thermalUnitOperatingCost.getSpotCostMw();
-                triple = Triple.of(left, thermalUnitOperatingCost.getSpotCostMarginalCost(), right);
+                triple = new Section(left, thermalUnitOperatingCost.getSpotCostMarginalCost(), right);
                 triples.add(triple);
             }
         } else {
             GeneratorDO generatorDO = generatorDOMapper.selectById(sourceId);
             Double renewableGovernmentSubsidy = sprMapper.selectList(null).get(0).getRenewableGovernmentSubsidy();
-            triples.add(Triple.of(generatorDO.getMinP(), renewableGovernmentSubsidy, generatorDO.getMaxP()));
+            triples.add(new Section(generatorDO.getMinP(), renewableGovernmentSubsidy, generatorDO.getMaxP()));
         }
 
         return triples;
