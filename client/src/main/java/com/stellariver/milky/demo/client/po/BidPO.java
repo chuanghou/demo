@@ -6,6 +6,7 @@ import com.stellariver.milky.demo.common.enums.TimeFrame;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
@@ -17,8 +18,8 @@ import javax.validation.constraints.PositiveOrZero;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BidPO {
 
-    @NotNull @PositiveOrZero
-    Integer section;
+    @NotBlank
+    String section;
     @NotNull @OfEnum(enumType = TimeFrame.class)
     String timeFrame;
     @NotNull @OfEnum(enumType = Direction.class)
