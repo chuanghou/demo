@@ -83,8 +83,16 @@ public class UnitController {
         queryWrapper.eq(UnitDO::getUserId, Integer.parseInt(userId));
         queryWrapper.eq(UnitDO::getRoundId, comp.getRoundId());
         List<Unit> units = Collect.transfer(unitDOMapper.selectList(queryWrapper), UnitDAOAdapter.Convertor.INST::to);
+        boolean equals0 = Objects.equals(marketTypeValue, MarketType.INTER_ANNUAL_PROVINCIAL.name());
+        boolean equals1 = Objects.equals(marketTypeValue, MarketType.INTER_MONTHLY_PROVINCIAL.name());
+        if (equals0 || equals1) {
+            units = units.stream()
+                    .filter(unit -> unit.getMetaUnit().getUnitType().generalDirection() == unit.getMetaUnit().getProvince().interDirection())
+                    .collect(Collectors.toList());
+        }
+        List<Unit> finalUnits = units;
         List<UnitVO> unitVOs = Arrays.stream(TimeFrame.values()).map(t -> {
-            return units.stream().map(u -> to(u, MarketType.valueOf(marketTypeValue), t)).collect(Collectors.toList());
+            return finalUnits.stream().map(u -> to(u, MarketType.valueOf(marketTypeValue), t)).collect(Collectors.toList());
         }).flatMap(Collection::stream).collect(Collectors.toList());
         return Result.success(unitVOs);
     }
