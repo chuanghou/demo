@@ -104,13 +104,13 @@ public class CompTest {
         CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationsParam).agentNumber(5).build();
         Json.toJson(compCreatePO);
         System.out.println(Json.toJson(compCreatePO));
-        compController.create(token, compCreatePO);
+        compController.create(compCreatePO);
         Thread.sleep(3100);
         Result<Comp> compResult = compController.runningComp();
         Assertions.assertTrue(compResult.getSuccess());
         Comp runningComp = compResult.getData();
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.INIT);
-        compController.start(token, runningComp.getCompId());
+        compController.start(runningComp.getCompId());
         runningComp = compController.runningComp().getData();
 
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);
@@ -206,14 +206,14 @@ public class CompTest {
         }
         Map<String, Map<String, Integer>> durationsParam = Json.parse(Json.toJson(durations), new TypeReference<Map<String, Map<String, Integer>>>() {});
         CompCreatePO compCreatePO = CompCreatePO.builder().durations(durationsParam).agentNumber(5).build();
-        compController.create(adminToken, compCreatePO);
+        compController.create(compCreatePO);
         Thread.sleep(10);
 
         Result<Comp> compResult = compController.runningComp();
         Assertions.assertTrue(compResult.getSuccess());
         Comp runningComp = compResult.getData();
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.INIT);
-        compController.start(adminToken, runningComp.getCompId());
+        compController.start(runningComp.getCompId());
         Thread.sleep(100);
         runningComp = compController.runningComp().getData();
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);

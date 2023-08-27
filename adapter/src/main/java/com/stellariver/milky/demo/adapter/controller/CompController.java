@@ -114,8 +114,7 @@ public class CompController {
 
 
     @PostMapping("create")
-    public Result<Void> create(@RequestHeader("token") String token,
-                               @RequestBody CompCreatePO compCreatePO) {
+    public Result<Void> create(@RequestBody CompCreatePO compCreatePO) {
 
         Map<MarketType, Map<Status.MarketStatus, Integer>> durationParams = Json.parse(
                 Json.toJson(compCreatePO.getDurations()),
@@ -128,11 +127,6 @@ public class CompController {
             d.forEach((s, l) -> sd.put(s, Duration.of(l, ChronoUnit.MINUTES)));
             durations.put(t, sd);
         });
-
-        User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
-        if (user.getRole() != Role.ADMIN) {
-            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
-        }
         Long compId = uniqueIdBuilder.get();
         MarketSettingDO marketSettingDO = marketSettingMapper.selectById(1);
         marketSettingDO.setRoundId(1);
@@ -179,12 +173,7 @@ public class CompController {
 
 
     @PostMapping("start")
-    public Result<Void> start(@RequestHeader String token,
-                              @RequestParam Long compId) {
-        User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
-        if (user.getRole() != Role.ADMIN) {
-            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
-        }
+    public Result<Void> start(@RequestParam Long compId) {
         CompCommand.Start command = CompCommand.Start.builder().compId(compId).build();
         CommandBus.accept(command, new HashMap<>());
         return Result.success();
@@ -206,12 +195,7 @@ public class CompController {
 
 
     @PostMapping("edit")
-    public Result<Void> edit(@RequestHeader String token,
-                             @RequestBody CompEditPO compEditPO) {
-        User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
-        if (user.getRole() != Role.ADMIN) {
-            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
-        }
+    public Result<Void> edit(@RequestBody CompEditPO compEditPO) {
         List<Map<MarketType, Duration>> durations = compEditPO.getDurations().stream().map(mapPO -> {
             Map<MarketType, Duration> map = new HashMap<>();
             mapPO.forEach((key, value) -> map.put(MarketType.valueOf(key), Duration.of(value, ChronoUnit.CENTURIES)));
