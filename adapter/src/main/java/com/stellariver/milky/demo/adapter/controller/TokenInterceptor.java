@@ -31,7 +31,7 @@ public class TokenInterceptor implements HandlerInterceptor {
         }
 
         response.setContentType("application/json; charset=utf-8");
-        Result<Object> result = Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("账户密码错误!"), ExceptionType.BIZ);
+        Result<Object> result = Result.error(ErrorEnums.ACCOUNT_PASSWORD_ERROR.message("账户密码错误!"), ExceptionType.BIZ);
         response.getWriter().append(Json.toJson(result));
         return false;
     }

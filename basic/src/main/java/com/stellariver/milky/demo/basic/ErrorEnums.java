@@ -16,6 +16,8 @@ public class ErrorEnums extends ErrorEnumsBase {
 
     public static ErrorEnum MOCK_EXCEPTION;
 
+    public static ErrorEnum ACCOUNT_PASSWORD_ERROR;
+
     static {
         for (Field field : ErrorEnums.class.getDeclaredFields()) {
             try {
