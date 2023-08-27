@@ -3,13 +3,14 @@ package com.stellariver.milky.demo.domain;
 
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.tool.common.Kit;
+import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.LogIn;
 import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.domain.command.UserEdit;
 import com.stellariver.milky.demo.domain.command.UserLogin;
 import com.stellariver.milky.demo.domain.event.UserEdited;
-import com.stellariver.milky.domain.support.ErrorEnums;
+
 import com.stellariver.milky.domain.support.base.AggregateRoot;
 import com.stellariver.milky.domain.support.command.MethodHandler;
 import com.stellariver.milky.domain.support.context.Context;
@@ -34,7 +35,7 @@ public class User extends AggregateRoot {
     @MethodHandler
     public LogIn login(UserLogin command, Context context) {
         BizEx.trueThrow(Kit.notEq(command.getPassword(), password),
-                ErrorEnums.PARAM_FORMAT_WRONG.message("登陆密码错误!"));
+                ErrorEnums.ACCOUNT_PASSWORD_ERROR.message("登陆密码错误!"));
         context.publishPlaceHolderEvent(getAggregateId());
         String token = TokenUtils.sign(userId.toString());
         return LogIn.builder().token(token).role(role).build();

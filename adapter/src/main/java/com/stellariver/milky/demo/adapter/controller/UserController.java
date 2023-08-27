@@ -1,7 +1,9 @@
 package com.stellariver.milky.demo.adapter.controller;
 
 import com.stellariver.milky.common.base.*;
+import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.common.Typed;
+import com.stellariver.milky.demo.basic.ErrorEnums;
 import com.stellariver.milky.demo.basic.LogIn;
 import com.stellariver.milky.demo.basic.Role;
 import com.stellariver.milky.demo.basic.TokenUtils;
@@ -13,7 +15,6 @@ import com.stellariver.milky.demo.domain.User;
 import com.stellariver.milky.demo.domain.command.UserLogin;
 import com.stellariver.milky.demo.infrastructure.database.entity.UserDO;
 import com.stellariver.milky.demo.infrastructure.database.mapper.UserDOMapper;
-import com.stellariver.milky.domain.support.ErrorEnums;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import com.stellariver.milky.domain.support.command.CommandBus;
 import lombok.AccessLevel;
@@ -74,23 +75,13 @@ public class UserController {
         return Result.success();
     }
 
-
     @GetMapping("login")
-    public Result<LogInVO> login(@RequestParam String userId,
-                                 @RequestParam String password) {
-        UserLogin userLogin = UserLogin.builder().userId(userId).password(password).build();
-        Map<Class<? extends Typed<?>>, Object> parameters = new HashMap<>();
-        LogIn logIn;
-        try {
-            logIn = (LogIn) CommandBus.accept(userLogin, parameters);
-        } catch (BaseEx baseEx) {
-            if (baseEx.getFirstError().getCode().equals(ErrorEnums.AGGREGATE_NOT_EXISTED.getCode())) {
-                return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("账户不存在"), ExceptionType.BIZ);
-            } else {
-                throw new SysEx(ErrorEnums.SYS_EX);
-            }
+    public Result<LogInVO> login(@RequestParam String userId, @RequestParam String password) {
+        UserDO userDO = userDOMapper.selectById(Integer.parseInt(userId));
+        if (userDO == null || Kit.notEq(userDO.getPassword(), password)) {
+            return Result.error(ErrorEnums.ACCOUNT_PASSWORD_ERROR, ExceptionType.BIZ);
         }
-        LogInVO logInVO = LogInVO.builder().token(logIn.getToken()).role(logIn.getRole().name()).build();
+        LogInVO logInVO = new LogInVO(TokenUtils.sign(userId), userDO.getRole());
         return Result.success(logInVO);
     }
 
