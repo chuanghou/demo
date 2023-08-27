@@ -22,6 +22,7 @@ import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.PriceLimit;
 import com.stellariver.milky.demo.domain.Comp;
+import com.stellariver.milky.demo.domain.GeneratorMetaUnit;
 import com.stellariver.milky.demo.domain.Unit;
 import com.stellariver.milky.demo.domain.command.UnitCommand;
 import com.stellariver.milky.demo.domain.tunnel.Tunnel;
@@ -117,12 +118,16 @@ public class UnitController {
                     .dealVOs(toDealVOs(bid))
                     .build();
         }).collect(Collectors.toList());
-
+        GeneratorType generatorType = null;
+        if (unit.getMetaUnit().getUnitType() == UnitType.GENERATOR) {
+            generatorType = ((GeneratorMetaUnit) unit.getMetaUnit()).getGeneratorType();
+        }
         return UnitVO.builder().unitId(unit.getUnitId())
                 .name(unit.getMetaUnit().getName())
                 .timeFrame(timeFrame)
                 .province(unit.getMetaUnit().getProvince())
                 .unitType(unit.getMetaUnit().getUnitType())
+                .generatorType(generatorType)
                 .bidVOs(bidVOs)
                 .capacityVO(capacityVO)
                 .build();

@@ -1,6 +1,6 @@
 package com.stellariver.milky.demo.domain;
 
-import com.stellariver.milky.demo.basic.GeneratorType;
+import com.stellariver.milky.demo.common.enums.GeneratorType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;

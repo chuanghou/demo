@@ -9,7 +9,7 @@ import com.stellariver.milky.demo.adapter.po.SectionPO;
 import com.stellariver.milky.demo.adapter.vo.DaBidVO;
 import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.basic.ErrorEnums;
-import com.stellariver.milky.demo.basic.GeneratorType;
+import com.stellariver.milky.demo.common.enums.GeneratorType;
 import com.stellariver.milky.demo.basic.Label;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.common.NormalDaBid;
@@ -27,8 +27,6 @@ import com.stellariver.milky.domain.support.command.CommandBus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;

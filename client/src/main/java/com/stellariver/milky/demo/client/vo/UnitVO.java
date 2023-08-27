@@ -1,5 +1,6 @@
 package com.stellariver.milky.demo.client.vo;
 
+import com.stellariver.milky.demo.common.enums.GeneratorType;
 import com.stellariver.milky.demo.common.enums.Province;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
 import com.stellariver.milky.demo.common.enums.UnitType;
@@ -23,6 +24,7 @@ public class UnitVO {
     Long unitId;
     String name;
     UnitType unitType;
+    GeneratorType generatorType;
     Province province;
     TimeFrame timeFrame;
     CapacityVO capacityVO;
