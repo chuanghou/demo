@@ -40,4 +40,4 @@ arthas-output
 
 *.jar
 
-starter/src/main/resources/static/
+static/
