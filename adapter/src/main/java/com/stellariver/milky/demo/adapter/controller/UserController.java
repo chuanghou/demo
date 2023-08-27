@@ -79,7 +79,7 @@ public class UserController {
     public Result<LogInVO> login(@RequestParam String userId, @RequestParam String password) {
         UserDO userDO = userDOMapper.selectById(Integer.parseInt(userId));
         if (userDO == null || Kit.notEq(userDO.getPassword(), password)) {
-            return Result.error(ErrorEnums.ACCOUNT_PASSWORD_ERROR, ExceptionType.BIZ);
+            return Result.error(ErrorEnums.ACCOUNT_PASSWORD_ERROR.message("账号密码错误"), ExceptionType.BIZ);
         }
         LogInVO logInVO = new LogInVO(TokenUtils.sign(userId), userDO.getRole());
         return Result.success(logInVO);
