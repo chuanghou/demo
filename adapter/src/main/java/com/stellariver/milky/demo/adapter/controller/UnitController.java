@@ -130,6 +130,7 @@ public class UnitController {
                 .generatorType(generatorType)
                 .bidVOs(bidVOs)
                 .capacityVO(capacityVO)
+                .sourceId(unit.getMetaUnit().getSourceId())
                 .build();
     }
 

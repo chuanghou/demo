@@ -29,5 +29,6 @@ public class UnitVO {
     TimeFrame timeFrame;
     CapacityVO capacityVO;
     List<BidVO> bidVOs;
+    Integer sourceId;
 
 }
