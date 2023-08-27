@@ -32,14 +32,12 @@ public class WebConfiguration implements WebMvcConfigurer {
         configurer.setTaskExecutor(new ConcurrentTaskExecutor(Executors.newFixedThreadPool(3)));
         configurer.setDefaultTimeout(30000);
     }
- 
+
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        List<String> excludePath = new ArrayList<>();
-        excludePath.add("/user/login");  //登录
-        excludePath.add("/static/**");  //静态资源
-        registry.addInterceptor(tokenInterceptor).addPathPatterns("/**").excludePathPatterns(excludePath);
-        WebMvcConfigurer.super.addInterceptors(registry);
+//        registry.addInterceptor(new TokenInterceptor())//使用那个拦截器
+//                .addPathPatterns("/**")//所有请求都被拦截包括静态资源了。
+//                .excludePathPatterns("/", "/index.html", "/error", "/login", "/static/css/**", "/static/js/**", "/static/media/**", "/fonts/**");//设置要放行的页面。
     }
 }
