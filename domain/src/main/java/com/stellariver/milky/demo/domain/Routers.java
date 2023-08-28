@@ -118,8 +118,8 @@ public class Routers implements EventRouters {
             Duration duration = comp.getDurations().get(currentStage.getMarketType()).get(currentStage.getMarketStatus());
             time += duration.get(ChronoUnit.SECONDS) * 1000;
             accumulateDuration = accumulateDuration.plus(duration);
-            Map<MarketType, Map<Status.MarketStatus, Long>> map0 = endTime.compute(currentStage.getRoundId(), (k, v) -> new HashMap<>());
-            Map<Status.MarketStatus, Long> map1 = map0.compute(currentStage.getMarketType(), (k, v) -> new HashMap<>());
+            Map<MarketType, Map<Status.MarketStatus, Long>> map0 = endTime.computeIfAbsent(currentStage.getRoundId(), k -> new HashMap<>());
+            Map<Status.MarketStatus, Long> map1 = map0.computeIfAbsent(currentStage.getMarketType(), k -> new HashMap<>());
             map1.put(currentStage.getMarketStatus(), new Date(time).getTime());
             Stage nexStage = currentStage.next();
             CompCommand.Step command = CompCommand.Step.builder().nextStage(nexStage).compId(comp.getCompId()).build();
