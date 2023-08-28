@@ -112,12 +112,12 @@ public class Routers implements EventRouters {
         Duration accumulateDuration = Duration.ZERO;
         long time = Clock.currentTimeMillis();
 
-        Map<Stage, Date> endTime = new HashMap<>();
+        Map<Stage, Long> endTime = new HashMap<>();
         do {
             Duration duration = comp.getDurations().get(currentStage.getMarketType()).get(currentStage.getMarketStatus());
             time += duration.get(ChronoUnit.SECONDS) * 1000;
             accumulateDuration = accumulateDuration.plus(duration);
-            endTime.put(currentStage, new Date(time));
+            endTime.put(currentStage, new Date(time).getTime());
             Stage nexStage = currentStage.next();
             CompCommand.Step command = CompCommand.Step.builder().nextStage(nexStage).compId(comp.getCompId()).build();
             DelayCommandWrapper delayCommandWrapper = new DelayCommandWrapper(command, new Date(time));

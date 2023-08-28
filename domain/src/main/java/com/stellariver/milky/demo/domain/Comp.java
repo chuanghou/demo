@@ -54,7 +54,7 @@ public class Comp extends AggregateRoot implements BaseDataObject<Long> {
     Map<MarketType, Map<TimeFrame, GridLimit>> transLimit;
     Map<MarketType, Map<Status.MarketStatus, Duration>> durations;
 
-    Map<Stage, Date> endTime;
+    Map<Stage, Long> endTime;
 
     Boolean review;
 

@@ -497,9 +497,12 @@ public class DataController {
     }
 
     List<Double> resolveDeals(Unit unit, MarketType marketType) {
-        List<Double> deals = new ArrayList<>(24);
+        List<Double> deals = new ArrayList<>();
+        for (int i = 0; i < 24; i++) {
+            deals.add(0D);
+        }
         unit.getBids().values().stream()
-                .filter(bid -> bid.getMarketType() ==marketType)
+                .filter(bid -> bid.getMarketType() == marketType)
                 .collect(Collectors.groupingBy(Bid::getTimeFrame))
                 .forEach(((t, bids) -> {
                     Double aDouble = bidDealTotal(bids);

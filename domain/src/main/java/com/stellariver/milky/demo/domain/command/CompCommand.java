@@ -106,7 +106,7 @@ public class CompCommand {
 
         Long compId;
 
-        Map<Stage, Date> endTime = new HashMap<>();
+        Map<Stage, Long> endTime = new HashMap<>();
 
         @Override
         public String getAggregateId() {
