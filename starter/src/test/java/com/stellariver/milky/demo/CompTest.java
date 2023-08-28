@@ -214,6 +214,7 @@ public class CompTest {
         Comp runningComp = compResult.getData();
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.INIT);
         compController.start(runningComp.getCompId());
+        Comp data = compController.runningComp().getData();
         Thread.sleep(100);
         runningComp = compController.runningComp().getData();
         Assertions.assertSame(runningComp.getCompStatus(), Status.CompStatus.OPEN);

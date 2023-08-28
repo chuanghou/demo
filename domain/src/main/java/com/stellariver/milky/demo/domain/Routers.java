@@ -6,6 +6,7 @@ import com.stellariver.milky.common.base.SysEx;
 import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.common.Kit;
 import com.stellariver.milky.common.tool.util.Collect;
+import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.basic.*;
 import com.stellariver.milky.demo.common.Bid;
 import com.stellariver.milky.demo.common.Deal;
@@ -120,13 +121,15 @@ public class Routers implements EventRouters {
             accumulateDuration = accumulateDuration.plus(duration);
             Map<MarketType, Map<Status.MarketStatus, Long>> map0 = endTime.computeIfAbsent(currentStage.getRoundId(), k -> new HashMap<>());
             Map<Status.MarketStatus, Long> map1 = map0.computeIfAbsent(currentStage.getMarketType(), k -> new HashMap<>());
-            map1.put(currentStage.getMarketStatus(), new Date(time).getTime());
+            map1.put(currentStage.getMarketStatus(), time);
             Stage nexStage = currentStage.next();
             CompCommand.Step command = CompCommand.Step.builder().nextStage(nexStage).compId(comp.getCompId()).build();
             DelayCommandWrapper delayCommandWrapper = new DelayCommandWrapper(command, new Date(time));
             delayExecutor.delayQueue.add(delayCommandWrapper);
             currentStage = nexStage;
         } while (!currentStage.lastOne(comp.getRoundTotal()));
+
+        System.out.println(Json.toJson(endTime));
 
         delayExecutor.start();
 
@@ -140,6 +143,9 @@ public class Routers implements EventRouters {
         tunnel.updateRoundIdForMarketSetting(comp.getRoundId());
     }
 
+    public static void main(String[] args) {
+        System.out.println(new Date(1693237943499L));
+    }
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
     static class DelayCommandWrapper implements Delayed {
