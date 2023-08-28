@@ -143,9 +143,6 @@ public class Routers implements EventRouters {
         tunnel.updateRoundIdForMarketSetting(comp.getRoundId());
     }
 
-    public static void main(String[] args) {
-        System.out.println(new Date(1693237943499L));
-    }
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
     static class DelayCommandWrapper implements Delayed {

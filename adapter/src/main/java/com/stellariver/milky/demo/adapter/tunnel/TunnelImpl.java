@@ -119,7 +119,7 @@ public class TunnelImpl implements Tunnel {
     final TieLineDOMapper tieLineDOMapper;
     @Override
     public void tieLinePower(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes, Map<TimeFrame, CentralizedDeals> centralizedDealsMap) {
-        LambdaQueryWrapper<TieLinePowerDO> queryWrapper = new LambdaQueryWrapper<TieLinePowerDO>().eq(TieLinePowerDO::getRoundId, roundId);
+        LambdaQueryWrapper<TieLinePowerDO> queryWrapper = new LambdaQueryWrapper<TieLinePowerDO>().eq(TieLinePowerDO::getRoundId, roundId + 1);
         List<TieLinePowerDO> tieLinePowerDOs = tieLineDOMapper.selectList(queryWrapper);
         Map<Integer, TieLinePowerDO> map = Collect.toMapMightEx(tieLinePowerDOs, TieLinePowerDO::getPrd);
         replenishes.forEach((t, r) -> {
@@ -174,7 +174,7 @@ public class TunnelImpl implements Tunnel {
     @Override
     public void   stackDiagram(Integer roundId, MarketType marketType, Map<TimeFrame, Double> replenishes, Map<TimeFrame, CentralizedDeals> centralizedDealsMap) {
 
-        LambdaQueryWrapper<TpbfsdDO> queryWrapper = new LambdaQueryWrapper<TpbfsdDO>().eq(TpbfsdDO::getRoundId, roundId);
+        LambdaQueryWrapper<TpbfsdDO> queryWrapper = new LambdaQueryWrapper<TpbfsdDO>().eq(TpbfsdDO::getRoundId, roundId + 1);
         List<TpbfsdDO> tpbfsdDOs = tpbfsdMapper.selectList(queryWrapper);
         Map<Integer, TpbfsdDO> map = Collect.toMapMightEx(tpbfsdDOs, TpbfsdDO::getPrd);
 
