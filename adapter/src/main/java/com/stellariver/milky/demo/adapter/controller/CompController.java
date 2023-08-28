@@ -209,10 +209,6 @@ public class CompController {
 
     @PostMapping("step")
     public Result<Void> step(@RequestHeader String token, @RequestParam Long compId) {
-        User user = domainTunnel.getByAggregateId(User.class, TokenUtils.getUserId(token));
-        if (user.getRole() != Role.ADMIN) {
-            return Result.error(ErrorEnums.PARAM_FORMAT_WRONG.message("需要管理员权限"), ExceptionType.BIZ);
-        }
         Comp runningComp = tunnel.runningComp();
         BizEx.nullThrow(runningComp, ErrorEnums.PARAM_FORMAT_WRONG.message("当前无运行中的比赛"));
         boolean equals = runningComp.getCompId().equals(compId);
