@@ -106,7 +106,7 @@ public class CompCommand {
 
         Long compId;
 
-        Map<Stage, Long> endTime = new HashMap<>();
+        Map<Integer, Map<MarketType, Map<Status.MarketStatus, Long>>> endTime;
 
         @Override
         public String getAggregateId() {
