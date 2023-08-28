@@ -273,6 +273,7 @@ public class CompTest {
             unitController.centralizedBid(centralizedBidPO, user0Token);
         }
 
+        Unit byAggregateId = domainTunnel.getByAggregateId(Unit.class, receiveLoad.getUnitId());
         compController.step(adminToken, runningComp.getCompId());
         Long compId = compController.runningComp().getData().getCompId();
         Assertions.assertNotNull(compController.runningComp());
@@ -283,6 +284,7 @@ public class CompTest {
         Assertions.assertSame(runningComp.getMarketStatus(), Status.MarketStatus.OPEN);
 
         BidPO bidP0 = BidPO.builder()
+                .section("one")
                 .timeFrame(TimeFrame.PEAK.name())
                 .direction(Direction.SELL.name())
                 .quantity(100D)
@@ -298,6 +300,7 @@ public class CompTest {
         }).collect(Collectors.toList()).get(0);
 
         BidPO bidP1 = BidPO.builder()
+                .section("one")
                 .timeFrame(TimeFrame.PEAK.name())
                 .direction(Direction.BUY.name())
                 .quantity(100D)
@@ -317,6 +320,7 @@ public class CompTest {
         System.out.println("Hello");
 
         BidPO bidP2 = BidPO.builder()
+                .section("one")
                 .timeFrame(TimeFrame.PEAK.name())
                 .direction(Direction.BUY.name())
                 .quantity(200D)
@@ -326,6 +330,7 @@ public class CompTest {
         unitController.realtimeNewBid(realtimeNewBidPO2, user0Token);
 
         BidPO bidP3 = BidPO.builder()
+                .section("one")
                 .timeFrame(TimeFrame.PEAK.name())
                 .direction(Direction.SELL.name())
                 .quantity(100D)
