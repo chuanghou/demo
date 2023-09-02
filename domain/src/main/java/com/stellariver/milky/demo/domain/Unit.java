@@ -50,7 +50,7 @@ public class Unit extends AggregateRoot {
     Long compId;
     Integer roundId;
 
-    AbstractMetaUnit metaUnit;
+    MetaUnit metaUnit;
 
     Map<Long, Bid> bids = new HashMap<>();
 

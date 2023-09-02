@@ -1,14 +1,11 @@
 package com.stellariver.milky.demo;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.stellariver.milky.common.base.BeanUtil;
 import com.stellariver.milky.common.base.BizEx;
 import com.stellariver.milky.common.base.Result;
 import com.stellariver.milky.common.base.SysEx;
-import com.stellariver.milky.common.tool.common.Clock;
 import com.stellariver.milky.common.tool.util.Json;
 import com.stellariver.milky.demo.adapter.controller.*;
-import com.stellariver.milky.demo.adapter.repository.domain.UnitDAOAdapter;
 import com.stellariver.milky.demo.basic.Label;
 import com.stellariver.milky.demo.basic.TokenUtils;
 import com.stellariver.milky.demo.common.enums.UnitType;
@@ -19,24 +16,18 @@ import com.stellariver.milky.demo.common.Deal;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.Status;
 import com.stellariver.milky.demo.common.enums.*;
-import com.stellariver.milky.demo.domain.AbstractMetaUnit;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
-import com.stellariver.milky.demo.infrastructure.database.entity.*;
 import com.stellariver.milky.demo.infrastructure.database.mapper.*;
 import com.stellariver.milky.domain.support.ErrorEnums;
 import com.stellariver.milky.domain.support.base.DomainTunnel;
 import lombok.CustomLog;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 

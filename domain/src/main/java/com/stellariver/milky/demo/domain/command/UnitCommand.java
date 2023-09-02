@@ -1,7 +1,7 @@
 package com.stellariver.milky.demo.domain.command;
 
 import com.stellariver.milky.demo.common.*;
-import com.stellariver.milky.demo.domain.AbstractMetaUnit;
+import com.stellariver.milky.demo.domain.MetaUnit;
 import com.stellariver.milky.domain.support.command.Command;
 import com.stellariver.milky.domain.support.event.Event;
 import lombok.*;
@@ -155,7 +155,7 @@ public class UnitCommand {
         Integer userId;
         Long compId;
         Integer roundId;
-        AbstractMetaUnit metaUnit;
+        MetaUnit metaUnit;
 
 
         @Override

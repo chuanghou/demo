@@ -18,7 +18,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AbstractMetaUnit {
+public class MetaUnit {
 
     Integer metaUnitId;
     Integer nodeId;

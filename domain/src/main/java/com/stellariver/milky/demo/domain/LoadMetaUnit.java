@@ -6,5 +6,5 @@ import lombok.experimental.FieldDefaults;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class LoadMetaUnit extends AbstractMetaUnit{
+public class LoadMetaUnit extends MetaUnit {
 }

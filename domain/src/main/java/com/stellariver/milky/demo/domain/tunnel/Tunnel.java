@@ -4,7 +4,7 @@ import com.stellariver.milky.demo.basic.CentralizedDeals;
 import com.stellariver.milky.demo.basic.Message;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
-import com.stellariver.milky.demo.domain.AbstractMetaUnit;
+import com.stellariver.milky.demo.domain.MetaUnit;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.domain.Unit;
 
@@ -16,7 +16,7 @@ public interface Tunnel {
 
     List<Unit> listUnitsByCompId(Long compId);
 
-    AbstractMetaUnit getByMetaUnitId(String metaUnitId);
+    MetaUnit getByMetaUnitId(String metaUnitId);
 
     long loadGeneratorNumber();
 
@@ -24,7 +24,7 @@ public interface Tunnel {
 
     long loadUnitNumber();
 
-    Map<Integer, AbstractMetaUnit> getMetaUnitsByIds(Set<Integer> metaUnitIds);
+    Map<Integer, MetaUnit> getMetaUnitsByIds(Set<Integer> metaUnitIds);
 
     Set<Integer> getMetaUnitIdBySourceIds(Set<Integer> metaUnitSourceIds);
 

@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class GeneratorMetaUnit extends AbstractMetaUnit{
+public class GeneratorMetaUnit extends MetaUnit {
 
     GeneratorType generatorType;
 }

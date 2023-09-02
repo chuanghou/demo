@@ -8,7 +8,7 @@ import com.stellariver.milky.common.tool.util.Collect;
 import com.stellariver.milky.demo.basic.BasicConvertor;
 import com.stellariver.milky.demo.common.enums.UnitType;
 import com.stellariver.milky.demo.common.Bid;
-import com.stellariver.milky.demo.domain.AbstractMetaUnit;
+import com.stellariver.milky.demo.domain.MetaUnit;
 import com.stellariver.milky.demo.domain.GeneratorMetaUnit;
 import com.stellariver.milky.demo.domain.LoadMetaUnit;
 import com.stellariver.milky.demo.domain.Unit;
@@ -75,7 +75,7 @@ public class UnitDAOAdapter implements DaoAdapter<Unit> {
             unit.setBids(Collect.toMapMightEx(bids, Bid::getBidId));
         }
 
-        default AbstractMetaUnit to(MetaUnitDO metaUnitDO) {
+        default MetaUnit to(MetaUnitDO metaUnitDO) {
             boolean b = Kit.eq(metaUnitDO.getUnitType(), UnitType.GENERATOR.name());
             return b ? Convertor.INST.toGeneratorMetaUnit(metaUnitDO) : Convertor.INST.toLoadMetaUnit(metaUnitDO);
         }

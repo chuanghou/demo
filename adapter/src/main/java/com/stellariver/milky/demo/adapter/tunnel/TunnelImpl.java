@@ -13,7 +13,7 @@ import com.stellariver.milky.demo.basic.Message;
 import com.stellariver.milky.demo.basic.RtCompVO;
 import com.stellariver.milky.demo.common.MarketType;
 import com.stellariver.milky.demo.common.enums.TimeFrame;
-import com.stellariver.milky.demo.domain.AbstractMetaUnit;
+import com.stellariver.milky.demo.domain.MetaUnit;
 import com.stellariver.milky.demo.domain.Comp;
 import com.stellariver.milky.demo.common.RtProcessorKey;
 import com.stellariver.milky.demo.domain.Unit;
@@ -52,7 +52,7 @@ public class TunnelImpl implements Tunnel {
     }
 
     @Override
-    public AbstractMetaUnit getByMetaUnitId(String metaUnitId) {
+    public MetaUnit getByMetaUnitId(String metaUnitId) {
         return null;
     }
 
@@ -72,12 +72,12 @@ public class TunnelImpl implements Tunnel {
     }
 
     @Override
-    public Map<Integer, AbstractMetaUnit> getMetaUnitsByIds(Set<Integer> metaUnitIds) {
+    public Map<Integer, MetaUnit> getMetaUnitsByIds(Set<Integer> metaUnitIds) {
         LambdaQueryWrapper<MetaUnitDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(MetaUnitDO::getMetaUnitId, metaUnitIds);
-        Map<Integer, AbstractMetaUnit> metaUnitMap = new HashMap<>();
+        Map<Integer, MetaUnit> metaUnitMap = new HashMap<>();
         metaUnitDOMapper.selectList(queryWrapper).forEach(metaUnitDO -> {
-            AbstractMetaUnit abstractMetaUnit = UnitDAOAdapter.Convertor.INST.to(metaUnitDO);
+            MetaUnit abstractMetaUnit = UnitDAOAdapter.Convertor.INST.to(metaUnitDO);
             metaUnitMap.put(metaUnitDO.getMetaUnitId(), abstractMetaUnit);
         });
         return metaUnitMap;

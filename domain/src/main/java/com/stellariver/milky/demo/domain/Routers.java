@@ -63,7 +63,7 @@ public class Routers implements EventRouters {
             Set<Integer> metaUnitSourceIds = allocateSourceId(comp.getRoundId(), comp.getUserTotal(), userId);
             Set<Integer> metaUnitIds = tunnel.getMetaUnitIdBySourceIds(metaUnitSourceIds);
             BizEx.trueThrow(metaUnitIds.size() != 4, ErrorEnums.SYS_EX.message("应该分配是个4个机组负荷"));
-            Map<Integer, AbstractMetaUnit> metaUnits = tunnel.getMetaUnitsByIds(new HashSet<>(metaUnitIds));
+            Map<Integer, MetaUnit> metaUnits = tunnel.getMetaUnitsByIds(new HashSet<>(metaUnitIds));
             long size = metaUnits.values().stream().map(metaUnit -> Pair.of(metaUnit.getProvince(), metaUnit.getUnitType())).distinct().count();
             BizEx.trueThrow(Kit.notEq(size, 4L), ErrorEnums.CONFIG_ERROR.message("单元分配问题"));
             metaUnitIds.forEach(metaUnitId -> {
@@ -85,6 +85,7 @@ public class Routers implements EventRouters {
         List<Integer> integers = Allocate.allocateSourceId(roundId, userIdTotal, 30, userId);
         return new HashSet<>(integers);
     }
+
 
     @EventRouter
     public void routePush(CompEvent.Started started, Context context) {
